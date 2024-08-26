@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     let upgradePoints = 0; // Initialize UpgradePoint variable
+    let lastResetClick = 0;
+    let resetClickCount = 0;
 
     const floors = [
         { id: 1, progress: 0, maxProgress: 10, elementId: 'floor1', cost: 10, unlocked: true, autoTick: 0, autoTickLevel: 0, autoTickEnabled: true, autoElementID: 'upgradeAutoTickFloor1', costElementID: null},
@@ -9,6 +11,19 @@ document.addEventListener('DOMContentLoaded', function () {
     function resetGameState() {
         localStorage.removeItem('idleGameSave');
      //   location.reload(); // Reload the page to reset everything
+    }
+    function hardReset() {
+      if(Date.now() - lastResetClick > 2000){
+        lastResetClick=Date.now();
+        resetClickCount = 1;
+        return;
+      }
+      lastResetClick = Date.now();
+      resetClickCount+=1;
+      if(resetClickCount > 2){
+        resetGameState();
+        location.reload();
+      }
     }
     function saveGameState() {
         const gameState = {
