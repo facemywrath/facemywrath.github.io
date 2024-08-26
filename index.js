@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     let upgradePoints = 0; // Initialize UpgradePoint variable
+    let gold = 0;
     let lastResetClick = 0;
     let resetClickCount = 0;
 
@@ -29,6 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function saveGameState() {
         const gameState = {
             upgradePoints: upgradePoints,
+            gold: gold,
             floors: floors.map(floor => ({
                 id: floor.id,
                 progress: floor.progress,
@@ -48,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (savedGameState) {
             const gameState = JSON.parse(savedGameState);
             upgradePoints = gameState.upgradePoints;
-
+            gold = gameState.gold;
             gameState.floors.forEach(savedFloor  => {
                 if(savedFloor.id > 1) {
                   addFloor();
@@ -442,11 +444,12 @@ function revealBeatDungeonButton() {
 // Function to reset the game and award gold when "Beat Dungeon" is clicked 
 function beatDungeon() {
     // Award the player with 1 gold (implement your gold system here)
-    let gold = parseInt(localStorage.getItem('gold') || '0', 10);
     gold += 1;
-    localStorage.setItem('gold', gold.toString());
-    
-    upgradePoints = 0;
+    let goldLabel = document.getElementById('gold');
+    if(goldLabel){
+      goldLabel.textContent= 'Gold: ' + String(gold);
+    }
+    upgradePoints = gold;
 
     // Remove all HTML elements for floors and upgrades except for Floor 1
     floors.forEach(floor => {
