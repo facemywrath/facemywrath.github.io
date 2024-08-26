@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idle Game - Floors</title>
+    <link rel="stylesheet" href="/index.css">
+</head>
+<body>
+    <div class="game-container" id="gameView">
+        <h1>Idle Game - Floors</h1>
+        <button id="beatDungeonButton" style="display: none;">Beat Dungeon</button>
+        <div id="upgradePoints">Upgrade Points: 0</div> <!-- Display Upgrade Points -->
+        <button id="openUpgradesButton">Upgrades</button> <!-- Button to open upgrades menu -->
+        <!-- Floors 1 to 10 -->
+        <div class="floor-container" id="floor1Container">
+            <input type="checkbox" id="autoTickFloor1Toggle" class="auto-tick-toggle" checked> 
+            <div class="floor" id="floor1">
+                <div class="progress-bar" id="floor1Progress">
+                    <span class="progress-text">Beat Floor 1</span>
+                    <span class="progress-count" id="floor1Label">0/10</span>
+                    <div class="progress-fill" id="floor1Fill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upgrades Menu -->
+    <div class="upgrades-container" id="upgradesView" style="display: none;">
+        <h1>Upgrades</h1>
+        <div id="upgradePointsDisplay">Upgrade Points: 0</div> <!-- Display Upgrade Points in upgrades menu -->
+        <button id="closeUpgradesButton">Back to Game</button> <!-- Button to return to the main game view -->
+
+        <!-- Upgrade options for Floor 1 -->
+        <div class="upgrade-row" id="upgradeRowFloor1">
+          
+            <div class="upgrade-option">
+                <button id="upgradeAutoTickFloor1">Increase Floor 1 AutoTick (Level 0): 6 Points</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/index.js"></script>
+</body>
+</html>
