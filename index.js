@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const newFloor = {
             id: newFloorId,
-            progress: 9,
+            progress: 0,
             maxProgress: 10,
             elementId: `floor${newFloorId}`,
             cost: 10,
