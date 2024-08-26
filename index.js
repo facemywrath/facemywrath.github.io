@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       lastResetClick = Date.now();
       resetClickCount+=1;
+      
       if(resetClickCount > 2){
         resetGameState();
         location.reload();
@@ -408,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     setInterval(autoTickProgress, 100); // Auto-tick every 100 milliseconds
-
+    document.getElementById('resetButton').addEventListener('click', hardReset);
     document.getElementById('openUpgradesButton').addEventListener('click', showUpgrades);
     document.getElementById('closeUpgradesButton').addEventListener('click', hideUpgrades);
 
