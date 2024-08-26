@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
         { id: 1, progress: 0, maxProgress: 10, elementId: 'floor1', cost: 10, unlocked: true, autoTick: 0, autoTickLevel: 0, autoTickEnabled: true, autoElementID: 'upgradeAutoTickFloor1', costElementID: null},
         /* Additional floors can be added here if needed */
     ];
-    resetGameState();
+   // resetGameState();
     function resetGameState() {
         localStorage.removeItem('idleGameSave');
      //   location.reload(); // Reload the page to reset everything
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const newFloor = {
             id: newFloorId,
-            progress: 0,
+            progress: 9,
             maxProgress: 10,
             elementId: `floor${newFloorId}`,
             cost: 10,
@@ -445,12 +445,12 @@ function revealBeatDungeonButton() {
 function beatDungeon() {
     // Award the player with 1 gold (implement your gold system here)
     gold += 1;
-    let goldLabel = document.getElementById('gold');
+    const goldLabel = document.getElementById('gold');
     if(goldLabel){
       goldLabel.textContent= 'Gold: ' + String(gold);
-      goldLabel.style.display = 'flex';
+      goldLabel.style.display = 'block';
     }
-    upgradePoints = gold;
+    upgradePoints = gold*10;
 
     // Remove all HTML elements for floors and upgrades except for Floor 1
     floors.forEach(floor => {
