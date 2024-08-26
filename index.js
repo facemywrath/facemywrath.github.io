@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
         { id: 1, progress: 0, maxProgress: 10, elementId: 'floor1', cost: 10, unlocked: true, autoTick: 0, autoTickLevel: 0, autoTickEnabled: true, autoElementID: 'upgradeAutoTickFloor1', costElementID: null},
         /* Additional floors can be added here if needed */
     ];
-   // resetGameState();
+    resetGameState();
     function resetGameState() {
         localStorage.removeItem('idleGameSave');
      //   location.reload(); // Reload the page to reset everything
@@ -448,6 +448,7 @@ function beatDungeon() {
     let goldLabel = document.getElementById('gold');
     if(goldLabel){
       goldLabel.textContent= 'Gold: ' + String(gold);
+      goldLabel.style.display = 'flex';
     }
     upgradePoints = gold;
 
