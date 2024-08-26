@@ -372,7 +372,17 @@ document.addEventListener('DOMContentLoaded', function () {
                         floor.progress = Math.min(incvalue, floor.maxProgress);
                     }
                 } else {
-                    floor.progress = Math.min(floor.maxProgress, floor.progress + autoIncrement);
+                    let incvalue = floor.progress + autoIncrement;
+                        let upgradeInc = floor.autoTick * floor.id;
+
+                        if (incvalue > floor.maxProgress) {
+                            upgradeInc = upgradeInc * (floor.maxProgress - floor.progress) / autoIncrement;
+                        }
+                        if (isHighestFloor(floor)) {
+                            upgradePoints += upgradeInc;
+                        }
+                        floor.progress = Math.min(incvalue, floor.maxProgress);
+                    }
                 }
                 updateUpgradePointsDisplay();
                 updateProgressBar(floor);
