@@ -3,13 +3,18 @@ document.addEventListener('DOMContentLoaded', function () {
     let gold = 0;
     let lastResetClick = 0;
     let resetClickCount = 0;
+    let saveInterval = setInterval(() => saveGameState, 2000);
+    let saveInterrupt = false;
 
     const floors = [
         { id: 1, progress: 0, maxProgress: 10, elementId: 'floor1', cost: 10, unlocked: true, autoTick: 0, autoTickLevel: 0, autoTickEnabled: true, autoElementID: 'upgradeAutoTickFloor1', costElementID: null},
         /* Additional floors can be added here if needed */
     ];
-    resetGameState();
+        document.getElementById('resetButton').addEventListener('click', hardReset);
+  //  resetGameState();
     function resetGameState() {
+        clearInterval(saveInterval);
+        saveInterrupt = true;
         localStorage.removeItem('idleGameSave');
      //   location.reload(); // Reload the page to reset everything
     }
@@ -42,7 +47,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 upgradeLevel: floor.upgradeLevel,
             }))
         };
-        localStorage.setItem('idleGameSave', JSON.stringify(gameState));
+        if(!saveInterrupt) {
+          localStorage.setItem('idleGameSave', JSON.stringify(gameState));
+        }
     }
 
     function loadGameState() {
@@ -396,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        saveGameState(); // Save after each auto-tick cycle
+  //      saveGameState(); // Save after each auto-tick cycle
     }
 
     function checkCheckboxVisibility(floor) {
@@ -421,7 +428,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     setInterval(autoTickProgress, 100); // Auto-tick every 100 milliseconds
-    document.getElementById('resetButton').addEventListener('click', hardReset);
+
     document.getElementById('openUpgradesButton').addEventListener('click', showUpgrades);
     document.getElementById('closeUpgradesButton').addEventListener('click', hideUpgrades);
 
