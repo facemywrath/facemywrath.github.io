@@ -243,8 +243,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (floor.progress >= floor.maxProgress) {
-        if (floor.id === 10) revealBeatDungeonButton();
         if (floor.id === floors.length) {
+          if(floor.id == 10){
+            revealBeatDungeonButton();
+          }
             addFloor();
             const nextFloor = floors[floor.id];
             revealFloor(nextFloor);
@@ -425,6 +427,9 @@ document.addEventListener('DOMContentLoaded', function () {
         updateProgressBar(floor);
 
         if (floor.progress >= floor.maxProgress && floor.id == floors.length) {
+          if(floor.id == 10){
+            revealBeatDungeonButton();
+          }
             addFloor();
             const nextFloor = floors[floor.id];
             revealFloor(nextFloor);
