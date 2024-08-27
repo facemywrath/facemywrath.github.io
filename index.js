@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Handle upgrade points and revealing new floors or options if necessary
     if (isHighestFloor(floor)) {
-        upgradePoints += floor.id * (actualIncrement / maxIncrement);
+        upgradePoints += (floor.id+gold) * (actualIncrement / maxIncrement);
         updateUpgradePointsDisplay();
     }
 
@@ -397,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (previousFloor.progress >= cost) {
                     previousFloor.progress -= cost;
                     let incvalue = floor.progress + autoIncrement;
-                    let upgradeInc = floor.autoTick * floor.id;
+                    let upgradeInc = floor.autoTick * (gold + floor.id);
 
                     if (incvalue > floor.maxProgress) {
                         upgradeInc = upgradeInc * (floor.maxProgress - floor.progress) / autoIncrement;
@@ -409,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             } else {
                 let incvalue = floor.progress + autoIncrement;
-                let upgradeInc = floor.autoTick * floor.id;
+                let upgradeInc = floor.autoTick * (floor.id+gold);
 
                 if (incvalue > floor.maxProgress) {
                     upgradeInc = upgradeInc * (floor.maxProgress - floor.progress) / autoIncrement;
@@ -495,14 +495,14 @@ document.addEventListener('DOMContentLoaded', function () {
   // Function to reset the game and award gold when "Beat Dungeon" is clicked
   function beatDungeon() {
     // Award the player with 1 gold (implement your gold system here)
-    gold += 1;
+    gold = max(gold, floors.length);
     goldUnlocked = true;
     const goldLabel = document.getElementById('gold');
     if (goldLabel) {
       goldLabel.textContent = 'Gold: ' + String(gold);
       goldLabel.style.display = 'block';
     }
-    upgradePoints = gold*10;
+    upgradePoints = gold
 
     // Remove all HTML elements for floors and upgrades except for Floor 1
     floors.forEach(floor => {
