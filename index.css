@@ -64,12 +64,12 @@ button:hover {
     background-color: #ddd;
     border-radius: 5px;
     overflow: hidden;
-    height: 50px; /* Larger height for the text */
+    height: 50px;
     width: 275px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 10px; /* Add padding to space out the text */
+    padding: 0 10px;
     box-sizing: border-box;
 }
 
@@ -79,9 +79,19 @@ button:hover {
     left: 0;
     height: 100%;
     width: 0;
-    background-color: red;
+    background-color: red; /* Default color */
     transition: width 0.05s, background-color 0.5s;
     z-index: 1;
+}
+
+.progress-marker {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0;
+    background: rgba(80, 220, 80, 0.2); /* Transparent marker */
+    z-index: 0;
 }
 
 .progress-text, .progress-count {

@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
   let upgradePoints = 0; // Initialize UpgradePoint variable
+  let goldUnlocked = false;
   let gold = 0;
   let lastResetClick = 0;
   let resetClickCount = 0;
@@ -59,6 +60,14 @@ document.addEventListener('DOMContentLoaded', function () {
       const gameState = JSON.parse(savedGameState);
       upgradePoints = gameState.upgradePoints;
       gold = gameState.gold;
+      goldUnlocked = gameState.goldUnlocked;
+      if(goldUnlocked || gold > 0){
+        const goldLabel = document.getElementById('gold');
+        if (goldLabel) {
+          goldLabel.textContent = 'Gold: ' + String(gold);
+          goldLabel.style.display = 'block';
+        }
+      }
       gameState.floors.forEach(savedFloor => {
         if (savedFloor.id > 1) {
           addFloor();
@@ -92,19 +101,19 @@ document.addEventListener('DOMContentLoaded', function () {
     const newFloorId = lastFloor.id + 1;
 
     const newFloor = {
-      id: newFloorId,
-      progress: 0,
-      maxProgress: 10,
-      elementId: `floor${newFloorId}`,
-      cost: 10,
-      unlocked: false,
-      upgradeLevel: 0,
-      upgradeCost: newFloorId,
-      autoTick: 0,
-      autoTickLevel: 0,
-      autoTickEnabled: true,
-      autoElementID: `upgradeAutoTickFloor${newFloorId}`,
-      costElementID: `upgradeFloor${newFloorId}`
+        id: newFloorId,
+        progress: 0,
+        maxProgress: 10,
+        elementId: `floor${newFloorId}`,
+        cost: 10,
+        unlocked: false,
+        upgradeLevel: 0,
+        upgradeCost: newFloorId,
+        autoTick: 0,
+        autoTickLevel: 0,
+        autoTickEnabled: true,
+        autoElementID: `upgradeAutoTickFloor${newFloorId}`,
+        costElementID: `upgradeFloor${newFloorId}`
     };
 
     floors.push(newFloor);
@@ -141,12 +150,16 @@ document.addEventListener('DOMContentLoaded', function () {
     progressFill.className = 'progress-fill';
     progressFill.id = `floor${newFloorId}Fill`;
 
-    progressBar.appendChild(progressFill);
+    const progressMarker = document.createElement('div');
+    progressMarker.className = 'progress-marker';
+    progressMarker.id = `floor${newFloorId}Marker`;
+
+    progressBar.appendChild(progressMarker);  // Append marker first (z-index will handle the layer order)
+    progressBar.appendChild(progressFill);    // Append the fill on top
     progressBar.appendChild(progressText);
     progressBar.appendChild(progressCount);
 
     floorDiv.appendChild(progressBar);
-
     floorContainer.appendChild(autoTickToggle);
     floorContainer.appendChild(floorDiv);
 
@@ -161,16 +174,14 @@ document.addEventListener('DOMContentLoaded', function () {
     upgradeCostButton.id = `upgradeFloor${newFloorId}`;
     upgradeCostButton.textContent = `Reduce Floor ${newFloorId} Cost (Level 0): ${newFloor.upgradeCost} Points`;
     upgradeCostButton.disabled = false;
-    upgradeCostButton.addEventListener('click',
-      () => upgradeFloorCost(newFloorId));
+    upgradeCostButton.addEventListener('click', () => upgradeFloorCost(newFloorId));
 
     const upgradeAutoTickButton = document.createElement('button');
     upgradeAutoTickButton.id = `upgradeAutoTickFloor${newFloorId}`;
     const upgradeCost = newFloorId + newFloor.autoTickLevel;
     upgradeAutoTickButton.textContent = `Increase Floor ${newFloorId} AutoTick (Level 0): ${upgradeCost} Points`;
     upgradeAutoTickButton.disabled = false;
-    upgradeAutoTickButton.addEventListener('click',
-      () => upgradeAutoTick(newFloorId));
+    upgradeAutoTickButton.addEventListener('click', () => upgradeAutoTick(newFloorId));
 
     upgradeRow.appendChild(upgradeCostButton);
     upgradeRow.appendChild(upgradeAutoTickButton);
@@ -178,13 +189,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const upgradesContainer = document.querySelector('.upgrades-container');
     upgradesContainer.appendChild(upgradeRow);
 
-    floorDiv.addEventListener('click',
-      () => updateProgress(newFloor));
-    autoTickToggle.addEventListener('change',
-      () => {
+    // Set up event listeners for the new floor
+    floorDiv.addEventListener('click', () => updateProgress(newFloor));
+    autoTickToggle.addEventListener('change', () => {
         newFloor.autoTickEnabled = autoTickToggle.checked;
-      });
-  }
+    });
+
+    // Initialize the progress bar and marker for the new floor
+    updateProgressBar(newFloor);
+}
 
   function calculateIncrement(floor) {
     const nextFloor = floors[floor.id];
@@ -193,56 +206,54 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function updateProgress(floor) {
-    if (floor.progress >= floor.maxProgress) {
-      return;
+    if (floor.progress >= floor.maxProgress) return;
+
+    const previousFloor = floor.id > 1 ? floors[floor.id - 2] : null;
+    const maxIncrement = calculateIncrement(floor);
+    let actualIncrement = maxIncrement;
+
+    // Adjust actualIncrement if it exceeds maxProgress
+    if (floor.progress + maxIncrement > floor.maxProgress) {
+        actualIncrement = floor.maxProgress - floor.progress;
     }
 
-    if (floor.id > 1) {
-      const previousFloor = floors[floor.id - 2];
-      if (previousFloor.progress < floor.cost) {
+    // Calculate the cost ratio based on the actual increment
+    let decrement = floor.cost;
+    if (actualIncrement < maxIncrement) {
+        decrement *= actualIncrement / maxIncrement;
+    }
+
+    // Check if previousFloor has enough progress to cover the adjusted cost
+    if (previousFloor && previousFloor.progress >= decrement) {
+        previousFloor.progress -= decrement;
+        updateProgressBar(previousFloor);
+    } else if (previousFloor) {
+        // If not enough progress, exit early
         return;
-      }
-
-      previousFloor.progress -= floor.cost;
-      updateProgressBar(previousFloor);
     }
 
-    let upgradeInc = floor.id;
-    const increment = calculateIncrement(floor);
-    floor.progress += increment;
-
-    if (floor.progress > floor.maxProgress) {
-      const percentOver = (floor.progress-floor.maxProgress)/increment;
-      const percentUnder = 1-percentOver;
-      upgradeInc *= percentUnder;
-      if (floor.id > 1) {
-        const previousFloor = floors[floor.id-2];
-        previousFloor.progress += floor.cost * percentOver;
-      }
-      floor.progress = floor.maxProgress;
-    }
-
+    // Apply progress increment to the current floor
+    floor.progress += actualIncrement;
     updateProgressBar(floor);
 
+    // Handle upgrade points and revealing new floors or options if necessary
     if (isHighestFloor(floor)) {
-      upgradePoints += upgradeInc;
-      updateUpgradePointsDisplay();
+        upgradePoints += floor.id * (actualIncrement / maxIncrement);
+        updateUpgradePointsDisplay();
     }
 
     if (floor.progress >= floor.maxProgress) {
-      if (floor.id == 10) {
-        revealBeatDungeonButton();
-      }
-      if (floor.id == floors.length) {
-        addFloor();
-        const nextFloor = floors[floor.id];
-        revealFloor(nextFloor);
-        revealUpgradeOptions(nextFloor.id);
-      }
+        if (floor.id === 10) revealBeatDungeonButton();
+        if (floor.id === floors.length) {
+            addFloor();
+            const nextFloor = floors[floor.id];
+            revealFloor(nextFloor);
+            revealUpgradeOptions(nextFloor.id);
+        }
     }
 
     saveGameState(); // Save after each progress update
-  }
+}
 
   function isHighestFloor(floor) {
     return floor.unlocked && floors.every(f => !f.unlocked || f.id <= floor.id);
@@ -250,23 +261,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function updateProgressBar(floor) {
     const fillElement = document.getElementById(`${floor.elementId}Fill`);
+    const markerElement = document.getElementById(`${floor.elementId}Marker`);
     const labelElement = document.getElementById(`${floor.elementId}Label`);
 
     const cappedProgress = Math.min(floor.progress, floor.maxProgress);
+    const nextFloorCost = floors[floor.id] ? floors[floor.id].cost : 10; // Use next floor cost or 10
 
     const progressPercentage = (cappedProgress / floor.maxProgress) * 100;
     fillElement.style.width = `${progressPercentage}%`;
 
-    if (progressPercentage >= 100) {
-      fillElement.style.backgroundColor = 'green';
-    } else if (progressPercentage >= 50) {
-      fillElement.style.backgroundColor = 'yellow';
+    // Calculate the color based on the progress relative to the next floor's cost
+    let color;
+    if (cappedProgress >= nextFloorCost) {
+        color = 'green';  // Fully funded
+    } else if (cappedProgress >= nextFloorCost / 2) {
+        color = 'yellow'; // Halfway to next floor
     } else {
-      fillElement.style.backgroundColor = 'red';
+        color = 'red';    // Less than halfway
     }
+    fillElement.style.backgroundColor = color;
 
+    // Calculate the marker position based on the cost of the next floor or 10
+    const markerPercentage = (nextFloorCost / floor.maxProgress) * 100;
+    if(markerElement){
+    markerElement.style.width = `${markerPercentage}%`;
+    }
     labelElement.textContent = `${cappedProgress.toFixed(2)}/${floor.maxProgress}`;
-  }
+}
 
   function updateUpgradePointsDisplay() {
     const upgradePointsElement = document.getElementById('upgradePoints');
@@ -475,6 +496,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function beatDungeon() {
     // Award the player with 1 gold (implement your gold system here)
     gold += 1;
+    goldUnlocked = true;
     const goldLabel = document.getElementById('gold');
     if (goldLabel) {
       goldLabel.textContent = 'Gold: ' + String(gold);
