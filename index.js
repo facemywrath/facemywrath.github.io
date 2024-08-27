@@ -495,7 +495,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // Function to reset the game and award gold when "Beat Dungeon" is clicked
   function beatDungeon() {
     // Award the player with 1 gold (implement your gold system here)
-    gold = max(gold, floors.length);
+    gold = max(gold, floors.length-10);
     goldUnlocked = true;
     const goldLabel = document.getElementById('gold');
     if (goldLabel) {
