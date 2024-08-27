@@ -68,6 +68,9 @@ document.addEventListener('DOMContentLoaded', function () {
           goldLabel.style.display = 'block';
         }
       }
+      if(gameState.floors.length >= 10){
+        revealBeatDungeonButton();
+      }
       gameState.floors.forEach(savedFloor => {
         if (savedFloor.id > 1) {
           addFloor();
@@ -238,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Handle upgrade points and revealing new floors or options if necessary
     if (isHighestFloor(floor)) {
-        upgradePoints += (floor.id+gold) * (actualIncrement / maxIncrement);
+        upgradePoints += (floor.id) * (actualIncrement / maxIncrement);
         updateUpgradePointsDisplay();
     }
 
@@ -399,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (previousFloor.progress >= cost) {
                     previousFloor.progress -= cost;
                     let incvalue = floor.progress + autoIncrement;
-                    let upgradeInc = floor.autoTick * (gold + floor.id);
+                    let upgradeInc = floor.autoTick * (floor.id);
 
                     if (incvalue > floor.maxProgress) {
                         upgradeInc = upgradeInc * (floor.maxProgress - floor.progress) / autoIncrement;
@@ -411,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             } else {
                 let incvalue = floor.progress + autoIncrement;
-                let upgradeInc = floor.autoTick * (floor.id+gold);
+                let upgradeInc = floor.autoTick * (floor.id);
 
                 if (incvalue > floor.maxProgress) {
                     upgradeInc = upgradeInc * (floor.maxProgress - floor.progress) / autoIncrement;
@@ -507,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function () {
       goldLabel.textContent = 'Gold: ' + String(gold);
       goldLabel.style.display = 'block';
     }
-    upgradePoints = gold
+    upgradePoints = gold*10
 
     // Remove all HTML elements for floors and upgrades except for Floor 1
     floors.forEach(floor => {
