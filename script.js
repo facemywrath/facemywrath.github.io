@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetGame() {
         setTimeout(() => {
             initGame();
-        }, 2000); // Delay for 2 seconds before resetting
+        }, 3500); // Delay for 2 seconds before resetting
     }
 
     // Set up keyboard
