@@ -13,9 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let keyboardStatus = {}; // Tracks the status of each key
 
     // Word list
-    let wordList = [
-        'apple', 'berry', 'cider', 'drive', 'flame'
-    ];
+    let wordList = [];
 
     // DOM elements
     const guessesDiv = document.getElementById('guesses');
@@ -32,6 +30,19 @@ document.addEventListener('DOMContentLoaded', () => {
         present: 'yellow',     // Correct letter, wrong position
         absent: '#888888'      // Light grey for letters not in word
     };
+
+    // Load word list from text file
+    function loadWordList() {
+        fetch('valid-wordle-words.txt')
+            .then(response => response.text())
+            .then(data => {
+                wordList = data.split('\n').map(word => word.trim().toLowerCase());
+                initGame(); // Initialize game after the word list is loaded
+            })
+            .catch(error => {
+                console.error('Error loading word list:', error);
+            });
+    }
 
     // Generate a random word
     function getRandomWord() {
@@ -196,7 +207,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update submit button state
     function updateSubmitButton() {
-        submitButton.disabled = currentGuess.length !== wordLength;
+        const isValidWord = wordList.includes(currentGuess.toLowerCase());
+        submitButton.disabled = currentGuess.length !== wordLength || !isValidWord;
     }
 
     // Reset game after win/loss
@@ -227,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Handle backspace key differently
             if (key === 'Back') {
                 keyDiv.style.width = '90px'; // Make Back key larger
-                keyDiv.setAttribute('data-letter', 'Back');
+                keyDiv.setAttribute('data-letter','Back');
             }
 
             keyDiv.addEventListener('click', () => {
@@ -259,8 +271,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load the highscore on page load
     loadHighscore();
 
-    // Start game
-    initGame();
+    // Load the word list and start the game
+    loadWordList();
 
     // Event listeners
     submitButton.addEventListener('click', handleSubmit);
