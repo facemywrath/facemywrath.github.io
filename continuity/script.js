@@ -16,18 +16,25 @@ fetch('words_dictionary.json')
 
 // Initialize the game
 function startGame() {
-    if (usedWordIndices.length > 0) {
-        // If we have previously used words, continue from the last one
-        currentWord = wordList[usedWordIndices[usedWordIndices.length - 1]];
+    if (localStorage.getItem('currentWord')) {
+        // Load the last saved word from local storage
+        currentWord = localStorage.getItem('currentWord');
     } else {
         // Otherwise, start with a random word
         currentWord = wordList[Math.floor(Math.random() * wordList.length)];
     }
-    document.getElementById('current-word').textContent = currentWord;
+    updateCurrentWordDisplay();
+}
+
+// Update the display to show the current word with the first letter capitalized
+function updateCurrentWordDisplay() {
+    const capitalizedWord = currentWord.charAt(0).toUpperCase() + currentWord.slice(1);
+    document.getElementById('current-word').textContent = capitalizedWord;
 }
 
 // Add event listener to the submit button
-document.getElementById('submit-btn').addEventListener('click', () => {
+document.getElementById('submit-btn').addEventListener('click', (e) => {
+    e.preventDefault();  // Prevent default form submission behavior
     const userWord = document.getElementById('word-input').value.toLowerCase();
     const feedback = document.getElementById('feedback');
 
@@ -44,7 +51,7 @@ document.getElementById('submit-btn').addEventListener('click', () => {
             currentWord = userWord;
             usedWordIndices.push(wordIndex);
             score += 1;
-            document.getElementById('current-word').textContent = currentWord;
+            updateCurrentWordDisplay();
             document.getElementById('score').textContent = score;
             feedback.textContent = 'Good job!';
             saveProgress();  // Autosave after each valid submission
@@ -55,14 +62,16 @@ document.getElementById('submit-btn').addEventListener('click', () => {
         feedback.textContent = 'Word does not start with the correct letter!';
     }
 
-    // Clear input field
+    // Clear input field and re-focus on it to keep the keyboard open
     document.getElementById('word-input').value = '';
+    document.getElementById('word-input').focus(); // Keep the keyboard open by refocusing
 });
 
-// Save progress (word indices and score) to local storage
+// Save progress (word indices, score, and current word) to local storage
 function saveProgress() {
     localStorage.setItem('usedWordIndices', JSON.stringify(usedWordIndices));
     localStorage.setItem('score', score);
+    localStorage.setItem('currentWord', currentWord); // Save the current word to prevent resetting
 }
 
 // Load progress from local storage
