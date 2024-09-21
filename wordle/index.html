@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Guessing Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="scoreboard">
+            <p id="current-score">Score: 0</p>
+            <p id="highscore">Highscore: 0</p>
+        </div>
+
+        <div id="guesses">
+            <!-- Guess boxes will go here dynamically -->
+        </div>
+
+        <div id="current-guess"></div>
+
+        <div id="keyboard-container">
+            <!-- Keyboard rows will be populated dynamically -->
+        </div>
+
+        <div id="submit-button-container">
+            <button id="submit-button" disabled>Submit</button>
+        </div>
+
+        <div id="message"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
