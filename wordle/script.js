@@ -193,12 +193,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Save highscore to localStorage
     function saveHighscore() {
-        localStorage.setItem('highscore', highscore);
+        localStorage.setItem('wordle_highscore', highscore);
     }
 
     // Load highscore from localStorage
     function loadHighscore() {
-        const savedHighscore = localStorage.getItem('highscore');
+        const savedHighscore = localStorage.getItem('wordle_highscore');
         if (savedHighscore !== null) {
             highscore = parseInt(savedHighscore, 10); // Load and convert to number
         }
