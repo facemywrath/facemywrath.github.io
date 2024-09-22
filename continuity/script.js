@@ -180,7 +180,7 @@ function handleSubmit() {
         saveProgress();  // Save progress to local storage
         
         updateCurrentWordDisplay();  // Display the new current word
-        currentGuess = '';  // Reset the guess
+        currentGuess = currentWord[currentWord.length-1];  // Reset the guess
         displayCurrentGuess();  // Update the display
         updateSubmitButton();  // Disable submit until valid
         
@@ -206,14 +206,14 @@ function checkHighscore() {
 
 // Save progress to local storage
 function saveProgress() {
-    localStorage.setItem('usedWordIndices', JSON.stringify(usedWordIndices));
-    localStorage.setItem('score', score);
-    localStorage.setItem('currentWord', currentWord);  // Save the current word to prevent resetting
+    localStorage.setItem('continuity_usedWordIndices', JSON.stringify(usedWordIndices));
+    localStorage.setItem('continuity_score', score);
+    localStorage.setItem('continuity_currentWord', currentWord);  // Save the current word to prevent resetting
 }
 
 // Load highscore from localStorage
 function loadHighscore() {
-    const savedHighscore = localStorage.getItem('highscore');
+    const savedHighscore = localStorage.getItem('continuity_highscore');
     if (savedHighscore !== null) {
         highscore = parseInt(savedHighscore, 10);  // Load and convert to number
         document.getElementById('highscore').textContent = `Highscore: ${highscore}`;
@@ -222,7 +222,7 @@ function loadHighscore() {
 
 // Save highscore to localStorage
 function saveHighscore() {
-    localStorage.setItem('highscore', highscore);
+    localStorage.setItem('continuity_highscore', highscore);
 }
 
 // Event listeners
@@ -230,9 +230,9 @@ document.getElementById('submit-btn').addEventListener('click', handleSubmit);
 
 // Initialize the game when the page loads
 window.onload = function() {
-    if (localStorage.getItem('usedWordIndices')) {
-        usedWordIndices = JSON.parse(localStorage.getItem('usedWordIndices'));
-        score = parseInt(localStorage.getItem('score'));
+    if (localStorage.getItem('continuity_usedWordIndices')) {
+        usedWordIndices = JSON.parse(localStorage.getItem('continuity_usedWordIndices'));
+        score = parseInt(localStorage.getItem('continuity_score'));
         updateScoreDisplay();  // Update score display on load
     }
 
