@@ -29,13 +29,10 @@ fetch('words_dictionary.json')
 
 // Initialize the game
 function startGame() {
-    if (localStorage.getItem('currentWord')) {
-        // Load the last saved word from local storage
-        currentWord = localStorage.getItem('currentWord');
-    } else {
+    
         // Otherwise, start with a random word
         currentWord = wordList[Math.floor(Math.random() * wordList.length)];
-    }
+    
     updateCurrentWordDisplay();
     resetTimer();  // Start the timer
 }
@@ -78,7 +75,9 @@ function endGame() {
     timeLimit = 20;  // Reset the time limit for a new game
     saveProgress();  // Save the final highscore
     updateScoreDisplay();  // Update score display to show reset score
-    startGame();  // Restart the game
+    currentWord = wordList[Math.floor(Math.random() * wordList.length)];
+    updateCurrentWordDisplay();
+    resetTimer();
 }
 
 // Set up the custom keyboard
@@ -175,7 +174,7 @@ function handleSubmit() {
         // Set the current guess as the next word
         currentWord = currentGuess;
         
-        score += 1;  // Increment score
+        score += currentGuess.length;  // Increment score
         updateScoreDisplay();  // Update score display
         checkHighscore();  // Check if the highscore needs to be updated
         saveProgress();  // Save progress to local storage
