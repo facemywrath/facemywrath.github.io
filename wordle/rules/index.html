@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Wordle - Game Rules</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+                  <div class="back-button">
+                <a href="../index.html">Back to Home</a>
+            </div>
+        <header>
+            <h1>Wordle Game Rules</h1>
+        </header>
+        <main>
+            <section class="rules-section">
+                <h2>Objective</h2>
+                <p>In Wordle, your goal is to guess a secret 5-letter word within 6 attempts. After each guess, you'll receive feedback on how close your guess was to the correct word.</p>
+
+                <h2>Basic Rules</h2>
+                <ul>
+                    <li>Each word you guess must be a valid 5-letter word from the game's word list.</li>
+                    <li>After each guess, the letters will be color-coded based on their correctness:
+                        <ul>
+                            <li><span class="correct">Green</span>: Correct letter in the correct position.</li>
+                            <li><span class="present">Yellow</span>: Correct letter but in the wrong position.</li>
+                            <li><span class="absent">Grey</span>: Letter not present in the word.</li>
+                        </ul>
+                    </li>
+                    <li>You have 6 attempts to guess the correct word. If you fail, the game will reveal the correct word.</li>
+                </ul>
+
+                <h2>Keyboard</h2>
+                <ul>
+                    <li>You can either use the on-screen keyboard or your physical keyboard to input guesses.</li>
+                    <li>As you play, the keys on the keyboard will also change color to help you remember which letters you've already used and how they performed in your previous guesses.</li>
+                </ul>
+
+                <h2>Scoring</h2>
+                <ul>
+                    <li>Your score is based on how many guesses you used. The fewer guesses, the higher your score.</li>
+                    <li>If you guess the word on your first try, you'll receive the maximum score of 6 points.</li>
+                    <li>If you lose, your score resets to zero.</li>
+                </ul>
+
+                <h2>Tips</h2>
+                <ul>
+                    <li>Start with a word that contains common letters to maximize your chances of uncovering key letters early.</li>
+                    <li>Pay close attention to the letter colors after each guess, and adjust your strategy accordingly.</li>
+                </ul>
+            </section>
+        </main>
+        <footer>
+            <p>&copy; 2024 Wordle Game. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>
