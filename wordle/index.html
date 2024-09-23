@@ -3,30 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WordForge</title>
+    <title>Word Guessing Game</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>WordForge</h1>
-        <progress id="progress-bar" value="0" max="10"></progress>
-        <!-- Current word display -->
-        <div id="current-word-container">
-            <p>Your Word: <span id="word-input">_</span></p>
+    <div id="game-container">
+        <div id="scoreboard">
+            <p id="current-score">Score: 0</p>
+            <p id="highscore">Highscore: 0</p>
         </div>
 
-        <!-- Backspace button to remove the last letter -->
-        <button id="backspace-btn">Backspace</button>
+        <div id="guesses">
+            <!-- Guess boxes will go here dynamically -->
+        </div>
 
-        <!-- Submit button -->
-        <button id="submit-word" disabled>Submit Word</button>
+        <div id="current-guess"></div>
 
-        <!-- Game keyboard container -->
-        <div id="keyboard-container"></div>
+        <div id="keyboard-container">
+            <!-- Keyboard rows will be populated dynamically -->
+        </div>
 
-        <!-- Score displays -->
-        <p id="current-score">Score: 0</p>
-        <p id="highscore">High Score: 0</p>
+        <div id="submit-button-container">
+            <button id="submit-button" disabled>Submit</button>
+        </div>
+
+        <div id="message"></div>
     </div>
 
     <script src="script.js"></script>

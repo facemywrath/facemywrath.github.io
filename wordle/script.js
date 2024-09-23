@@ -1,343 +1,295 @@
-// Global game state
-let score = 0;
-let wordsSubmitted = 0; // Track words submitted for the progress bar
-let highScore = 0;  // Track the high score
-let letterPool = [];
-let currentWord = "";
-let minLetters = 10;
-let currentLetters = 20;
-let letterCooldowns = {};  // Object to track cooldowns for each letter index
-let dictionary = {};  // To store the word dictionary
+document.addEventListener('DOMContentLoaded', () => {
+    // Global variables
+    let wordLength = 5;
+    let maxGuesses = 6;
+    let currentGuess = '';
+    let guesses = [];
+    let gameOver = false;
+    let word = '';
+    let score = 0;
+    let highscore = 0;
+    
+    // Keyboard letter status
+    let keyboardStatus = {}; // Tracks the status of each key
 
-const vowels = {
-  'A': 10, // Common
-  'E': 12, // Very common
-  'I': 9,  // Common
-  'O': 8,  // Slightly less common
-  'U': 6   // Less common
-};
+    // Word list
+    let wordList = [];
 
-const consonants = {
-  'B': 2,   // Less common
-  'C': 4,   // Moderately common
-  'D': 5,   // Common
-  'F': 3,   // Less common
-  'G': 4,   // Moderately common
-  'H': 6,   // Common
-  'J': 1,   // Rare
-  'K': 1,   // Rare
-  'L': 7,   // Common
-  'M': 5,   // Common
-  'N': 9,   // Very common
-  'P': 3,   // Moderately common
-  'Q': 1,   // Very rare
-  'R': 8,   // Common
-  'S': 10,  // Very common
-  'T': 12,  // Very common
-  'V': 2,   // Less common
-  'W': 3,   // Moderately common
-  'X': 1,   // Very rare
-  'Y': 2,   // Less common
-  'Z': 1    // Very rare
-};
+    // DOM elements
+    const guessesDiv = document.getElementById('guesses');
+    const currentGuessDiv = document.getElementById('current-guess');
+    const submitButton = document.getElementById('submit-button');
+    const messageDiv = document.getElementById('message');
+    const currentScoreDiv = document.getElementById('current-score'); // For displaying current score
+    const highscoreDiv = document.getElementById('highscore'); // For displaying highscore
+    const keyboardContainer = document.getElementById('keyboard-container');
 
-const wordInput = document.getElementById("word-input");
-const scoreDisplay = document.getElementById("current-score");
-const highScoreDisplay = document.getElementById("highscore");  // Display for the high score
-const submitWordButton = document.getElementById("submit-word");
-const backspaceButton = document.getElementById("backspace-btn");
+    // Colors for guess feedback
+    const COLORS = {
+        correct: 'green',      // Correct letter and position
+        present: 'yellow',     // Correct letter, wrong position
+        absent: '#888888'      // Light grey for letters not in word
+    };
 
-// Track the indices of the letters used in the current word
-let usedLetterIndices = [];
+    // Load word list from text file
+    function loadWordList() {
+        fetch('valid-wordle-words.txt')
+            .then(response => response.text())
+            .then(data => {
+                wordList = data.split('\n').map(word => word.trim().toLowerCase());
+                initGame(); // Initialize game after the word list is loaded
+            })
+            .catch(error => {
+                console.error('Error loading word list:', error);
+            });
+    }
 
-// Initialize the game
-function initGame() {
-    loadHighScore();  // Load high score from localStorage
-    loadDictionary();  // Load the dictionary
-}
+    // Generate a random word
+    function getRandomWord() {
+        const validWords = wordList.filter(w => w.length === wordLength);
+        return validWords[Math.floor(Math.random() * validWords.length)];
+    }
 
-// Load the dictionary from the JSON file
-function loadDictionary() {
-    fetch('words_dictionary.json')
-        .then(response => response.json())
-        .then(data => {
-            dictionary = data;  // Store the dictionary
-            generateLetters();
-            updateUI();
-        })
-        .catch(error => {
-            console.error('Error loading dictionary:', error);
+    // Display guesses with color-coded feedback, horizontally aligned
+    function displayGuesses() {
+        guessesDiv.innerHTML = ''; // Clear previous guesses
+
+        guesses.forEach(({ guess, colors }) => {
+            const guessRowDiv = document.createElement('div');
+            guessRowDiv.classList.add('guess-row'); // Create a row for each guess
+
+            guess.split('').forEach((letter, index) => {
+                const letterDiv = document.createElement('div');
+                letterDiv.classList.add('guess-letter');
+                letterDiv.textContent = letter.toUpperCase();
+                letterDiv.style.backgroundColor = colors[index]; // Apply color based on feedback
+                guessRowDiv.appendChild(letterDiv); // Add each letter to the row
+            });
+
+            guessesDiv.appendChild(guessRowDiv); // Add the row of letters to the main container
         });
-}
-
-// Load high score from localStorage
-function loadHighScore() {
-    const savedHighScore = localStorage.getItem('wordforge_highscore');
-    if (savedHighScore !== null) {
-        highScore = parseInt(savedHighScore, 10);  // Convert the saved score to a number
-        highScoreDisplay.textContent = `High Score: ${highScore}`;  // Display the loaded high score
-    }
-}
-
-// Save high score to localStorage
-function saveHighScore() {
-    localStorage.setItem('wordforge_highscore', highScore);  // Save the new high score
-}
-
-// Generate random letters for the pool with cooldowns initialized to their max values
-function generateLetters() {
-    const vowelCount = Math.random() < 0.5 ? 3 : 4;  // Randomly choose between 3 or 4 vowels
-    const consonantCount = currentLetters - vowelCount;  // Remaining letters will be consonants
-    letterPool = [];
-    letterCooldowns = {};  // Reset cooldowns for every new letter pool
-
-    // Pick random vowels and initialize their cooldown to 1
-    for (let i = 0; i < vowelCount; i++) {
-        const randomVowel = weightedRandom(vowels);
-        letterPool.push(randomVowel);
-        letterCooldowns[i] = 0;  // Vowels start with no cooldown
     }
 
-    // Pick random consonants and initialize their cooldown to 0
-    for (let i = 0; i < consonantCount; i++) {
-        const randomConsonant = weightedRandom(consonants);
-        letterPool.push(randomConsonant);
-        letterCooldowns[vowelCount + i] = 0;  // Consonants start with no cooldown
+    // Display current guess
+    function displayCurrentGuess() {
+        currentGuessDiv.textContent = currentGuess.padEnd(wordLength, '_').toUpperCase();
     }
 
-    // Shuffle the letter pool to mix vowels and consonants
-    letterPool = letterPool.sort(() => Math.random() - 0.5);
+    // Compare words and generate feedback colors
+    function compareWords(word, guess) {
+        const resultColors = new Array(wordLength).fill(COLORS.absent);  // Default all to grey
+        const wordArr = word.split('');
+        const guessArr = guess.split('');
 
-    // Ensure the letters are displayed
-    displayLetters();
-}
+        // First pass: Mark correct letters (green)
+        guessArr.forEach((letter, index) => {
+            if (letter === wordArr[index]) {
+                resultColors[index] = COLORS.correct; // Mark as green (correct position)
+                wordArr[index] = null; // Remove this letter from further checks
+                updateKeyboardColor(letter, 'correct');
+            }
+        });
 
-// Function to update the UI
-function updateUI() {
-    // Update the display of the current word
-    wordInput.textContent = currentWord || '_';
+        // Second pass: Mark present but wrong position letters (yellow)
+        guessArr.forEach((letter, index) => {
+            if (resultColors[index] !== COLORS.correct && wordArr.includes(letter)) {
+                resultColors[index] = COLORS.present; // Mark as yellow (correct letter, wrong position)
+                wordArr[wordArr.indexOf(letter)] = null; // Remove from further checks
+                updateKeyboardColor(letter, 'present');
+            } else if (resultColors[index] === COLORS.absent) {
+                updateKeyboardColor(letter, 'absent');
+            }
+        });
 
-    // Update the score display
-    scoreDisplay.textContent = `Score: ${score}`;
-
-    // If there's a new high score, update the high score display and save it
-    if (score > highScore) {
-        highScore = score;
-        highScoreDisplay.textContent = `High Score: ${highScore}`;
-        saveHighScore();
+        return resultColors;
     }
-}
 
-// Display the letter pool and manage cooldowns in a keyboard-like grid
-function displayLetters() {
-    const keyboardContainer = document.getElementById("keyboard-container");
-    keyboardContainer.innerHTML = '';  // Clear previous letters
+    // Update the keyboard color
+    function updateKeyboardColor(letter, status) {
+        const key = document.querySelector(`.key[data-letter="${letter.toUpperCase()}"]`);
+        if (!key) return;
 
-    // Define the row lengths to mimic a keyboard layout (6, 7, 7)
-    const rowLengths = [6, 7, 7];
-    let letterIndex = 0;
+        // Prioritize 'correct' over 'present' and 'present' over 'absent'
+        if (keyboardStatus[letter] === 'correct') return; // Already correct, no need to downgrade
+        if (keyboardStatus[letter] === 'present' && status === 'absent') return; // Don't overwrite present with absent
 
-    // Create rows for the keyboard layout
-    rowLengths.forEach(rowLength => {
+        keyboardStatus[letter] = status; // Update keyboard status
+
+        // Apply the color based on the status
+        if (status === 'correct') {
+            key.style.backgroundColor = COLORS.correct;
+        } else if (status === 'present') {
+            key.style.backgroundColor = COLORS.present;
+        } else if (status === 'absent') {
+            key.style.backgroundColor = COLORS.absent;
+        }
+    }
+
+    // Reset keyboard colors to default
+    function resetKeyboardColors() {
+        const keys = document.querySelectorAll('.key');
+        keys.forEach(key => {
+            key.style.backgroundColor = '#d3d3d3'; // Reset to the default keyboard color
+        });
+    }
+
+    // Handle letter clicks
+    function handleLetterClick(letter) {
+        if (currentGuess.length < wordLength && !gameOver) {
+            currentGuess += letter.toLowerCase();
+            displayCurrentGuess();
+            updateSubmitButton();
+        }
+    }
+
+    // Handle backspace click
+    function handleBackspaceClick() {
+        currentGuess = currentGuess.slice(0, -1);
+        displayCurrentGuess();
+        updateSubmitButton();
+    }
+
+    // Handle submit button
+    function handleSubmit() {
+        if (currentGuess.length === wordLength && !gameOver) {
+            const colors = compareWords(word, currentGuess);
+            guesses.push({ guess: currentGuess, colors }); // Store guess and color feedback
+            displayGuesses();
+
+            if (currentGuess === word) {
+                // Player wins, increment score based on remaining guesses
+                score += maxGuesses - guesses.length + 1; // More points for fewer guesses
+                
+                if (score > highscore) {
+                    highscore = score; // Update highscore if applicable
+                    saveHighscore(); // Save highscore in localStorage
+                }
+                updateScore();
+                messageDiv.textContent = `You guessed it! +${maxGuesses - guesses.length + 1} points!`;
+
+                gameOver = true;
+                resetGame(); // Reset after a win
+            } else if (guesses.length === maxGuesses) {
+                // Player loses, reset score
+                score = 0; // Reset score on loss
+                updateScore();
+                messageDiv.textContent = `Game over! The word was ${word.toUpperCase()}.`;
+
+                gameOver = true;
+                resetGame(); // Reset after a loss
+            }
+
+            currentGuess = '';
+            displayCurrentGuess();
+            updateSubmitButton();
+        }
+    }
+
+    // Update score and highscore in the UI
+    function updateScore() {
+        currentScoreDiv.textContent = `Score: ${score}`;
+        highscoreDiv.textContent = `Highscore: ${highscore}`;
+    }
+
+    // Save highscore to localStorage
+    function saveHighscore() {
+        localStorage.setItem('wordle_highscore', highscore);
+    }
+
+    // Load highscore from localStorage
+    function loadHighscore() {
+        const savedHighscore = localStorage.getItem('wordle_highscore');
+        if (savedHighscore !== null) {
+            highscore = parseInt(savedHighscore, 10); // Load and convert to number
+        }
+        updateScore(); // Update the UI
+    }
+
+    // Update submit button state
+    function updateSubmitButton() {
+        const isValidWord = wordList.includes(currentGuess.toLowerCase());
+        submitButton.disabled = currentGuess.length !== wordLength || !isValidWord;
+    }
+
+    // Reset game after win/loss
+    function resetGame() {
+        setTimeout(() => {
+            initGame();
+        }, 3500); // Delay for 2 seconds before resetting
+    }
+
+    // Set up keyboard
+    const keyboardLayout = [
+        ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+        ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+        ['Z', 'X', 'C', 'V', 'B', 'N', 'M', 'Back']
+    ];
+
+    // Create keyboard rows
+    keyboardLayout.forEach(row => {
         const rowDiv = document.createElement('div');
-        rowDiv.classList.add('keyboard-row');  // Apply the row styling
+        rowDiv.classList.add('keyboard-row');
 
-        // Add letters to the current row
-        for (let i = 0; i < rowLength; i++) {
-            if (letterIndex >= letterPool.length) break;  // Safety check to avoid overflow
-
-            const letter = letterPool[letterIndex];
+        row.forEach(key => {
             const keyDiv = document.createElement('div');
             keyDiv.classList.add('key');
-            keyDiv.textContent = letter;
-            keyDiv.setAttribute('data-index', letterIndex);
+            keyDiv.textContent = key;
+            keyDiv.setAttribute('data-letter', key); // Add data attribute for identifying the key
 
-            // Ensure the correct index is passed by using a closure
-            keyDiv.addEventListener('click', (function(currentIndex) {
-                return function() {
-                    addLetterToWord(currentIndex);
-                };
-            })(letterIndex));
+            // Handle backspace key differently
+            if (key === 'Back') {
+                keyDiv.style.width = '90px'; // Make Back key larger
+                keyDiv.setAttribute('data-letter','Back');
+            }
+
+            keyDiv.addEventListener('click', () => {
+                if (key === 'Back') {
+                    handleBackspaceClick();
+                } else {
+                    handleLetterClick(key);
+                }
+            });
 
             rowDiv.appendChild(keyDiv);
-            letterIndex++;
-        }
+        });
 
-        keyboardContainer.appendChild(rowDiv);  // Add the row to the container
+        keyboardContainer.appendChild(rowDiv);
     });
 
-    // After rendering, update the cooldown colors for all letters
-    letterPool.forEach((_, index) => {
-        updateCooldownColor(index);
-    });
-}
-
-// Add letter to word by index
-function addLetterToWord(index) {
-    console.log(`Letter ${index} pressed, cooldown: ${letterCooldowns[index]}`);
-    if (letterCooldowns[index] === 0) {  // Only allow if no cooldown
-        currentWord += letterPool[index];  // Add the letter to the word
-        usedLetterIndices.push(index);  // Track which specific letter was used
-        disableLetter(index);  // Disable the button after it's used
-        updateCooldownColor(index);
-        updateUI();  // Update the UI to reflect the changes
-        updateSubmitButton();  // Update submit button state
+    // Initialize game
+    function initGame() {
+        word = getRandomWord();
+        displayCurrentGuess();
+        messageDiv.textContent = '';
+        guesses = [];
+        keyboardStatus = {}; // Reset keyboard status
+        resetKeyboardColors(); // Reset keyboard colors
+        displayGuesses();
+        gameOver = false;
     }
-}
 
-// Manage letter cooldowns after submitting a word (tick down cooldowns)
-function manageCooldowns() {
-    Object.keys(letterCooldowns).forEach(index => {
-        if (letterCooldowns[index] > 0) {
-            letterCooldowns[index]--;
-        }
-        if (letterCooldowns[index] === 0) {
-            enableLetter(index);
-        }
-        updateCooldownColor(index);
-    });
+    // Load the highscore on page load
+    loadHighscore();
 
-    usedLetterIndices.forEach(index => {
-        if (letterCooldowns[index] === 0) {
-            if ((letterPool[index]).toUpperCase() in vowels) {
-                letterCooldowns[index] = 1;
-                disableLetter(index);
-            } else {
-                letterCooldowns[index] = 2;
-                disableLetter(index);
-            }
-        }
-        updateCooldownColor(index);
-    });
-
-    // Clear the used letter indices after applying cooldowns
-    usedLetterIndices = [];
-}
-
-// Update button color based on the cooldown state
-function updateCooldownColor(index) {
-    const letterButton = document.querySelector(`[data-index='${index}']`);
-    if (letterButton) {
-        let cd = letterCooldowns[index];
-        let color = "#d3d3d3";  // Default color
-        if (cd == 1) {
-            color = "#bb9977";  // Color for cooldown 1
-        } else if (cd == 2) {
-            color = "#ff0000";  // Color for cooldown 2
-        }
-        else if(cd === 0 && usedLetterIndices.includes(index)){
-          color = "#444444"
-        }
-        console.log(`Setting color of button ${index} to ${color}`);
-        letterButton.style.backgroundColor = color;
-    }
-}
-
-// Disable a letter button (after it's used)
-function disableLetter(index) {
-    const letterButton = document.querySelector(`[data-index='${index}']`);
-    if (letterButton) {
-        letterButton.style.pointerEvents = 'none';  // Disable button
-        console.log(`Disabling button at index ${index}`);
-    }
-}
-
-// Enable a letter button (after cooldown is over)
-function enableLetter(index) {
-    const letterButton = document.querySelector(`[data-index='${index}']`);
-    if (letterButton) {
-        letterButton.style.pointerEvents = 'auto';  // Enable button
-        console.log(`Enabling button at index ${index}`);
-    }
-}
-
-// Submit the current word and validate it against the dictionary
-submitWordButton.addEventListener("click", () => {
-    if (currentWord.length > 2) {
-        if (validateWord(currentWord)) {
-            score += currentWord.length;  // Score based on word length
-            wordsSubmitted++;  // Increment words submitted
-            manageCooldowns();  // Apply cooldowns after submitting the word
-            currentWord = "";  // Reset the word
-            updateUI();
-            updateProgressBar();  // Update progress bar and handle letter removal
-        } else {
-            alert('Invalid word! Please try again.');
-            usedLetterIndices = [];
-            currentWord = "";  // Reset the word for another try
-            updateUI();
-        }
-    }
+    // Load the word list and start the game
+    loadWordList();
+// Function to handle keyboard key presses
+  function handleKeyPress(event) {
+      const key = event.key.toUpperCase(); // Get the key pressed (convert to uppercase for matching)
+      
+      if (/^[A-Z]$/.test(key)) {
+          // If the key is a letter from A-Z, trigger the virtual keyboard's letter click
+          handleLetterClick(key);
+      } else if (key === 'BACKSPACE') {
+          // If the Backspace key is pressed, trigger the virtual Backspace click
+          handleBackspaceClick();
+      } else if (key === 'ENTER') {
+          // If Enter key is pressed, trigger the submit button
+          handleSubmit();
+      }
+  }
+  
+  // Add the event listener for key presses
+  document.addEventListener('keydown', handleKeyPress);    // Event listeners
+    submitButton.addEventListener('click', handleSubmit);
 });
-
-// Update the progress bar based on words submitted
-function updateProgressBar() {
-    const progressbarDiv = document.getElementById("progress-bar");
-    const progress = wordsSubmitted % 10; // Progress towards the next 10 words
-    
-    if (progressbarDiv) {
-        progressbarDiv.setAttribute('value', progress);
-
-        // Check if the progress bar has completed a cycle (i.e., 10 words)
-        if (progress === 0 && wordsSubmitted > 0) {
-            if (letterPool.length > minLetters) {
-                // Remove letters for every 10 words submitted
-                while (letterPool.length > minLetters && letterPool.length > (20 - wordsSubmitted / 10)) {
-                    removeRandomLetter();
-                }
-                generateLetters();
-            }else{
-              generateLetters();
-            }
-        } 
-    }
-}
-
-// Function to remove a random letter from the pool
-function removeRandomLetter() {
-    const randomIndex = Math.floor(Math.random() * letterPool.length);
-    letterPool.splice(randomIndex, 1);  // Remove the letter from the pool
-    currentLetters--;
-    displayLetters();  // Re-render the letters
-}
-
-// Validate the word against the dictionary
-function validateWord(word) {
-    return dictionary[word.toLowerCase()] === 1;  // Check if the word exists in the dictionary
-}
-
-// Handle backspace button click
-backspaceButton.addEventListener('click', () => {
-    if (currentWord.length > 0) {
-        const lastLetterIndex = usedLetterIndices.pop();  // Get the last used letter index
-        updateCooldownColor(lastLetterIndex);
-        currentWord = currentWord.slice(0, -1);  // Remove the last letter from the word
-        enableLetter(lastLetterIndex);  // Enable the button for that letter
-        
-        updateUI();
-        updateSubmitButton();  // Update submit button state
-    }
-});
-
-// Update the submit button state
-function updateSubmitButton() {
-    submitWordButton.disabled = currentWord.length <= 2 || !validateWord(currentWord);
-}
-
-// Function to select a random letter based on weighted probabilities
-function weightedRandom(letters) {
-    const totalWeight = Object.values(letters).reduce((acc, weight) => acc + weight, 0);
-    let randomNum = Math.random() * totalWeight;
-    
-    for (const [letter, weight] of Object.entries(letters)) {
-        if (randomNum < weight) {
-            return letter;
-        }
-        randomNum -= weight;
-    }
-}
-
-// Initialize the game on page load
-window.onload = function() {
-    initGame();
-};
