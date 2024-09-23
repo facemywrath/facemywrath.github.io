@@ -1,108 +1,68 @@
-body {
-    background-color: white;
-    font-family: Arial, sans-serif;
-    display: flex;
+/* Container for each keyboard row */
+.keyboard-row {
+    display: flex;                
     justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
+    margin-bottom: 10px;         /* Space between rows */
 }
 
-#game-container {
-    width: 100%;
-    max-width: 600px;
-    text-align: center;
-    padding: 20px;
-}
-
-#scoreboard {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 20px;
-}
-
-#guesses {
-    margin-bottom: 20px;
-    font-size: 20px;
-}
-.guess-row {
-    display: flex; /* Make letters line up horizontally */
-    justify-content: center; /* Center the row */
-    margin-bottom: 1px; /* Add some space between guesses */
-}
-
-.guess-letter {
-    width: 35px;
-    height: 40px;
-    margin: 1px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 20px;
-    font-weight: bold;
-    color: black; /* Change font color to black */
-    border-radius: 5px;
-}
-
+/* Style for each individual key */
 .key {
-    width: 35px;
-    height: 40px;
-    margin: 1px;
+    width: 40px;  /* Reduce width to make it less wide */
+    height: 40px;  /* Keep height proportional */
+    margin: 3px;  /* Reduce margin for more compact layout */
     background-color: #d3d3d3;
     border: 1px solid #000;
     display: flex;
     justify-content: center;
     align-items: center;
+    font-size: 20px;  /* Adjust font size to fit smaller button */
     cursor: pointer;
-    font-size: 18px;
-    font-weight: bold;
     border-radius: 5px;
     transition: background-color 0.2s ease;
 }
 
-.key:active {
-    background-color: #ccc;
-}
-
-#current-guess {
-    height: 50px;
-    margin-bottom: 20px;
-    font-size: 24px;
-    font-weight: bold;
-}
-
+/* Container for the keyboard */
 #keyboard-container {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    flex-wrap: wrap;  /* Allows the keys to wrap */
+    justify-content: center;  /* Center the keys */
+    max-width: 500px;  /* Restrict the overall width */
     margin-bottom: 20px;
 }
 
-.keyboard-row {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 1px;
+/* Style for disabled key */
+.key:disabled {
+    background-color: inherit;
+    cursor: not-allowed;
 }
 
+/* Style for the current word container */
+#current-word-container {
+    margin-bottom: 20px;
+    font-size: 30px;
+}
 
-
-#submit-button {
-    padding: 15px;
-    font-size: 15px;
+#progress-bar {
     width: 100%;
-    background-color: #4CAF50;
+    height: 80px;
+}
+
+#submit-word, #backspace-btn {
+    margin: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007bff;
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
 }
 
-#submit-button:disabled {
-    background-color: #d3d3d3;
+#submit-word:disabled {
+    background-color: gray;
+    cursor: not-allowed;
 }
 
-#message {
-    font-size: 16px;
-    margin-top: 20px;
-    color: red;
+#current-score, #highscore {
+    font-size: 18px;
 }
