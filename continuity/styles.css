@@ -7,6 +7,32 @@ body {
     height: 100vh;
     margin: 0;
 }
+/* Black box for last 10 words *//* Black box for last 10 words */
+#last-words-container {
+    background-color: black;
+    color: green;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    width: 400px; /* Set the width for the container */
+    height: 100px; /* Predefine the height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Split the container into two columns */
+#last-words {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two equal columns */
+    column-gap: 20px; /* Gap between the two columns */
+}
+
+/* Left-align the text */
+#last-words p {
+    margin: 0;
+    text-align: left;
+}
 
 #game-container {
     width: 100%;

@@ -8,6 +8,30 @@ let currentGuess = '';  // Current guess for the word
 let timeLimit = 30; // Initial time limit per guess
 let timerInterval;  // Reference to the timer interval
 const minTimeLimit = 10; // Minimum time limit
+let lastUsedWords = [];  // This array will store the last 10 words used
+
+// Function to update the last 10 words display// Function to update the last 10 words display in two columns
+function updateLastUsedWords() {
+    const lastWordsElement = document.getElementById('last-words');
+    
+    // Create two columns of words
+    let firstColumn = [];
+    let secondColumn = [];
+    
+    for (let i = 0; i < lastUsedWords.length; i++) {
+        if (i < 5) {
+            firstColumn.push(lastUsedWords[i]);  // First half of words in the first column
+        } else {
+            secondColumn.push(lastUsedWords[i]);  // Second half in the second column
+        }
+    }
+    
+    // Build the two columns for display
+    lastWordsElement.innerHTML = `
+        <p>${firstColumn.join('<br>')}</p>
+        <p>${secondColumn.join('<br>')}</p>
+    `;
+}
 
 // Fetch the JSON dictionary when the page loads
 fetch('words_dictionary.json')
@@ -73,6 +97,7 @@ function endGame() {
     score = 0;  // Reset score
     usedWordIndices = [];  // Reset used words
     timeLimit = 20;  // Reset the time limit for a new game
+    lastUsedWords = [];
     saveProgress();  // Save the final highscore
     updateScoreDisplay();  // Update score display to show reset score
     currentWord = wordList[Math.floor(Math.random() * wordList.length)];
@@ -163,13 +188,22 @@ function updateSubmitButton() {
 }
 
 // Handle submit button
+// Handle submit button
 function handleSubmit() {
     const guessIndex = wordList.indexOf(currentGuess.toLowerCase());
-    const lastLetter = currentWord[currentWord.length-1]
-    const firstLetter = currentGuess[0]
-    if (guessIndex !== -1 && !usedWordIndices.includes(guessIndex) && lastLetter == firstLetter && currentGuess.length > 1) {
+    const lastLetter = currentWord[currentWord.length - 1];
+    const firstLetter = currentGuess[0];
+    
+    if (guessIndex !== -1 && !usedWordIndices.includes(guessIndex) && lastLetter === firstLetter && currentGuess.length > 1) {
         // Store the word's index to mark it as used
         usedWordIndices.push(guessIndex);
+        
+        // Add the word to the lastUsedWords array and keep only the last 10 words
+        lastUsedWords.unshift(currentGuess.toLowerCase());  // Add the new word to the start
+        if (lastUsedWords.length > 10) {
+            lastUsedWords.pop();  // Remove the oldest word if more than 10
+        }
+        updateLastUsedWords();  // Update the display with the last 10 words
         
         // Set the current guess as the next word
         currentWord = currentGuess;
@@ -180,7 +214,7 @@ function handleSubmit() {
         saveProgress();  // Save progress to local storage
         
         updateCurrentWordDisplay();  // Display the new current word
-        currentGuess = currentWord[currentWord.length-1];  // Reset the guess
+        currentGuess = currentWord[currentWord.length - 1];  // Reset the guess
         displayCurrentGuess();  // Update the display
         updateSubmitButton();  // Disable submit until valid
         
@@ -227,7 +261,24 @@ function saveHighscore() {
 
 // Event listeners
 document.getElementById('submit-btn').addEventListener('click', handleSubmit);
+// Function to handle keyboard key presses
+function handleKeyPress(event) {
+    const key = event.key.toUpperCase(); // Get the key pressed (convert to uppercase for matching)
+    
+    if (/^[A-Z]$/.test(key)) {
+        // If the key is a letter from A-Z, trigger the virtual keyboard's letter click
+        handleLetterClick(key);
+    } else if (key === 'BACKSPACE') {
+        // If the Backspace key is pressed, trigger the virtual Backspace click
+        handleBackspaceClick();
+    } else if (key === 'ENTER') {
+        // If Enter key is pressed, trigger the submit button
+        handleSubmit();
+    }
+}
 
+// Add the event listener for key presses
+document.addEventListener('keydown', handleKeyPress);
 // Initialize the game when the page loads
 window.onload = function() {
     if (localStorage.getItem('continuity_usedWordIndices')) {
