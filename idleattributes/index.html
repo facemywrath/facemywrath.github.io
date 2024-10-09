@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Incremental Game</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="topBar">
+    <button id="attributesScreenBtn">Attributes</button>
+    <button id="settingsScreenBtn">Settings</button>
+  </div>
+
+  <!-- New thin row for enemy level display -->
+  
+  <div id="levelDisplayRow">
+    <label>
+      <input type="checkbox" id="autoProgressCheckbox" name="autoProgress">
+      Auto Progress
+    </label>
+    <button id="prevEnemyBtn">&lt;</button>
+    <p id="enemyLevelText">1</p>
+    <button id="nextEnemyBtn">&gt;</button>
+</div>
+ 
+
+  <!-- Battle area where content is confined -->
+  <div id="battleArea">
+    <div class="healthBarContainer">
+      <div class="iconAndHealth">
+         <div class="swordIconContainer">
+          <img class="swordIcon" src="sword.png" alt="Attack Speed">
+          <div class="enemySwordFill" id="enemySwordFill"></div> <!-- This will display the filled version -->
+        </div>
+        <div>
+          <p id="enemyHealthText">Enemy Health: 50</p>
+          <div class="healthBar">
+            <div id="enemyHealthBar" class="health"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="healthBarContainer">
+      <div class="iconAndHealth">
+        <div class="swordIconContainer">
+          <img class="swordIcon" src="sword.png" alt="Attack Speed">
+          <div class="playerSwordFill" id="playerSwordFill"></div> <!-- This will display the filled version -->
+        </div>
+        <div>
+          <p id="playerHealthText">Your Health: 100</p>
+          <div class="healthBar">
+            <div id="playerHealthBar" class="health"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="xpBarContainer">
+    <p id="xpCaption">XP:</p>
+    <p id="playerXPText">0%</p>
+    <div class="xpBar">
+      <div id="playerXPBar" class="xp"></div>
+    </div>
+  </div>
+
+  <div id="bottomMenu" class="screen"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
