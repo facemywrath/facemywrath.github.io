@@ -17,6 +17,7 @@ body {
 .character-container {
   display: block;
   height: 100%;
+  width: 100%;
   gap: 20px;
   justify-content: center;
   margin-top: 50px;
@@ -33,7 +34,7 @@ body {
   padding: 20px;
   margin: 10px 5px;
   width: 30vw;
-  height: 15vh;
+  height: 25vh;
   border-radius: 8px;
   border: 2px solid black;
   text-align: center;
