@@ -198,7 +198,6 @@ let enemyAttackProgress = 0;
 
 // Function to update the sword fills based on time until next attack
 function updateSwordFills() {
-  print("test");
     // Calculate progress as percentage of time passed relative to attack speed
     playerAttackProgress += (100 / player.attackSpeed);  // Progress per millisecond
     enemyAttackProgress += (100 / enemy.attackSpeed);
