@@ -219,7 +219,7 @@ function increaseAttribute(attribute) {
 
 function updateDamage(){
   val = getPrimaryAttributeValue();
-  player.damage = Math.floor(Math.pow(val,1.3))
+  player.damage = Math.floor(val/6+Math.pow(val,1.2))
 }
 function updateMaxHealth(){
   player.maxHealth = Math.floor(50 * (player.toughness/4+1)*Math.pow(1.03125, player.strength));
