@@ -1,6 +1,7 @@
 * {
   box-sizing: border-box;
 }
+
 body {
   font-family: Arial, sans-serif;
   margin: 0;
@@ -8,12 +9,68 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #1c1c1c;
+  background-color: #3c3c3c;
   color: #ffffff;
 }
 
-#topBar {
+/* Character selection styles */
+.character-container {
+  display: block;
+  height: 100%;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 50px;
+  font-size: 10px;
+  
+}
+.character-row {
   display: flex;
+  
+}
+
+.character-card {
+  background-color: #111;
+  padding: 20px;
+  margin: 10px 5px;
+  width: 180px;
+  border-radius: 8px;
+  border: 2px solid black;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+#warrior-card {
+  background-color: #a66;
+}
+.character-card h2 {
+  margin-top: 0;
+}
+.character-card button {
+  background-color: #444;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.character-card button:hover {
+  background-color: #555;
+}
+
+.character-card:hover {
+  background-color: #222;
+}
+
+/* Hide other game sections by default */
+#topBar, #battleArea, #levelDisplayRow, #xpBarContainer, #bottomMenu {
+  display: none;
+}
+
+/* Top bar styles */
+#topBar {
+  display: none;
   justify-content: space-around;
   align-items: center;
   background-color: #333;
@@ -39,18 +96,18 @@ body {
   background-color: #555;
 }
 
-/* New thin row for level display */
+/* Level display row styles */
 #levelDisplayRow {
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: center;
   background-color: #404040;
   height: 35px;
-  padding-left: 10px; /* Optional padding */
+  padding-left: 10px;
 }
 
 #levelDisplayRow label {
-  margin-right: auto; /* Aligns the checkbox to the left */
+  margin-right: auto;
   display: flex;
   align-items: center;
   font-size: 16px;
@@ -76,23 +133,25 @@ body {
   font-size: 20px;
 }
 
+/* Battle area styles */
 #battleArea {
-  display: flex;
+  display: none;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 30vh; /* Adjusted to make sure battle content fits */
+  height: 30vh;
   padding: 10px;
   background-color: #404040;
   border-radius: 0px;
 }
 
+/* XP bar container styles */
 #xpBarContainer {
   width: 100%;
-  margin: 0px 0;
+  margin: 0;
   text-align: center;
   align-items: center;
-  display: flex;
+  display: none;
 }
 
 .xpBar {
@@ -107,65 +166,61 @@ body {
 #playerXPBar {
   height: 100%;
   background-color: #0066ff;
-  width: 0%; /* Start with 0% XP */
+  width: 0%;
 }
 
 #xpBarContainer p {
   color: #e0e0e0;
 }
 
-
-
+/* Sword icon styles */
 .iconAndHealth {
   display: flex;
   align-items: center;
-  
 }
 
 .swordIconContainer {
-    position: relative;
-    width: 40px;
-    height: 40px;
-    overflow: hidden; /* Ensures the filled version is clipped */
+  position: relative;
+  width: 5vh;
+  height: 5vh;
+  overflow: hidden;
 }
 
 .swordIcon {
-    width: 40px;
-    height: 40px;
+  width: 40px;
+  height: 40px;
 }
 
 .playerSwordFill, .enemySwordFill {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 0%; /* Initially empty */
-    background-size: auto;
-    background-repeat: no-repeat;
-    background-position: bottom;
-    transition: height 0.1s ease; /* 0.1s ease transition for smooth fill */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
+  background-size: auto;
+  background-repeat: no-repeat;
+  background-position: bottom;
+  transition: height 0.1s ease;
 }
 
 .playerSwordFill {
-    background-image: url('player-sword-fill.png');
+  background-image: url('player-sword-fill.png');
 }
 
 .enemySwordFill {
-    background-image: url('enemy-sword-fill.png');
+  background-image: url('enemy-sword-fill.png');
 }
 
-
+/* Health bar container styles */
 .healthBarContainer {
-  width: 100%; /* Adjusted to ensure proper sizing */
+  width: 100%;
   border: 1px solid #000;
   border-radius: 3px;
-  margin: 0px 0;
 }
 
 .healthBar {
-  width: 250px;
-  height: 30px;
-  position: relative;
+  width: 80vw;
+  height: 5vh;
   background-color: #777;
   border: 1px solid black;
 }
@@ -182,58 +237,46 @@ body {
   width: 100%;
 }
 
-.healthBar::after {
-  content: '';
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  background-color: rgba(255, 255, 255, 0.2);
-  z-index: -1;
-}
+/* Bottom menu styles */
 #bottomMenu {
   height: calc(65vh - 100px);
   background-color: #262626;
   border-top: 2px solid #444;
-  display: flex;
-  justify-content: center;  /* Centers horizontally */
-  align-items: flex-start;      /* Centers vertically */
+  display: none;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 #bottomMenu > div {
   display: flex;
-  flex-direction: column;   /* Ensures the attributes are listed vertically */
-  text-align: center;       /* Aligns the content inside each attribute */
+  flex-direction: column;
+  text-align: center;
   line-height: 0;
-  padding: 0px 0px;
   margin-top: 15px;
 }
+
+#bottomMenu > div {
+  max-height: 60vh; /* Limit the height */
+  overflow-y: auto; /* Allow scrolling */
+  padding: 10px;
+}
+
+#bottomMenu div p {
+  margin: 5px 0; /* Add space between paragraphs */
+  line-height: 1.5; /* Improve readability */
+}
+
 #bottomMenu p {
-  margin: 5px 0;  /* Reduces the margin between each attribute */
+  margin: 5px 0;
 }
 
 #bottomMenu button {
-  margin-left: 10px;  /* Adjusts spacing around the button */
-  padding: 2px 5px;   /* Reduces padding to make the button smaller */
-  font-size: 14px;    /* Optional: reduce font size if needed */
+  margin-left: 10px;
+  padding: 2px 5px;
+  font-size: 14px;
 }
 
-#playerXPText {
-  display: inline-block;
-  margin-left: 7px;
-  margin-right: 7px;
-  font-size: 10px;
-  line-height: 1;
-  white-space: nowrap;
-}
-.xpTextContainer {
-  display: flex;
-}
-p {
-  color: #e0e0e0;
-}
-
+/* General button styles */
 button {
   background-color: #444;
   color: white;

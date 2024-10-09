@@ -17,13 +17,14 @@ const nextEnemyBtn = document.getElementById("nextEnemyBtn");
 
 const autoProgressBtn = document.getElementById("autoProgressCheckbox");
 
+const hpBarSize = playerHealthBar.width
 let autoProgress = false;
 let currentEnemyLevel = 1;
 let maxUnlockedLevel = 1;
 
 let player = {
   health: 100,
-  maxHealth: 100,
+  maxHealth: 50,
   xp: 0,
   xpMulti: 1,
   attackSpeed: 500,
@@ -32,7 +33,8 @@ let player = {
   maxXP: 30, // XP needed for next level
   level: 1,
   attributePoints: 0, // Points to spend after leveling up
-  damage: 10,
+  damage: 8,
+  primaryAttribute: "strength",
   strength: 0,
   intellect: 0,
   agility: 0,
@@ -45,24 +47,138 @@ let enemy = {
   baseHealth: 30,
   regen: 0,
   regenSpeed: 0,
-  attack: 5,
+  attack: 11.5,
   attackSpeed: 505, // in milliseconds
   xp: 10
 };
-
-attributesFontSize = "18px";
+let currentMenu = "attributes";
+let attributesFontSize = "18px";
+let strengthDisplay = "Strength";
+let intellectDisplay = "Intellect";
+let agilityDisplay = "Agility";
+let toughnessDisplay = "Toughness";
+let mysticismDisplay = "Mysticism";
 // Attributes and Settings menus
 const attributesContent = `
 <div>
-  <p> <span id="attributePoints" style="font-size:20px; display: flex; margin-bottom: 20px;">Attribute Points: 0</span></p>
-  <p>Strength: <span id="playerStrength";>${player.strength}</span> <button style="line-length: 0; font-size: ${attributesFontSize}; padding: 2px 5px;" onclick="increaseAttribute('strength')">+</button></p>
-  <p>Intellect: <span id="playerIntellect">${player.intellect}</span> <button style="line-length: 0; font-size: ${attributesFontSize}; padding: 2px 5px;" onclick="increaseAttribute('intellect')">+</button></p>
-  <p>Agility: <span id="playerAgility">${player.agility}</span> <button style="font-size: ${attributesFontSize}; padding: 2px 5px;" onclick="increaseAttribute('agility')">+</button></p>
-  <p>Toughness: <span id="playerToughness">${player.toughness}</span> <button style="font-size: ${attributesFontSize}; padding: 2px 5px;" onclick="increaseAttribute('toughness')">+</button></p>
-  <p>Mysticism: <span id="playerMysticism">${player.mysticism}</span> <button style="font-size: ${attributesFontSize}; padding: 2px 5px;" onclick="increaseAttribute('mysticism')">+</button></p>
+  <p><span id="attributePoints" style="font-size:20px; display: flex; margin-bottom: 20px;">Attribute Points: 0</span></p>
+  <p><span id="strengthDisplay">${strengthDisplay}</span>: <span id="playerStrength">${player.strength}</span> <button style="line-length: 0; font-size: ${attributesFontSize}; padding: 2px 5px;" onclick="increaseAttribute('strength')">+</button></p>
+  <p><span id="intellectDisplay">${intellectDisplay}</span>: <span id="playerIntellect">${player.intellect}</span> <button style="line-length: 0; font-size: ${attributesFontSize}; padding: 2px 5px;" onclick="increaseAttribute('intellect')">+</button></p>
+  <p><span id="agilityDisplay">${agilityDisplay}</span>: <span id="playerAgility">${player.agility}</span> <button style="font-size: ${attributesFontSize}; padding: 2px 5px;" onclick="increaseAttribute('agility')">+</button></p>
+  <p><span id="toughnessDisplay">${toughnessDisplay}</span>: <span id="playerToughness">${player.toughness}</span> <button style="font-size: ${attributesFontSize}; padding: 2px 5px;" onclick="increaseAttribute('toughness')">+</button></p>
+  <p><span id="mysticismDisplay">${mysticismDisplay}</span>: <span id="playerMysticism">${player.mysticism}</span> <button style="font-size: ${attributesFontSize}; padding: 2px 5px;" onclick="increaseAttribute('mysticism')">+</button></p>
 </div>
 `;
+const statsContent = `
+  <div class="stats-container">
+    <h2>Stats</h2>
+    <p>Attack Speed: ${(player.attackSpeed / 1000).toFixed(2)} seconds</p>
+    <p>Damage: ${player.damage}</p>
+    <p>Health: ${player.maxHealth}</p>
+    <p>Regen: ${player.regen}</p>
+    <p>Regen Speed: ${(player.regenSpeed / 1000).toFixed(2)} seconds</p>
+    <p>XP Multiplier: ${player.xpMulti.toFixed(2)}</p>
+    <p>Level: ${player.level}</p>
+  </div>
+`;
 
+function updateStats() {
+  const statsContent = `
+    <div class="stats-container">
+      <h2>Stats</h2>
+      <p>Attack Speed: ${(player.attackSpeed / 1000).toFixed(2)} seconds</p>
+      <p>Damage: ${player.damage}</p>
+      <p>Health: ${player.maxHealth}</p>
+      <p>Regen: ${player.regen}</p>
+      <p>Regen Speed: ${(player.regenSpeed / 1000).toFixed(2)} seconds</p>
+      <p>XP Multiplier: ${player.xpMulti.toFixed(2)}</p>
+      <p>Level: ${player.level}</p>
+    </div>
+  `;
+  // Update the bottom menu with the new stats content if the stats menu is active
+  if (bottomMenu.innerHTML.includes("Stats")) {
+    switchMenu(statsContent, "stats");
+  }
+}
+const statsScreenBtn = document.getElementById("statsScreenBtn");
+
+statsScreenBtn.addEventListener("click", () => {
+  switchMenu(statsContent, "stats");
+  updateStats();
+});
+function setMainStatDisplay(attribute) {
+  // Reset all attribute displays first
+  strengthDisplay = "Strength";
+  intellectDisplay = "Intellect";
+  agilityDisplay = "Agility";
+  toughnessDisplay = "Toughness";
+  mysticismDisplay = "Mysticism";
+
+  // Set the selected attribute as primary and update the display
+  switch (attribute) {
+    case 'strength':
+      strengthDisplay = "Strength (PRI)";
+      player.primaryAttribute = "strength";
+      break;
+    case 'intellect':
+      intellectDisplay = "Intellect (PRI)";
+      player.primaryAttribute = "intellect";
+      break;
+    case 'agility':
+      agilityDisplay = "Agility (PRI)";
+      player.primaryAttribute = "agility";
+      break;
+    case 'toughness':
+      toughnessDisplay = "Toughness (PRI)";
+      player.primaryAttribute = "toughness";
+      break;
+    case 'mysticism':
+      mysticismDisplay = "Mysticism (PRI)";
+      player.primaryAttribute = "mysticism";
+      break;
+    default:
+      console.error('Unknown attribute: ' + attribute);
+      return;
+  }
+  updateAttributesMenu(); // Update the attributes display
+}
+
+function getPrimaryAttributeValue() {
+  if (!player.primaryAttribute) {
+    console.warn("Primary attribute is not set.");
+    return 0; // Return 0 if no primary attribute is set
+  }
+  return player[player.primaryAttribute];
+}
+function selectCharacter(character) {
+    switch (character) {
+        case 'warrior':
+            player.strength += 5; // Example stat boost
+            setMainStatDisplay("strength");
+            break;
+        case 'archer':
+            player.agility += 5; // Example stat boost
+            break;
+        case 'wizard':
+            player.intellect += 5; // Example stat boost
+            break;
+        default:
+            console.error('Unknown character: ' + character);
+    }
+
+    // Hide the character selection and show the game
+    document.getElementById('characterSelection').style.display = 'none';
+    document.getElementById('topBar').style.display = 'flex';
+    document.getElementById('battleArea').style.display = 'block';
+    document.getElementById('levelDisplayRow').style.display = 'flex';
+    document.getElementById('xpBarContainer').style.display = 'flex';
+    document.getElementById('bottomMenu').style.display = 'block';
+
+    // Start the game
+    startCombat();
+    startSwordFills();
+    updateHealthBars();
+}
 function increaseAttribute(attribute) {
   if (player.attributePoints > 0) {
     player[attribute]++;
@@ -100,28 +216,58 @@ function increaseAttribute(attribute) {
     updateAttributesMenu();  // Update the attribute points display
   }
 }
-function updateStrength(){
-  player.damage = 10+(player.strength)*4
+
+function updateDamage(){
+  val = getPrimaryAttributeValue();
+  player.damage = Math.floor(Math.pow(val,1.3))
 }
-function updateAgility(){
-  player.attackSpeed = 500 * Math.pow(0.93, player.agility)
-}
-function updateIntellect(){
-  player.xpMulti = 1+(player.intellect);
-}
-function updateToughness(){
-  player.maxHealth = 100 * (1+(player.toughness/4));
+function updateMaxHealth(){
+  player.maxHealth = Math.floor(50 * (player.toughness/4+1)*Math.pow(1.03125, player.strength));
   updateHealthBars();
 }
-function updateMysticism(){
+function updateAttackSpeed(){
+  player.attackSpeed = 500 * Math.pow(0.96, player.agility)
+}
+function updateXPMulti(){
+  player.xpMulti = Math.pow(1.2, player.intellect);
+}
+function updateRegen(){
   player.regen = Math.pow(player.mysticism, 1.14);
 }
+function updateRegenSpeed(){
+  player.regenSpeed = 2000 * Math.pow(0.98, player.intellect);
+  stopRegen();
+  startPlayerRegen();
+}
+function updateStrength(){
+  updateMaxHealth();
+  updateDamage();
+}
+function updateAgility(){
+  updateAttackSpeed();
+}
+function updateIntellect(){
+  updateXPMulti();
+  updateRegenSpeed();
+}
+function updateToughness(){
+  updateMaxHealth();
+}
+function updateMysticism(){
+  updateRegen();
+}
 function updateAttributesMenu() {
+  if(currentMenu != "attributes"){return;}
   document.getElementById("playerStrength").textContent = player.strength;
+  document.getElementById("strengthDisplay").textContent = strengthDisplay;
   document.getElementById("playerIntellect").textContent = player.intellect;
+  document.getElementById("intellectDisplay").textContent = intellectDisplay;
   document.getElementById("playerAgility").textContent = player.agility;
+  document.getElementById("agilityDisplay").textContent = agilityDisplay;
   document.getElementById("playerToughness").textContent = player.toughness;
+  document.getElementById("toughnessDisplay").textContent = toughnessDisplay;
   document.getElementById("playerMysticism").textContent = player.mysticism;
+  document.getElementById("mysticismDisplay").textContent = mysticismDisplay;
   document.getElementById("attributePoints").textContent = `Attribute Points: ${player.attributePoints}`;
 }
 function stopRegen() {
@@ -143,9 +289,12 @@ function updateXPBar() {
 function levelUp() {
   player.xp = player.xp - player.maxXP;  // Carry over excess XP
   player.level++;  // Increase player level
-  player.maxXP = Math.floor(player.maxXP * 1.65);  // Increase XP needed for next level
+  player.maxXP = Math.floor(player.maxXP * 1.69);  // Increase XP needed for next level
   player.attributePoints += 3;  // Give 3 attribute points to spend
   updateAttributesMenu();
+  if(player.xp >= player.maxXP){
+    levelUp();
+  }
   // Optionally, notify the player of their new level and points
 }
 
@@ -229,28 +378,34 @@ function startSwordFills() {
 
 
 // Functions for switching menus
-function switchMenu(content) {
+function switchMenu(content, name) {
   bottomMenu.innerHTML = content;
+  currentMenu = name;
 }
 
 // Event listeners for menu buttons
 attributesScreenBtn.addEventListener("click", () => {
-  switchMenu(attributesContent);
+  switchMenu(attributesContent, "attributes");
+  updateAttributesMenu();
 });
 
 settingsScreenBtn.addEventListener("click", () => {
-  switchMenu(settingsContent);
+  switchMenu(settingsContent, "settings");
 });
 
 autoProgressBtn.addEventListener("click", () => {
   autoProgress = !autoProgress;
 });
 // Default state: Show attributes content when game starts
-switchMenu(attributesContent);
+switchMenu(attributesContent, "attributes");
 
 // Function to update health bars and text
 function updateHealthBars() {
-  playerHealthBar.style.width = (100*player.health/player.maxHealth) + '%';
+  let val = (100 * (player.health/player.maxHealth))
+  if(val > 100) {
+    val = 100;
+  }
+  playerHealthBar.style.width = val + '%';
   playerHealthText.textContent = `Your Health: ${player.health}`;
   enemyHealthBar.style.width = (enemy.health / enemy.baseHealth) * 100 + '%';
   enemyHealthText.textContent = `Enemy Health: ${enemy.health}`;
@@ -272,6 +427,7 @@ function playerAttack() {
 function enemyAttack() {
   if (player.health > 0) {
     player.health -= enemy.attack;  // Enemy attacks based on attack stat
+    player.health = Math.floor(player.health);
     if (player.health <= 0) {
       playerDefeated();  // Optional: handle what happens when the player loses
     } 
@@ -306,12 +462,13 @@ function enemyDefeated() {
   if (player.xp >= player.maxXP) {
     levelUp();  // Level up if XP threshold is reached
   }
+  maxUnlockedLevel = Math.max(maxUnlockedLevel, currentEnemyLevel+1);  // Unlock higher levels
   updateXPBar();  // Update the XP bar display
   if(autoProgress){
     currentEnemyLevel++; 
     changeEnemyLevel(currentEnemyLevel);  // Reset enemy's health and update display// Increase enemy level
   }
-  maxUnlockedLevel = Math.max(maxUnlockedLevel, currentEnemyLevel);  // Unlock higher levels
+  
   
   resetPlayerHealth();
   startCombat();  // Restart combat
@@ -348,11 +505,11 @@ nextEnemyBtn.addEventListener("click", () => {
 
 // Function to change enemy level and reset health
 function changeEnemyLevel(level) {
-  enemy.baseHealth = Math.floor(30 + 5 * Math.pow(level, 1.3)); // Example health scaling
+  enemy.baseHealth = Math.floor(30 + 5 * Math.pow(level, 1.35)); // Example health scaling
   enemy.health = enemy.baseHealth;
-  enemy.attack = Math.floor(5 + 1.5*Math.pow(level, 1.15));  // Optionally scale enemy attack
+  enemy.attack = Math.floor(10 + 1.5*Math.pow(level, 1.35));  // Optionally scale enemy attack
   
-  enemy.xp = 10 * Math.pow(1.35,level-1);
+  enemy.xp = 10 * Math.pow(1.3,level-1);
   enemyLevelText.textContent = level;
   updateHealthBars();
 }
@@ -360,5 +517,3 @@ function changeEnemyLevel(level) {
 
 
 // Initialize combat when the page loads
-startCombat();
-startSwordFills();
