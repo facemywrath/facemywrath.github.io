@@ -190,6 +190,7 @@ body {
 }
 
 .swordIcon {
+  position: absolute;
   width: 40px;
   height: 40px;
 }
@@ -225,7 +226,7 @@ body {
   width: 80vw;
   height: 5vh;
   background-color: #777;
-  border: 1px solid black;
+  border: 1px solid black
 }
 
 #playerHealthBar {
@@ -292,6 +293,9 @@ button {
   padding: 10px 20px;
   font-size: 16px;
   cursor: pointer;
+}
+button:disabled {
+  background-color: #333;
 }
 /* Outer container that forces the aspect ratio */
 .aspect-ratio-container {
