@@ -17,7 +17,8 @@ function saveGameState() {
     currentEnemyLevel: currentEnemyLevel,
     maxUnlockedLevel: maxUnlockedLevel,
     totalReincarnations: totalReincarnations,
-    unlockedClasses: unlockedClasses
+    unlockedClasses: unlockedClasses,
+    lastSaveTime: Date.now()
   };
 
   // Save the game state to localStorage as a JSON string
@@ -45,25 +46,76 @@ function loadGameState() {
     totalReincarnations = gameState.totalReincarnations;
     unlockedClasses = gameState.unlockedClasses;
 
-    // If player class is not "none", close the class selection menu
-    if (player.currentClass !== "none") {
-      document.getElementById('characterSelection').style.display = 'none';
-      document.getElementById('topBar').style.display = 'flex';
-      document.getElementById('battleArea').style.display = 'block';
-      document.getElementById('levelDisplayRow').style.display = 'flex';
-      document.getElementById('xpBarContainer').style.display = 'flex';
-      document.getElementById('bottomMenu').style.display = 'block';
+    // Calculate time passed since the last save
+    const lastSaveTime = gameState.lastSaveTime || Date.now();
+    const currentTime = Date.now();
+    const timePassed = currentTime - lastSaveTime; // Time passed in milliseconds
+    const timePassedInSeconds = timePassed / 1000;
+
+    // Convert time passed to minutes and seconds
+    const minutesPassed = Math.floor(timePassedInSeconds / 60);
+    const secondsPassed = Math.floor(timePassedInSeconds % 60);
+
+    // Calculate the number of attacks the player could have made in that time
+    const attackInterval = player.attackSpeed / 1000; // Attack speed in seconds
+    const attacksInTimePassed = Math.floor(timePassedInSeconds / attackInterval);
+
+    // Calculate the XP gain based on the enemy's XP value
+    const xpGain = attacksInTimePassed * enemy.xp * player.xpMulti/100;
+
+    // Calculate how many levels were gained
+    let levelsGained = 0;
+    player.xp += xpGain;
+    while (player.xp >= player.maxXP) {
+      levelUp(); // Handle leveling up and distributing points
+      levelsGained++; // Count levels gained
     }
 
-    // Update any necessary UI elements after loading
-    updateAttributesMenu();
-    updateHealthBars();
-    updateXPBar();
-    tryUnlockSkills();
-    tryUnlockResolutionSkills();
-    unlockResolutionSkillsMenu();
-    startSwordFills();
-    startCombat();
+    // Calculate XP percentage gained in the current level
+    const xpPercentageGained = ((player.xp / player.maxXP) * 100).toFixed(2);
+
+    // Create the popup content
+    const popupContent = `
+      <div id="popup" style="position: fixed; top: 20%; left: 50%; transform: translate(-50%, -20%); background: #444; padding: 20px; border-radius: 10px; color: white; text-align: center;">
+        <h2>Time Passed: ${minutesPassed}m ${secondsPassed}s</h2>
+        <p>Levels Gained: ${levelsGained}</p>
+        <p>XP Gained: ${xpPercentageGained}%</p>
+        <button id="closePopup" style="padding: 10px 20px; background-color: #555; border: none; color: white; cursor: pointer;">Continue</button>
+      </div>
+    `;
+
+    // Insert the popup into the body
+    document.body.insertAdjacentHTML('beforeend', popupContent);
+
+    // Add event listener to close the popup and start the game
+    document.getElementById('closePopup').addEventListener('click', function() {
+      // Remove the popup from the DOM
+      document.getElementById('popup').remove();
+
+      // If player class is not "none", close the class selection menu
+      if (player.currentClass !== "none") {
+        document.getElementById('characterSelection').style.display = 'none';
+        document.getElementById('topBar').style.display = 'flex';
+        document.getElementById('battleArea').style.display = 'block';
+        document.getElementById('levelDisplayRow').style.display = 'flex';
+        document.getElementById('xpBarContainer').style.display = 'flex';
+        document.getElementById('bottomMenu').style.display = 'block';
+      }
+
+      // Update any necessary UI elements after loading
+      updateAttributesMenu();
+      updateHealthBars();
+      updateXPBar();
+      tryUnlockSkills();
+      tryUnlockResolutionSkills();
+      unlockResolutionSkillsMenu();
+
+      // Start the necessary game functions after closing the popup
+      startSwordFills();
+      startCombat();
+    });
+
+    console.log(`Game state loaded! Time passed: ${minutesPassed}m ${secondsPassed}s. XP gained: ${xpPercentageGained}%. Levels gained: ${levelsGained}`);
   } else {
     console.log('No saved game state found.');
   }
