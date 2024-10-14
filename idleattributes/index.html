@@ -21,19 +21,23 @@
             </p>
             <button>Select</button>
           </div>
-          <div class="character-card" onclick="selectCharacter('archer')">
-            <h1>Locked</h1>
+          <div class="character-card" id="archer-card" onclick="selectCharacter('archer')">
+            <h1 id="archer-desc">Locked</h1>
+            <button id= "archer-select-btn" disabled>Reach Prestige 2</button>
           </div>
-          <div class="character-card" onclick="selectCharacter('wizard')">
-            <h1>Locked</h1>
+          <div class="character-card" id="wizard-card" onclick="selectCharacter('wizard')">
+            <h1 id="wizard-desc">Locked</h1>
+            <button id="wizard-select-btn" disabled>Reach Prestige 6</button>
           </div>
         </div>
         <div class="character-row" id="character-row2">
-          <div class="character-card" onclick="selectCharacter('archer')">
-            <h1>Locked</h1>
+          <div class="character-card" onclick="selectCharacter('druid')">
+            <h1 id="druid-desc">Locked</h1>
+            <button id="druid-select-btn" disabled>Locked</button>
           </div>
-          <div class="character-card" onclick="selectCharacter('wizard')">
-            <h1>Locked</h1>
+          <div class="character-card" onclick="selectCharacter('vanguard')">
+            <h1 id="vanguard-desc">Locked</h1>
+            <button id="vanguard-select-btn" disabled>Locked</button>
           </div>
         </div>
       </div>
@@ -43,8 +47,8 @@
         <button id="statsScreenBtn">Stats</button> <!-- New Stats button -->
         <button id="attributesScreenBtn">Attributes</button>
         <!-- Inside the topBar div -->
-        <button id="skillsScreenBtn" disabled="true">Reach Level 10</button>
-
+        <button id="skillsScreenBtn" disabled>Reach Level 10</button>
+        <button id="resolutionScreenBtn" disabled>Beat Floor 30</button>
       </div>
 
       <!-- New thin row for enemy level display -->
@@ -56,7 +60,7 @@
         </label>
         <button id="prevEnemyBtn">&lt;</button>
         <p id="enemyLevelText">
-          1
+         Floor 1
         </p>
         <button id="nextEnemyBtn">&gt;</button>
       </div>
