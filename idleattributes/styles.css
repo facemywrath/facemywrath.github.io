@@ -220,6 +220,7 @@ body {
 /* Health bar container styles */
 .healthBarContainer {
   width: 100%;
+  max-width: 56.25vh;
   border: 1px solid #000;
   border-radius: 3px;
 }
@@ -229,17 +230,20 @@ body {
   height: 5vh;
   background-color: #777;
   border: 1px solid black
+  max-width: 56.25vh;
 }
 
 #playerHealthBar {
   height: 100%;
   background-color: #00cc00;
   width: 100%;
+  max-width: 56.25vh;
 }
 
 #enemyHealthBar {
   height: 100%;
   background-color: #ff6f61;
+  max-width: 56.25vh;
   width: 100%;
 }
 

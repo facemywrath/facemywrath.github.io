@@ -407,18 +407,35 @@ function levelUpResoluteSkill(skillName) {
     case 'weightLifting':
       updateWeightLiftingEffect();
       break;
-    case 'charge':
-      updateChargeEffect();
+    case 'bash':
+      updateBashEffect();
       break;
-    case 'shieldWall':
-      updateShieldwallEffect();
+    case 'tactician':
+      updateTacticianEffect();
+      break;
+    case 'eagleEye':
+      updateEagleEyeEffect();
+      break;
+    case 'featheredShot':
+      updateFeatheredShotEffect();
+      break;
+    case 'volley':
+      updateVolleyEffect();
       break;
     default:
       console.error("Unknown skill: " + skillName);
       break;
   }
 }
-
+function updateVolleyEffect(){
+  updateAttackSpeed();
+}
+function updateFeatheredShotEffect(){
+  updateCritMulti();
+}
+function updateEagleEyeEffect(){
+  updateCritChance();
+}
 function updateTacticianEffect() {
   player.strength++;
   player.intellect++;
@@ -741,7 +758,16 @@ function setMainStatDisplay(attribute) {
   function updateAttackSpeed() {
     let base = Math.pow(0.96, player.agility);
     let quickdrawMulti = Math.pow(0.95, player.skills.quickdraw.level);
-    player.attackSpeed = 500 * base*quickdrawMulti;
+    let volleyMulti = Math.pow(0.97, player.resolutionSkills.volley.level);
+    player.attackSpeed = 500 * base*quickdrawMulti*volleyMulti;
+  }
+  function updateCritChance(){
+    let val = 100*(1-Math.exp(player.resolutionSkills.eagleEye.level/-10))
+    player.critChance = val;
+  }
+  function updateCritMulti(){
+    let val = 2+(player.resolutionSkills.featheredShot.level/4);
+    player.critMulti=val;
   }
   function updateXPMulti() {
     player.xpMulti = Math.pow(1.2, player.intellect);
@@ -960,7 +986,7 @@ function setMainStatDisplay(attribute) {
     let chargeMulti = 1;
     if (player.currentClass == "warrior") {
       if (player.firstAttack) {
-        chargeMulti = player.skills.charge.level*0.7+1;
+        chargeMulti = player.skills.charge.level*0.75+1;
       }
     }
     let critMulti = 1;
@@ -1025,6 +1051,7 @@ function setMainStatDisplay(attribute) {
       if (currentEnemyLevel >= 29) {
         tryUnlockResolutionSkills();
       }
+      tryUnlockSkills();
     }
     maxUnlockedLevel = Math.max(maxUnlockedLevel, currentEnemyLevel+1); // Unlock higher levels
     updateXPBar(); // Update the XP bar display
