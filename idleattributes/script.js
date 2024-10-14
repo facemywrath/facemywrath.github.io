@@ -2,7 +2,14 @@
 const doLoad = true;
 //save?
 const doSave = true;
+const saveFrequency = 5000;
 
+function saveLoop(){
+  setInterval(()=>{
+    saveGameState();
+    console.log(`${Date.now()}: Game Saved.`);
+  }, saveFrequency);
+}
 function saveGameState() {
   if (!doSave) {
     return;
@@ -43,6 +50,9 @@ function loadGameState() {
     autoProgress = gameState.autoProgress;
     currentEnemyLevel = gameState.currentEnemyLevel;
     maxUnlockedLevel = gameState.maxUnlockedLevel;
+    if(currentEnemyLevel == maxUnlockedLevel){
+      currentEnemyLevel--;
+    }
     totalReincarnations = gameState.totalReincarnations;
     unlockedClasses = gameState.unlockedClasses;
 
@@ -50,8 +60,7 @@ function loadGameState() {
     const lastSaveTime = gameState.lastSaveTime || Date.now();
     const currentTime = Date.now();
     const timePassed = currentTime - lastSaveTime; // Time passed in milliseconds
-    const timePassedInSeconds = timePassed / 1000;
-
+    const timePassedInSeconds = Math.max(1,Math.min(1200,timePassed / 1000));
     // Convert time passed to minutes and seconds
     const minutesPassed = Math.floor(timePassedInSeconds / 60);
     const secondsPassed = Math.floor(timePassedInSeconds % 60);
@@ -59,20 +68,26 @@ function loadGameState() {
     // Calculate the number of attacks the player could have made in that time
     const attackInterval = player.attackSpeed / 1000; // Attack speed in seconds
     const attacksInTimePassed = Math.floor(timePassedInSeconds / attackInterval);
-
+    changeEnemyLevel(currentEnemyLevel);
     // Calculate the XP gain based on the enemy's XP value
-    const xpGain = attacksInTimePassed * enemy.xp * player.xpMulti/100;
+    const xpGain = attacksInTimePassed * enemy.xp * player.xpMulti/10;
 
     // Calculate how many levels were gained
     let levelsGained = 0;
+    let prevXP = player.xp;
+    let prevLevel = player.level;
     player.xp += xpGain;
-    while (player.xp >= player.maxXP) {
-      levelUp(); // Handle leveling up and distributing points
-      levelsGained++; // Count levels gained
-    }
-
+    levelUp(); // Handle leveling up and distributing points
+    console.log(`xpGain: ${xpGain}`);
+    console.log(`PrevXP: ${prevXP}`);
+    console.log(`NewXP: ${player.xp}`);
+    console.log(`prevLevel: ${prevLevel}`);
+    levelsGained = player.level - prevLevel;
     // Calculate XP percentage gained in the current level
-    const xpPercentageGained = ((player.xp / player.maxXP) * 100).toFixed(2);
+    let xpPercentageGained = (player.xp/player.maxXP*100).toFixed(2);
+    if(levelsGained == 0){
+      xpPercentageGained = ((player.xp-prevXP)/player.maxXP*100).toFixed(2);
+    }
 
     // Create the popup content
     const popupContent = `
@@ -111,6 +126,7 @@ function loadGameState() {
       unlockResolutionSkillsMenu();
 
       // Start the necessary game functions after closing the popup
+      
       startSwordFills();
       startCombat();
     });
@@ -119,6 +135,7 @@ function loadGameState() {
   } else {
     console.log('No saved game state found.');
   }
+  saveLoop();
 }
 
 // Screen elements
@@ -160,7 +177,7 @@ let player = {
   xp: 0,
   maxXP: 30,
   xpMulti: 1,
-  attackSpeed: 500,
+  attackSpeed: 2000,
   defense: 1,
   evasion: 0,
   critChance: 0,
@@ -262,7 +279,7 @@ let enemy = {
   regen: 0,
   regenSpeed: 0,
   attack: 11.5,
-  attackSpeed: 505,
+  attackSpeed: 2005,
   // in milliseconds
   xp: 10
 };
@@ -285,7 +302,7 @@ const heroInitialConfig = {
   xp: 0,
   maxXP: 30,
   xpMulti: 1,
-  attackSpeed: 500,
+  attackSpeed: 2000,
   defense: 1,
   evasion: 0,
   regen: 0,
@@ -771,7 +788,6 @@ function setMainStatDisplay(attribute) {
       console.warn("Primary attribute is not set.");
       return 0; // Return 0 if no primary attribute is set
     }
-    console.log(`val = ${player.primaryAttribute}`);
     return player[player.primaryAttribute];
   }
   function selectCharacter(character) {
@@ -874,7 +890,7 @@ function setMainStatDisplay(attribute) {
     let base = Math.pow(0.96, player.agility);
     let quickdrawMulti = Math.pow(0.95, player.skills.quickdraw.level);
     let volleyMulti = Math.pow(0.97, player.resolutionSkills.volley.level);
-    player.attackSpeed = 500 * base*quickdrawMulti*volleyMulti;
+    player.attackSpeed = 2000 * base*quickdrawMulti*volleyMulti;
   }
   function updateCritChance() {
     let val = 100*(1-Math.exp(player.resolutionSkills.eagleEye.level/-10))
@@ -961,6 +977,9 @@ function setMainStatDisplay(attribute) {
     document.getElementById("playerXPText").textContent = `${roundedXP}%`;
   }
   function levelUp() {
+    if(player.xp < player.maxXP){
+      return;
+    }
     player.xp = player.xp - player.maxXP; // Carry over excess XP
     player.level++; // Increase player level
     player.maxXP = Math.floor(player.maxXP * 1.4); // Increase XP needed for next level
@@ -1042,28 +1061,27 @@ function setMainStatDisplay(attribute) {
   // Function to update the sword fills based on time until next attack
   function updateSwordFills() {
     // Calculate progress as percentage of time passed relative to attack speed
-    playerAttackProgress += (100 / player.attackSpeed); // Progress per millisecond
-    enemyAttackProgress += (100 / enemy.attackSpeed);
-
+    playerAttackProgress += (100); // Progress per millisecond
+    enemyAttackProgress += (100);
     // Cap the progress at 100%
-    if (playerAttackProgress >= 100) {
+    if (playerAttackProgress >= player.attackSpeed) {
       playerAttackProgress = 0; // Reset after attack
       playerAttack(); // Trigger player attack
     }
-    if (enemyAttackProgress >= 100) {
+    if (enemyAttackProgress >= enemy.attackSpeed) {
       enemyAttackProgress = 0; // Reset after attack
       enemyAttack(); // Trigger enemy attack
     }
 
     // Update the sword fills
-    updatePlayerSwordFill(playerAttackProgress);
-    updateEnemySwordFill(enemyAttackProgress);
+    updatePlayerSwordFill(playerAttackProgress/player.attackSpeed*100);
+    updateEnemySwordFill(enemyAttackProgress/enemy.attackSpeed*100);
   }
 
   // Function to start the filling intervals
   function startSwordFills() {
     // Update the sword fills every 100ms for smooth animation
-    setInterval(updateSwordFills, 0.1);
+    setInterval(updateSwordFills, 100);
   }
 
   // Call the function to start filling the swords
@@ -1099,7 +1117,6 @@ function setMainStatDisplay(attribute) {
     if (val > 100) {
       val = 100;
     }
-    console.log(val);
     playerHealthBar.style.width = val + '%';
     playerHealthText.textContent = `Your Health: ${player.health}`;
     enemyHealthBar.style.width = (enemy.health / enemy.baseHealth) * 100 + '%';
@@ -1222,7 +1239,7 @@ function setMainStatDisplay(attribute) {
   });
 
   function updateEnemyAttackSpeed() {
-    enemy.attackSpeed = 505 * Math.pow(0.95,
+    enemy.attackSpeed = 2005 * Math.pow(0.95,
       player.resolutionSkills.bash.level);
   }
   // Function to change enemy level and reset health
