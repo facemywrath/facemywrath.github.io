@@ -226,11 +226,12 @@ body {
 }
 
 .healthBar {
+  max-width: 56.25vh;
+  display: block;
   width: 80vw;
   height: 5vh;
   background-color: #777;
-  border: 1px solid black
-  max-width: 56.25vh;
+  border: 1px solid black;
 }
 
 #playerHealthBar {

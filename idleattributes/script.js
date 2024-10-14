@@ -1,3 +1,74 @@
+//load?
+const doLoad = true;
+//save?
+const doSave = true;
+
+function saveGameState() {
+  if (!doSave) {
+    return;
+  }
+  // Create a shallow copy of the player object to avoid mutating the original
+  const playerData = JSON.parse(JSON.stringify(player));
+
+  // Remove any properties or objects that should not be saved (e.g., enemy object)
+  const saveData = {
+    player: playerData,
+    autoProgress: autoProgress,
+    currentEnemyLevel: currentEnemyLevel,
+    maxUnlockedLevel: maxUnlockedLevel,
+    totalReincarnations: totalReincarnations,
+    unlockedClasses: unlockedClasses
+  };
+
+  // Save the game state to localStorage as a JSON string
+  localStorage.setItem('gameState', JSON.stringify(saveData));
+
+
+}
+
+function loadGameState() {
+  if (!doLoad) {
+    return;
+  }
+  // Retrieve the saved game state from localStorage
+  const savedGameState = localStorage.getItem('gameState');
+
+  // Check if there's a saved game state
+  if (savedGameState) {
+    const gameState = JSON.parse(savedGameState);
+
+    // Load the saved data into the appropriate variables
+    player = gameState.player;
+    autoProgress = gameState.autoProgress;
+    currentEnemyLevel = gameState.currentEnemyLevel;
+    maxUnlockedLevel = gameState.maxUnlockedLevel;
+    totalReincarnations = gameState.totalReincarnations;
+    unlockedClasses = gameState.unlockedClasses;
+
+    // If player class is not "none", close the class selection menu
+    if (player.currentClass !== "none") {
+      document.getElementById('characterSelection').style.display = 'none';
+      document.getElementById('topBar').style.display = 'flex';
+      document.getElementById('battleArea').style.display = 'block';
+      document.getElementById('levelDisplayRow').style.display = 'flex';
+      document.getElementById('xpBarContainer').style.display = 'flex';
+      document.getElementById('bottomMenu').style.display = 'block';
+    }
+
+    // Update any necessary UI elements after loading
+    updateAttributesMenu();
+    updateHealthBars();
+    updateXPBar();
+    tryUnlockSkills();
+    tryUnlockResolutionSkills();
+    unlockResolutionSkillsMenu();
+    startSwordFills();
+    startCombat();
+  } else {
+    console.log('No saved game state found.');
+  }
+}
+
 // Screen elements
 const attributesScreenBtn = document.getElementById("attributesScreenBtn");
 const settingsScreenBtn = document.getElementById("settingsScreenBtn");
@@ -26,9 +97,10 @@ let maxUnlockedLevel = 1;
 let totalReincarnations = 0;
 let unlockedClasses = ["warrior"];
 
+
 let player = {
-  currentClass: "warrior",
-  primaryAttribute: "strength",
+  currentClass: "none",
+  primaryAttribute: "none",
   health: 50,
   maxHealth: 50,
   damage: 10,
@@ -152,8 +224,8 @@ let mysticismDisplay = "Mysticism";
 
 // Configuration object for initial hero values
 const heroInitialConfig = {
-  currentClass: "warrior",
-  primaryAttribute: "strength",
+  currentClass: "none",
+  primaryAttribute: "none",
   health: 50,
   maxHealth: 50,
   damage: 10,
@@ -241,14 +313,15 @@ const heroInitialConfig = {
   }
 };
 
+
 // Method to reset the player back to initial values
 function buildHero() {
   // Reset player properties based on the initial configuration
   oldResolutionSkills = player.resolutionSkills;
   Object.assign(player, JSON.parse(JSON.stringify(heroInitialConfig)));
   player.resolutionSkills = oldResolutionSkills;
-  for(let skill in player.resolutionSkills){
-    player.resolutionSkills[skill].locked= true;
+  for (let skill in player.resolutionSkills) {
+    player.resolutionSkills[skill].locked = true;
   }
   // Update display elements to reflect the reset values
   player.strength += player.resolutionSkills.tactician.level;
@@ -266,7 +339,7 @@ function buildHero() {
   currentEnemyLevel = 1;
   tryUnlockSkills();
   tryUnlockResolutionSkills();
-  
+
   // Return to the character selection screen
   document.getElementById('characterSelection').style.display = 'block';
   document.getElementById('topBar').style.display = 'none';
@@ -274,7 +347,6 @@ function buildHero() {
   document.getElementById('levelDisplayRow').style.display = 'none';
   document.getElementById('xpBarContainer').style.display = 'none';
   document.getElementById('bottomMenu').style.display = 'none';
-  console.log(player);
 }
 function tryUnlockClasses() {
   if (totalReincarnations < 2) {
@@ -371,10 +443,8 @@ function tryUnlockResolutionSkills() {
 }
 function tryUnlockResolutionSkill(skillName) {
   if (player.resolutionSkills[skillName].unlockAt > currentEnemyLevel+1) {
-    console.log(`${skillName} locked`);
     return;
   }
-  console.log(`${skillName} unlocked`);
   player.resolutionSkills[skillName].locked = false;
   if (currentMenu == "resolution") {
     displayResoluteSkillsMenu();
@@ -391,12 +461,10 @@ function unlockResolutionSkillsMenu() {
   }
 }
 function levelUpResoluteSkill(skillName) {
-  console.log("level 1");
   if (player.resolutionPoints == 0) {
     console.log("level out of points");
     return;
   }
-  console.log(skillName);
   player.resolutionPoints--;
   player.resolutionSkills[skillName].level++;
   if (currentMenu == "resolution") {
@@ -427,13 +495,13 @@ function levelUpResoluteSkill(skillName) {
       break;
   }
 }
-function updateVolleyEffect(){
+function updateVolleyEffect() {
   updateAttackSpeed();
 }
-function updateFeatheredShotEffect(){
+function updateFeatheredShotEffect() {
   updateCritMulti();
 }
-function updateEagleEyeEffect(){
+function updateEagleEyeEffect() {
   updateCritChance();
 }
 function updateTacticianEffect() {
@@ -455,12 +523,10 @@ function updateWeightLiftingEffect() {
 }
 
 function levelUpSkill(skillName) {
-  console.log("level 1");
   if (player.skillPoints == 0) {
     console.log("level out of points");
     return;
   }
-  console.log(skillName);
   player.skillPoints--;
   updateSkillPointsDisplay();
   player.skills[skillName].level++;
@@ -483,8 +549,8 @@ function levelUpSkill(skillName) {
     case "quickdraw":
       updateQuickdrawEffect();
       break;
-      case "evasion":
-        updateEvasionEffect();
+    case "evasion":
+      updateEvasionEffect();
     default:
       console.error("Unknown skill: " + skillName);
       break;
@@ -528,32 +594,29 @@ function displaySkillsMenu() {
   switchMenu(skillsContent, "skills");
 }
 
-function updateSharpnessEffect(){
+function updateSharpnessEffect() {
   updateDamage();
 }
-function updateQuickdrawEffect(){
+function updateQuickdrawEffect() {
   updateAttackSpeed();
 }
-function updateEvasionEffect(){
+function updateEvasionEffect() {
   updateEvasion();
 }
 
 function updateOverpowerEffect() {
   // Implement the passive effect for Overpower based on the skill level
-  console.log("Overpower level: " + player.skills.overpower.level);
   updateDamage();
   // Fill in the details for the passive effect
 }
 
 function updateChargeEffect() {
   // Implement the passive effect for Cleave based on the skill level
-  console.log("Charge level: " + player.skills.charge.level);
   // Fill in the details for the passive effect
 }
 
 function updateShieldwallEffect() {
   // Implement the passive effect for Shieldwall based on the skill level
-  console.log("Shieldwall level: " + player.skills.shieldWall.level);
   updateDefense();
   // Fill in the details for the passive effect
 }
@@ -747,7 +810,7 @@ function setMainStatDisplay(attribute) {
     let sharpnessMulti = 1 + (0.2*player.skills.sharpness.level);
     player.damage = Math.floor(base*opMulti*weightMulti*sharpnessMulti);
   }
-  function updateEvasion(){
+  function updateEvasion() {
     let val = 100*(1-Math.exp(player.skills.evasion/-10))
     player.evasion = val;
   }
@@ -761,13 +824,13 @@ function setMainStatDisplay(attribute) {
     let volleyMulti = Math.pow(0.97, player.resolutionSkills.volley.level);
     player.attackSpeed = 500 * base*quickdrawMulti*volleyMulti;
   }
-  function updateCritChance(){
+  function updateCritChance() {
     let val = 100*(1-Math.exp(player.resolutionSkills.eagleEye.level/-10))
     player.critChance = val;
   }
-  function updateCritMulti(){
+  function updateCritMulti() {
     let val = 2+(player.resolutionSkills.featheredShot.level/4);
-    player.critMulti=val;
+    player.critMulti = val;
   }
   function updateXPMulti() {
     player.xpMulti = Math.pow(1.2, player.intellect);
@@ -828,9 +891,17 @@ function setMainStatDisplay(attribute) {
   const settingsContent = `
   <h2>Settings</h2>
   <button id="resetHeroBtn">Reset Hero</button>
-  <button id="hardResetBtn">Hard Reset</button>
+  <button id="hardResetBtn" onClick="hardResetGame()">Hard Reset</button>
   `;
+  function hardResetGame() {
+    // Clear all saved data from localStorage
+    localStorage.removeItem('gameState');
 
+    // Reload the web page
+    location.reload();
+
+    console.log('All save data cleared. Page reloaded.');
+  }
   function updateXPBar() {
     const xpPercentage = (player.xp / player.maxXP) * 100;
     const roundedXP = Math.floor(xpPercentage);
@@ -851,14 +922,15 @@ function setMainStatDisplay(attribute) {
       levelUp();
     }
     tryUnlockSkills();
-    
-    if(maxUnlockedLevel > 30){
+
+    if (maxUnlockedLevel > 30) {
       player.resolutionPoints++;
-        if (currentMenu == "resolution") {
-          displayResoluteSkillsMenu();
-        }
+      if (currentMenu == "resolution") {
+        displayResoluteSkillsMenu();
+      }
     }
     // Optionally, notify the player of their new level and points
+    saveGameState();
   }
 
   function updateSkillPointsDisplay() {
@@ -975,6 +1047,7 @@ function setMainStatDisplay(attribute) {
     if (val > 100) {
       val = 100;
     }
+    console.log(val);
     playerHealthBar.style.width = val + '%';
     playerHealthText.textContent = `Your Health: ${player.health}`;
     enemyHealthBar.style.width = (enemy.health / enemy.baseHealth) * 100 + '%';
@@ -990,8 +1063,8 @@ function setMainStatDisplay(attribute) {
       }
     }
     let critMulti = 1;
-    if(Math.random()*100<player.critChance){
-      critMulti=player.critMulti;
+    if (Math.random()*100 < player.critChance) {
+      critMulti = player.critMulti;
     }
     player.firstAttack = false;
     if (enemy.health > 0) {
@@ -1007,7 +1080,7 @@ function setMainStatDisplay(attribute) {
   // Function to handle enemy attacking the player
   function enemyAttack() {
     if (player.health > 0) {
-      if(Math.random()*100 < player.evasion){
+      if (Math.random()*100 < player.evasion) {
         return;
       }
       player.health -= enemy.attack*player.defense; // Enemy attacks based on attack stat
@@ -1062,6 +1135,7 @@ function setMainStatDisplay(attribute) {
     unlockResolutionSkillsMenu();
 
     resetPlayerHealth();
+    saveGameState();
     startCombat(); // Restart combat
   }
 
@@ -1095,7 +1169,7 @@ function setMainStatDisplay(attribute) {
     }
   });
 
-  function updateEnemyAttackSpeed(){
+  function updateEnemyAttackSpeed() {
     enemy.attackSpeed = 505 * Math.pow(0.95,
       player.resolutionSkills.bash.level);
   }
@@ -1111,6 +1185,6 @@ function setMainStatDisplay(attribute) {
     updateHealthBars();
   }
 
-
+  loadGameState();
 
   // Initialize combat when the page loads
