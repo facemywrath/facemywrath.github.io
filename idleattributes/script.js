@@ -72,6 +72,8 @@ function loadGameState() {
     const attacksInTimePassed = Math.floor(timePassedInSeconds / attackInterval);
     changeEnemyLevel(currentEnemyLevel);
     // Calculate the XP gain based on the enemy's XP value
+    updateDamage();
+    killsInTimePassed = attacksInTimePassed/(enemy.baseHealth/player.damage);
     const xpGain = attacksInTimePassed * enemy.xp * player.xpMulti/10;
 
     // Calculate how many levels were gained
@@ -432,6 +434,9 @@ function tryUnlockClasses() {
   archerSelectBtn.textContent = "Select";
   archerSelectBtn.disabled = false;
   archerDescription.textContent = "Archer";
+  if(totalReincarnations < 6){
+    
+  }
 }
 // Attributes and Settings menus
 const attributesContent = `
