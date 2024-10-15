@@ -911,10 +911,14 @@ function setMainStatDisplay(attribute) {
       val*=.5;
     }
     let base = 3*(val+1);
+    let ASMulti = 1;
+    if(player.attackSpeed < 1){
+      ASMulti= 1/player.attackSpeed;
+    }
     let opMulti = 1+(0.2 * player.skills.overpower.level);
     let weightMulti = 1+(0.1* player.resolutionSkills.weightLifting.level);
     let sharpnessMulti = 1 + (0.2*player.skills.sharpness.level);
-    player.damage = Math.floor(base*opMulti*weightMulti*sharpnessMulti);
+    player.damage = Math.floor(base*ASMulti*opMulti*weightMulti*sharpnessMulti);
   }
   function updateEvasion() {
     let val = 100*(1-Math.exp(player.skills.evasion/-10))
@@ -925,9 +929,9 @@ function setMainStatDisplay(attribute) {
     updateHealthBars();
   }
   function updateAttackSpeed() {
-    let base = Math.pow(0.98, player.agility);
-    let quickdrawMulti = Math.pow(0.95, player.skills.quickdraw.level);
-    let volleyMulti = Math.pow(0.97, player.resolutionSkills.volley.level);
+    let base = Math.exp(-0.03*player.agility);
+    let quickdrawMulti = Math.exp(-0.03*player.skills.quickdraw.level);
+    let volleyMulti = Math.exp(-0.03* player.resolutionSkills.volley.level);
     player.attackSpeed = 2000 * base*quickdrawMulti*volleyMulti;
   }
   function updateCritChance() {
@@ -1099,8 +1103,8 @@ function setMainStatDisplay(attribute) {
   // Function to update the sword fills based on time until next attack
   function updateSwordFills() {
     // Calculate progress as percentage of time passed relative to attack speed
-    playerAttackProgress += (10); // Progress per millisecond
-    enemyAttackProgress += (10);
+    playerAttackProgress += 1; // Progress per millisecond
+    enemyAttackProgress += 1;
     // Cap the progress at 100%
     if (playerAttackProgress >= player.attackSpeed) {
       playerAttackProgress = 0; // Reset after attack
@@ -1116,10 +1120,14 @@ function setMainStatDisplay(attribute) {
     updateEnemySwordFill(enemyAttackProgress/enemy.attackSpeed*100);
   }
 
+let swordFillInterval;
   // Function to start the filling intervals
   function startSwordFills() {
     // Update the sword fills every 100ms for smooth animation
-    setInterval(updateSwordFills, 10);
+    if(swordFillInterval){
+      clearInterval(swordFillInterval);
+    }
+    swordFillInterval= setInterval(updateSwordFills, 1);
   }
 
   // Call the function to start filling the swords
