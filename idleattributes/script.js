@@ -1,6 +1,6 @@
 //load?
 const doLoad = true;
-const maxOfflineTime = 1200;
+const maxOfflineTime = 600;
 const offlineXPMulti = 1/10;
 //save?
 const doSave = true;
@@ -168,13 +168,24 @@ const autoProgressBtn = document.getElementById("autoProgressCheckbox");
 
 const archerDescription = document.getElementById("archer-desc");
 const archerSelectBtn = document.getElementById("archer-select-btn");
-const hpBarSize = playerHealthBar.width
+const archerCard = document.getElementById("archer-card");
+const wizardDescription = document.getElementById("wizard-desc");
+const wizardSelectBtn = document.getElementById("wizard-select-btn");
+const wizardCard = document.getElementById("wizard-card");
+const hpBarSize = playerHealthBar.width;
+
+const strengthColor = "#a44";
+const intellectColor = "#649";
+const agilityColor = "#4a4";
+const toughnessColor = "#027";
+const mysticismColor = "#a4a";
+
 let autoProgress = false;
 let currentEnemyLevel = 1;
 let maxUnlockedLevel = 1;
 let totalReincarnations = 0;
 let unlockedClasses = ["warrior"];
-
+let cleaveThroughDamage = []
 
 let player = {
   currentClass: "none",
@@ -217,22 +228,28 @@ let player = {
       unlockAt: 20,
       unlockClass: "warrior"
     },
-    shieldWall: {
+    cleave: {
       level: 0,
       locked: true,
       unlockAt: 40,
       unlockClass: "warrior"
     },
+    shieldWall: {
+      level: 0,
+      locked: true,
+      unlockAt: 60,
+      unlockClass: "warrior"
+    },
     sharpness: {
       level: 0,
       locked: true,
-      unlockAt: 0,
+      unlockAt: 10,
       unlockClass: "archer"
     },
     quickdraw: {
       level: 0,
       locked: true,
-      unlockAt: 10,
+      unlockAt: 20,
       unlockClass: "archer"
     },
     evasion: {
@@ -240,6 +257,30 @@ let player = {
       locked: true,
       unlockAt: 40,
       unlockClass: "archer"
+    },
+    explosiveShot: {
+      level: 0,
+      locked: true,
+      unlockAt: 60,
+      unlockClass: "archer"
+    },
+    magicMissile: {
+      level: 0,
+      locked: true,
+      unlockAt: 0,
+      unlockClass: "wizard"
+    },
+    collegiate: {
+      level: 0,
+      locked: true,
+      unlockAt: 20,
+      unlockClass: "wizard"
+    },
+    empower: {
+      level: 0,
+      locked: true,
+      unlockAt: 40,
+      unlockClass: "wizard"
     }
   },
   resolutionSkills: {
@@ -278,6 +319,24 @@ let player = {
       locked: true,
       unlockAt: 70,
       unlockClass: "archer"
+    },
+    manaShield: {
+      level: 0,
+      locked: true,
+      unlockAt: 30,
+      unlockClass: "wizard"
+    },
+    memorize: {
+      level: 0,
+      locked: true,
+      unlockAt: 50,
+      unlockClass: "wizard"
+    },
+    fireball: {
+      level: 0,
+      locked: true,
+      unlockAt: 70,
+      unlockClass: "wizard"
     }
   }
 };
@@ -338,10 +397,16 @@ const heroInitialConfig = {
       unlockAt: 20,
       unlockClass: "warrior"
     },
-    shieldWall: {
+    cleave: {
       level: 0,
       locked: true,
       unlockAt: 40,
+      unlockClass: "warrior"
+    },
+    shieldWall: {
+      level: 0,
+      locked: true,
+      unlockAt: 60,
       unlockClass: "warrior"
     },
     sharpness: {
@@ -361,6 +426,30 @@ const heroInitialConfig = {
       locked: true,
       unlockAt: 40,
       unlockClass: "archer"
+    },
+    explosiveShot: {
+      level: 0,
+      locked: true,
+      unlockAt: 60,
+      unlockClass: "archer"
+    },
+    magicMissile: {
+      level: 0,
+      locked: true,
+      unlockAt: 0,
+      unlockClass: "wizard"
+    },
+    collegiate: {
+      level: 0,
+      locked: true,
+      unlockAt: 20,
+      unlockClass: "wizard"
+    },
+    empower: {
+      level: 0,
+      locked: true,
+      unlockAt: 40,
+      unlockClass: "wizard"
     }
   },
   resolutionSkills: {
@@ -399,6 +488,24 @@ const heroInitialConfig = {
       locked: true,
       unlockAt: 70,
       unlockClass: "archer"
+    },
+    manaShield: {
+      level: 0,
+      locked: true,
+      unlockAt: 30,
+      unlockClass: "wizard"
+    },
+    memorize: {
+      level: 0,
+      locked: true,
+      unlockAt: 50,
+      unlockClass: "wizard"
+    },
+    fireball: {
+      level: 0,
+      locked: true,
+      unlockAt: 70,
+      unlockClass: "wizard"
     }
   }
 };
@@ -445,7 +552,7 @@ function tryUnlockClasses() {
     archerDescription.textContent = "Locked";
     return;
   }
-  document.getElementById("archer-card").style.backgroundColor = "#5d5";
+  document.getElementById("archer-card").style.backgroundColor = agilityColor;
   archerSelectBtn.textContent = "Select";
   archerSelectBtn.disabled = false;
   archerDescription.textContent = "Archer";
@@ -455,14 +562,34 @@ function tryUnlockClasses() {
 const attributesContent = `
 <div>
 <p style="display: flex; justify-content: space-between;">
-<span id="attributePoints" style="font-size:20px; margin-bottom: 20px;">Attribute Points: 0</span>
-<span id="playerLevel" style="font-size:20px; text-align: right; padding-right: 3vw">Level: ${player.level}</span>
+<span id="attributePoints" style="font-size: 20px; margin-bottom: 20px;">Attribute Points: 0</span>
+<span id="playerLevel" style="font-size: 20px; text-align: right; padding-right: 3vw">Level: ${player.level}</span>
 </p>
-<p><span id="strengthDisplay">${strengthDisplay}</span>: <span id="playerStrength">${player.strength}</span> <button style="line-length: 0; font-size: ${attributesFontSize}; padding: 2px 5px;" onclick="increaseAttribute('strength')">+</button></p>
-<p><span id="intellectDisplay">${intellectDisplay}</span>: <span id="playerIntellect">${player.intellect}</span> <button style="line-length: 0; font-size: ${attributesFontSize}; padding: 2px 5px;" onclick="increaseAttribute('intellect')">+</button></p>
-<p><span id="agilityDisplay">${agilityDisplay}</span>: <span id="playerAgility">${player.agility}</span> <button style="font-size: ${attributesFontSize}; padding: 2px 5px;" onclick="increaseAttribute('agility')">+</button></p>
-<p><span id="toughnessDisplay">${toughnessDisplay}</span>: <span id="playerToughness">${player.toughness}</span> <button style="font-size: ${attributesFontSize}; padding: 2px 5px;" onclick="increaseAttribute('toughness')">+</button></p>
-<p><span id="mysticismDisplay">${mysticismDisplay}</span>: <span id="playerMysticism">${player.mysticism}</span> <button style="font-size: ${attributesFontSize}; padding: 2px 5px;" onclick="increaseAttribute('mysticism')">+</button></p>
+<div style="width: 100%; height: 7vh; background-color: ${strengthColor}; display: flex; align-items: center; justify-content: space-between;">
+  <button id="strengthDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 25vw;">${strengthDisplay}</button> 
+  <button id="playerStrength" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 15vw;">${player.strength}</button>
+  <button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 35vw;" onclick="increaseAttribute('strength')">+</button>
+</div>
+<div style="width: 100%; height: 7vh; background-color: ${intellectColor}; display: flex; align-items: center; justify-content: space-between;">
+  <button id="intellectDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 25vw;">${intellectDisplay}</button> 
+  <button id="playerIntellect" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 15vw;">${player.intellect}</button>
+  <button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 35vw;" onclick="increaseAttribute('intellect')">+</button>
+</div>
+<div style="width: 100%; height: 7vh; background-color: ${agilityColor}; display: flex; align-items: center; justify-content: space-between;">
+  <button id="agilityDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 25vw;">${agilityDisplay}</button> 
+  <button id="playerAgility" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 15vw;">${player.agility}</button>
+  <button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 35vw;" onclick="increaseAttribute('agility')">+</button>
+</div>
+<div style="width: 100%; height: 7vh; background-color: ${toughnessColor}; display: flex; align-items: center; justify-content: space-between;">
+  <button id="toughnessDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 25vw;">${toughnessDisplay}</button> 
+  <button id="playerToughness" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 15vw;">${player.toughness}</button>
+  <button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 35vw;" onclick="increaseAttribute('toughness')">+</button>
+</div>
+<div style="width: 100%; height: 7vh; background-color: ${mysticismColor}; display: flex; align-items: center; justify-content: space-between;">
+  <button id="mysticismDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 25vw;">${mysticismDisplay}</button> 
+  <button id="playerMysticism" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 15vw;">${player.mysticism}</button>
+  <button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 35vw;" onclick="increaseAttribute('mysticism')">+</button>
+</div>
 </div>
 `;
 
@@ -904,16 +1031,15 @@ function setMainStatDisplay(attribute) {
   }
   function updateDamage() {
     let val = getPrimaryAttributeValue();
-    if(player.primaryAttribute == "agility"){
-      val*=.7;
-    }
-    else if(player.primaryAttribute=="intellect"){
-      val*=.5;
+    if (player.primaryAttribute == "agility") {
+      val *= .7;
+    } else if (player.primaryAttribute == "intellect") {
+      val *= .5;
     }
     let base = 3*(val+1);
     let ASMulti = 1;
-    if(player.attackSpeed < 1){
-      ASMulti= 1/player.attackSpeed;
+    if (player.attackSpeed < 1) {
+      ASMulti = 1/player.attackSpeed;
     }
     let opMulti = 1+(0.2 * player.skills.overpower.level);
     let weightMulti = 1+(0.1* player.resolutionSkills.weightLifting.level);
@@ -943,7 +1069,8 @@ function setMainStatDisplay(attribute) {
     player.critMulti = val;
   }
   function updateXPMulti() {
-    player.xpMulti = Math.pow(1.2, player.intellect);
+    let base = 1+(0.2*player.intellect);
+    player.xpMulti = base;
   }
   function updateRegen() {
     player.regen = player.mysticism*1.4;
@@ -976,7 +1103,7 @@ function setMainStatDisplay(attribute) {
   function updateMysticism() {
     updateRegen();
     updateDamage();
-  }
+  } 
   function updateAttributesMenu() {
     if (currentMenu != "attributes") {
       return;
@@ -994,6 +1121,8 @@ function setMainStatDisplay(attribute) {
     document.getElementById("mysticismDisplay").textContent = mysticismDisplay;
     document.getElementById("attributePoints").textContent = `Attribute Points: ${player.attributePoints}`;
   }
+  
+  
   function stopRegen() {
     clearInterval(playerRegenInterval);
     clearInterval(enemyRegenInterval);
@@ -1103,8 +1232,8 @@ function setMainStatDisplay(attribute) {
   // Function to update the sword fills based on time until next attack
   function updateSwordFills() {
     // Calculate progress as percentage of time passed relative to attack speed
-    playerAttackProgress += 1; // Progress per millisecond
-    enemyAttackProgress += 1;
+    playerAttackProgress += 10; // Progress per millisecond
+    enemyAttackProgress += 10;
     // Cap the progress at 100%
     if (playerAttackProgress >= player.attackSpeed) {
       playerAttackProgress = 0; // Reset after attack
@@ -1120,14 +1249,14 @@ function setMainStatDisplay(attribute) {
     updateEnemySwordFill(enemyAttackProgress/enemy.attackSpeed*100);
   }
 
-let swordFillInterval;
+  let swordFillInterval;
   // Function to start the filling intervals
   function startSwordFills() {
     // Update the sword fills every 100ms for smooth animation
-    if(swordFillInterval){
+    if (swordFillInterval) {
       clearInterval(swordFillInterval);
     }
-    swordFillInterval= setInterval(updateSwordFills, 1);
+    swordFillInterval = setInterval(updateSwordFills, 10);
   }
 
   // Call the function to start filling the swords
@@ -1182,8 +1311,20 @@ let swordFillInterval;
       critMulti = player.critMulti;
     }
     player.firstAttack = false;
+    let damage = Math.floor(critMulti*player.damage*chargeMulti);
+    cleaveMulti = (player.skills.cleave.level*0.015)*damage;
+    explosiveShotMulti = player.skills.explosiveShot.level*0.1*damage;
+    cleaveDamage = cleaveMulti + explosiveShotMulti;
+    let cleaveThrough = (player.skills.cleave.level+player.skills.explosiveShot.level)/10;
+    for (let i = 0; i < cleaveThrough; i++) {
+      if (cleaveThroughDamage.length > i) {
+        cleaveThroughDamage[i] += cleaveDamage
+      } else {
+        cleaveThroughDamage[i] = cleaveDamage;
+      }
+    }
     if (enemy.health > 0) {
-      enemy.health -= Math.floor(critMulti*player.damage*chargeMulti); // Player attacks based on strength
+      enemy.health -= damage; // Player attacks based on strength
       if (enemy.health <= 0) {
         enemyDefeated();
         // Schedule next player attack
@@ -1218,6 +1359,14 @@ let swordFillInterval;
     updateAttributes();
     startPlayerRegen();
     startEnemyRegen();
+    if (cleaveThroughDamage.length > 0 && enemy.health > 0) {
+      nextDamage = cleaveThroughDamage.shift();
+
+      enemy.health -= Math.floor(nextDamage);
+      if (enemy.health <= 0) {
+        enemyDefeated();
+      }
+    }
     player.firstAttack = true;
     // Start enemy's attack
   }
@@ -1241,7 +1390,7 @@ let swordFillInterval;
         tryUnlockResolutionSkills();
       }
     }
-    
+
     maxUnlockedLevel = Math.max(maxUnlockedLevel, currentEnemyLevel+1);
     tryUnlockSkills();
     // Unlock higher levels
@@ -1303,7 +1452,6 @@ let swordFillInterval;
     enemyLevelText.textContent = `Floor ${level}`;
     updateHealthBars();
   }
-
   loadGameState();
 
   // Initialize combat when the page loads
