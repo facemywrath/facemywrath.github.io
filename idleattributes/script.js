@@ -4,8 +4,10 @@ const doLoad = true;
 const doSave = true;
 const saveFrequency = 5000;
 
+let saveInterval;
+
 function saveLoop(){
-  setInterval(()=>{
+  saveInterval = setInterval(()=>{
     saveGameState();
     console.log(`${Date.now()}: Game Saved.`);
   }, saveFrequency);
@@ -51,7 +53,7 @@ function loadGameState() {
     currentEnemyLevel = gameState.currentEnemyLevel;
     maxUnlockedLevel = gameState.maxUnlockedLevel;
     if(currentEnemyLevel == maxUnlockedLevel){
-      currentEnemyLevel--;
+      currentEnemyLevel= Math.max(1,currentEnemyLevel-1);
     }
     totalReincarnations = gameState.totalReincarnations;
     unlockedClasses = gameState.unlockedClasses;
@@ -134,6 +136,9 @@ function loadGameState() {
     console.log(`Game state loaded! Time passed: ${minutesPassed}m ${secondsPassed}s. XP gained: ${xpPercentageGained}%. Levels gained: ${levelsGained}`);
   } else {
     console.log('No saved game state found.');
+  }
+  if(totalReincarnations == 0 && player.currentClass == "none"){
+    return;
   }
   saveLoop();
 }
@@ -706,7 +711,7 @@ function tryUnlockSkills() {
 }
 
 function tryUnlockSkill(skillName) {
-  if (player.skills[skillName].unlockAt > maxUnlockedLevel) {
+  if (player.skills[skillName].unlockAt >= maxUnlockedLevel) {
     return;
   }
   player.skills[skillName].locked = false;
@@ -831,6 +836,9 @@ function setMainStatDisplay(attribute) {
     startCombat();
     startSwordFills();
     updateHealthBars();
+    if(!saveInterval){
+      saveLoop();
+    }
   }
   function increaseAttribute(attribute) {
     if (player.attributePoints > 0) {
@@ -1128,7 +1136,7 @@ function setMainStatDisplay(attribute) {
     let chargeMulti = 1;
     if (player.currentClass == "warrior") {
       if (player.firstAttack) {
-        chargeMulti = player.skills.charge.level*0.75+1;
+        chargeMulti = player.skills.charge.level+1;
       }
     }
     let critMulti = 1;
