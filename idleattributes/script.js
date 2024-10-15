@@ -424,7 +424,7 @@ function buildHero() {
 }
 function tryUnlockClasses() {
   if (totalReincarnations < 2) {
-    archerSelectBtn.textContent = "Reach Prestige 2";
+    archerSelectBtn.textContent = `Give Up ${2-totalReincarnations} more times!`;
     archerSelectBtn.disabled = true;
     archerDescription.textContent = "Locked";
     return;
@@ -877,12 +877,18 @@ function setMainStatDisplay(attribute) {
       updateAttributesMenu(); // Update the attribute points display
     }
   }
-
+  function updateAttributes(){
+    updateStrength();
+    updateIntellect();
+    updateAgility();
+    updateToughness();
+    updateMysticism();
+  }
   function updateDamage() {
     let val = getPrimaryAttributeValue();
-    let base = 2*val;
+    let base = 3*(val+1);
     let opMulti = 1+(0.2 * player.skills.overpower.level);
-    let weightMulti = 1+(0.1* player.resolutionSkills.weightLifting.level);
+    let weightMulti = 1+(0.2* player.resolutionSkills.weightLifting.level);
     let sharpnessMulti = 1 + (0.2*player.skills.sharpness.level);
     player.damage = Math.floor(base*opMulti*weightMulti*sharpnessMulti);
   }
@@ -1177,6 +1183,7 @@ function setMainStatDisplay(attribute) {
     playerAttackProgress = 0;
     enemyAttackProgress = 0;
     stopRegen();
+    updateAttributes();
     startPlayerRegen();
     startEnemyRegen();
     player.firstAttack = true;
@@ -1254,9 +1261,9 @@ function setMainStatDisplay(attribute) {
   function changeEnemyLevel(level) {
     enemy.baseHealth = Math.floor(30 + level*10 * Math.pow(1.35, level/2)); // Example health scaling
     enemy.health = enemy.baseHealth;
-    enemy.attack = Math.floor(10 + 1.2*Math.pow(level, 1.2)); // Optionally scale enemy attack
+    enemy.attack = Math.floor(10 + Math.pow(level, 1.18)); // Optionally scale enemy attack
     updateEnemyAttackSpeed();
-    enemy.xp = 10 * Math.pow(1.36,
+    enemy.xp = 10 * Math.pow(1.4,
       level-1);
     enemyLevelText.textContent = `Floor ${level}`;
     updateHealthBars();
