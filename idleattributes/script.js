@@ -1,13 +1,15 @@
 //load?
 const doLoad = true;
+const maxOfflineTime = 1200;
+const offlineXPMulti = 1/10;
 //save?
 const doSave = true;
 const saveFrequency = 5000;
 
 let saveInterval;
 
-function saveLoop(){
-  saveInterval = setInterval(()=>{
+function saveLoop() {
+  saveInterval = setInterval(()=> {
     saveGameState();
     console.log(`${Date.now()}: Game Saved.`);
   }, saveFrequency);
@@ -52,8 +54,8 @@ function loadGameState() {
     autoProgress = gameState.autoProgress;
     currentEnemyLevel = gameState.currentEnemyLevel;
     maxUnlockedLevel = gameState.maxUnlockedLevel;
-    if(currentEnemyLevel == maxUnlockedLevel){
-      currentEnemyLevel= Math.max(1,currentEnemyLevel-1);
+    if (currentEnemyLevel == maxUnlockedLevel) {
+      currentEnemyLevel = Math.max(1, currentEnemyLevel-1);
     }
     totalReincarnations = gameState.totalReincarnations;
     unlockedClasses = gameState.unlockedClasses;
@@ -62,7 +64,7 @@ function loadGameState() {
     const lastSaveTime = gameState.lastSaveTime || Date.now();
     const currentTime = Date.now();
     const timePassed = currentTime - lastSaveTime; // Time passed in milliseconds
-    const timePassedInSeconds = Math.max(1,Math.min(1200,timePassed / 1000));
+    const timePassedInSeconds = Math.max(1, Math.min(maxOfflineTime, timePassed / 1000));
     // Convert time passed to minutes and seconds
     const minutesPassed = Math.floor(timePassedInSeconds / 60);
     const secondsPassed = Math.floor(timePassedInSeconds % 60);
@@ -74,7 +76,7 @@ function loadGameState() {
     // Calculate the XP gain based on the enemy's XP value
     updateDamage();
     killsInTimePassed = attacksInTimePassed/(enemy.baseHealth/player.damage);
-    const xpGain = attacksInTimePassed * enemy.xp * player.xpMulti/10;
+    const xpGain = attacksInTimePassed * enemy.xp * player.xpMulti*offlineXPMulti;
 
     // Calculate how many levels were gained
     let levelsGained = 0;
@@ -89,18 +91,18 @@ function loadGameState() {
     levelsGained = player.level - prevLevel;
     // Calculate XP percentage gained in the current level
     let xpPercentageGained = (player.xp/player.maxXP*100).toFixed(2);
-    if(levelsGained == 0){
+    if (levelsGained == 0) {
       xpPercentageGained = ((player.xp-prevXP)/player.maxXP*100).toFixed(2);
     }
 
     // Create the popup content
     const popupContent = `
-      <div id="popup" style="position: fixed; top: 20%; left: 50%; transform: translate(-50%, -20%); background: #444; padding: 20px; border-radius: 10px; color: white; text-align: center;">
-        <h2>Time Passed: ${minutesPassed}m ${secondsPassed}s</h2>
-        <p>Levels Gained: ${levelsGained}</p>
-        <p>XP Gained: ${xpPercentageGained}%</p>
-        <button id="closePopup" style="padding: 10px 20px; background-color: #555; border: none; color: white; cursor: pointer;">Continue</button>
-      </div>
+    <div id="popup" style="position: fixed; top: 20%; left: 50%; transform: translate(-50%, -20%); background: #444; padding: 20px; border-radius: 10px; color: white; text-align: center;">
+    <h2>Time Passed: ${minutesPassed}m ${secondsPassed}s</h2>
+    <p>Levels Gained: ${levelsGained}</p>
+    <p>XP Gained: ${xpPercentageGained}%</p>
+    <button id="closePopup" style="padding: 10px 20px; background-color: #555; border: none; color: white; cursor: pointer;">Continue</button>
+    </div>
     `;
 
     // Insert the popup into the body
@@ -130,7 +132,7 @@ function loadGameState() {
       unlockResolutionSkillsMenu();
 
       // Start the necessary game functions after closing the popup
-      
+
       startSwordFills();
       startCombat();
     });
@@ -139,7 +141,7 @@ function loadGameState() {
   } else {
     console.log('No saved game state found.');
   }
-  if(totalReincarnations == 0 && player.currentClass == "none"){
+  if (totalReincarnations == 0 && player.currentClass == "none") {
     return;
   }
   saveLoop();
@@ -190,7 +192,7 @@ let player = {
   critChance: 0,
   critMulti: 2,
   regen: 0,
-  regenSpeed: 2000,
+  regenSpeed: 1800,
   // XP needed for next level
   attributePoints: 0,
   // Points to spend after leveling up
@@ -313,7 +315,7 @@ const heroInitialConfig = {
   defense: 1,
   evasion: 0,
   regen: 0,
-  regenSpeed: 2000,
+  regenSpeed: 1800,
   attributePoints: 0,
   skillPoints: 0,
   resolutionPoints: 0,
@@ -364,27 +366,39 @@ const heroInitialConfig = {
   resolutionSkills: {
     weightLifting: {
       level: 0,
-      locked: true
+      locked: true,
+      unlockAt: 30,
+      unlockClass: "warrior"
     },
     bash: {
       level: 0,
-      locked: true
+      locked: true,
+      unlockAt: 50,
+      unlockClass: "warrior"
     },
     tactician: {
       level: 0,
-      locked: true
+      locked: true,
+      unlockAt: 70,
+      unlockClass: "warrior"
     },
     eagleEye: {
       level: 0,
-      locked: true
+      locked: true,
+      unlockAt: 30,
+      unlockClass: "archer"
     },
     featheredShot: {
       level: 0,
-      locked: true
+      locked: true,
+      unlockAt: 50,
+      unlockClass: "archer"
     },
     volley: {
       level: 0,
-      locked: true
+      locked: true,
+      unlockAt: 70,
+      unlockClass: "archer"
     }
   }
 };
@@ -431,12 +445,11 @@ function tryUnlockClasses() {
     archerDescription.textContent = "Locked";
     return;
   }
+  document.getElementById("archer-card").style.backgroundColor = "#5d5";
   archerSelectBtn.textContent = "Select";
   archerSelectBtn.disabled = false;
   archerDescription.textContent = "Archer";
-  if(totalReincarnations < 6){
-    
-  }
+  if (totalReincarnations < 6) {}
 }
 // Attributes and Settings menus
 const attributesContent = `
@@ -841,7 +854,7 @@ function setMainStatDisplay(attribute) {
     startCombat();
     startSwordFills();
     updateHealthBars();
-    if(!saveInterval){
+    if (!saveInterval) {
       saveLoop();
     }
   }
@@ -882,7 +895,7 @@ function setMainStatDisplay(attribute) {
       updateAttributesMenu(); // Update the attribute points display
     }
   }
-  function updateAttributes(){
+  function updateAttributes() {
     updateStrength();
     updateIntellect();
     updateAgility();
@@ -891,9 +904,15 @@ function setMainStatDisplay(attribute) {
   }
   function updateDamage() {
     let val = getPrimaryAttributeValue();
+    if(player.primaryAttribute == "agility"){
+      val*=.7;
+    }
+    else if(player.primaryAttribute=="intellect"){
+      val*=.5;
+    }
     let base = 3*(val+1);
     let opMulti = 1+(0.2 * player.skills.overpower.level);
-    let weightMulti = 1+(0.2* player.resolutionSkills.weightLifting.level);
+    let weightMulti = 1+(0.1* player.resolutionSkills.weightLifting.level);
     let sharpnessMulti = 1 + (0.2*player.skills.sharpness.level);
     player.damage = Math.floor(base*opMulti*weightMulti*sharpnessMulti);
   }
@@ -906,7 +925,7 @@ function setMainStatDisplay(attribute) {
     updateHealthBars();
   }
   function updateAttackSpeed() {
-    let base = Math.pow(0.96, player.agility);
+    let base = Math.pow(0.98, player.agility);
     let quickdrawMulti = Math.pow(0.95, player.skills.quickdraw.level);
     let volleyMulti = Math.pow(0.97, player.resolutionSkills.volley.level);
     player.attackSpeed = 2000 * base*quickdrawMulti*volleyMulti;
@@ -923,10 +942,10 @@ function setMainStatDisplay(attribute) {
     player.xpMulti = Math.pow(1.2, player.intellect);
   }
   function updateRegen() {
-    player.regen = player.mysticism;
+    player.regen = player.mysticism*1.4;
   }
   function updateRegenSpeed() {
-    player.regenSpeed = 2000 * Math.pow(0.98, player.intellect);
+    player.regenSpeed = 1800 * Math.pow(0.98, player.intellect);
     stopRegen();
     startPlayerRegen();
   }
@@ -996,7 +1015,7 @@ function setMainStatDisplay(attribute) {
     document.getElementById("playerXPText").textContent = `${roundedXP}%`;
   }
   function levelUp() {
-    if(player.xp < player.maxXP){
+    if (player.xp < player.maxXP) {
       return;
     }
     player.xp = player.xp - player.maxXP; // Carry over excess XP
@@ -1013,7 +1032,7 @@ function setMainStatDisplay(attribute) {
     }
     tryUnlockSkills();
 
-    if (maxUnlockedLevel > 30) {
+    if (player.level > 30) {
       player.resolutionPoints++;
       if (currentMenu == "resolution") {
         displayResoluteSkillsMenu();
@@ -1080,8 +1099,8 @@ function setMainStatDisplay(attribute) {
   // Function to update the sword fills based on time until next attack
   function updateSwordFills() {
     // Calculate progress as percentage of time passed relative to attack speed
-    playerAttackProgress += (100); // Progress per millisecond
-    enemyAttackProgress += (100);
+    playerAttackProgress += (10); // Progress per millisecond
+    enemyAttackProgress += (10);
     // Cap the progress at 100%
     if (playerAttackProgress >= player.attackSpeed) {
       playerAttackProgress = 0; // Reset after attack
@@ -1100,7 +1119,7 @@ function setMainStatDisplay(attribute) {
   // Function to start the filling intervals
   function startSwordFills() {
     // Update the sword fills every 100ms for smooth animation
-    setInterval(updateSwordFills, 100);
+    setInterval(updateSwordFills, 10);
   }
 
   // Call the function to start filling the swords
@@ -1213,9 +1232,11 @@ function setMainStatDisplay(attribute) {
       if (currentEnemyLevel >= 29) {
         tryUnlockResolutionSkills();
       }
-      tryUnlockSkills();
     }
-    maxUnlockedLevel = Math.max(maxUnlockedLevel, currentEnemyLevel+1); // Unlock higher levels
+    
+    maxUnlockedLevel = Math.max(maxUnlockedLevel, currentEnemyLevel+1);
+    tryUnlockSkills();
+    // Unlock higher levels
     updateXPBar(); // Update the XP bar display
     if (autoProgress) {
       currentEnemyLevel++;
@@ -1250,13 +1271,14 @@ function setMainStatDisplay(attribute) {
     }
   });
 
-  nextEnemyBtn.addEventListener("click", () => {
-    if (currentEnemyLevel < maxUnlockedLevel) {
-      currentEnemyLevel++;
-      changeEnemyLevel(currentEnemyLevel);
-      startCombat(); // Restart combat with new level
-    }
-  });
+  nextEnemyBtn.addEventListener("click",
+    () => {
+      if (currentEnemyLevel < maxUnlockedLevel) {
+        currentEnemyLevel++;
+        changeEnemyLevel(currentEnemyLevel);
+        startCombat(); // Restart combat with new level
+      }
+    });
 
   function updateEnemyAttackSpeed() {
     enemy.attackSpeed = 2005 * Math.pow(0.95,
