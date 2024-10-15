@@ -1032,7 +1032,7 @@ function setMainStatDisplay(attribute) {
     }
     tryUnlockSkills();
 
-    if (player.level > 30) {
+    if (maxUnlockedLevel > 30) {
       player.resolutionPoints++;
       if (currentMenu == "resolution") {
         displayResoluteSkillsMenu();
