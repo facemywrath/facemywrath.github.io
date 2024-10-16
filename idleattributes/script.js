@@ -1,7 +1,7 @@
 //load?
 const doLoad = true;
-const maxOfflineTime = 600;
-const offlineXPMulti = 1/10;
+const maxOfflineTime = 3000;
+const offlineXPMulti = 1/6;
 //save?
 const doSave = true;
 const saveFrequency = 5000;
@@ -70,8 +70,8 @@ function loadGameState() {
     const secondsPassed = Math.floor(timePassedInSeconds % 60);
 
     // Calculate the number of attacks the player could have made in that time
-    const attackInterval = player.attackSpeed / 1000; // Attack speed in seconds
-    const attacksInTimePassed = Math.floor(timePassedInSeconds / attackInterval);
+    const attackInterval = player.attackSpeed; // Attack speed in seconds
+    const attacksInTimePassed = Math.floor(timePassed / attackInterval);
     changeEnemyLevel(currentEnemyLevel);
     // Calculate the XP gain based on the enemy's XP value
     updateDamage();
@@ -770,6 +770,7 @@ function levelUpSkill(skillName) {
       break;
     case "evasion":
       updateEvasionEffect();
+      break;
     default:
       console.error("Unknown skill: " + skillName);
       break;
@@ -1038,8 +1039,8 @@ function setMainStatDisplay(attribute) {
     }
     let base = 3*(val+1);
     let ASMulti = 1;
-    if (player.attackSpeed < 1) {
-      ASMulti = 1/player.attackSpeed;
+    if (player.attackSpeed < 10) {
+      ASMulti = 10/player.attackSpeed;
     }
     let opMulti = 1+(0.2 * player.skills.overpower.level);
     let weightMulti = 1+(0.1* player.resolutionSkills.weightLifting.level);
@@ -1047,7 +1048,7 @@ function setMainStatDisplay(attribute) {
     player.damage = Math.floor(base*ASMulti*opMulti*weightMulti*sharpnessMulti);
   }
   function updateEvasion() {
-    let val = 100*(1-Math.exp(player.skills.evasion/-10))
+    let val = 100*(1-Math.exp(player.skills.evasion.level/-40))
     player.evasion = val;
   }
   function updateMaxHealth() {
@@ -1061,7 +1062,7 @@ function setMainStatDisplay(attribute) {
     player.attackSpeed = 2000 * base*quickdrawMulti*volleyMulti;
   }
   function updateCritChance() {
-    let val = 100*(1-Math.exp(player.resolutionSkills.eagleEye.level/-10))
+    let val = 100*(1-Math.exp(player.resolutionSkills.eagleEye.level/-40))
     player.critChance = val;
   }
   function updateCritMulti() {
@@ -1282,6 +1283,7 @@ function setMainStatDisplay(attribute) {
 
   autoProgressBtn.addEventListener("click", () => {
     autoProgress = !autoProgress;
+    autoProgressCheckbox.checked = autoProgress;
   });
   // Default state: Show attributes content when game starts
   switchMenu(attributesContent, "attributes");
@@ -1336,6 +1338,8 @@ function setMainStatDisplay(attribute) {
   // Function to handle enemy attacking the player
   function enemyAttack() {
     if (player.health > 0) {
+      let evasionVal = Math.random()*100;
+      console.log(`val ${evasionVal} + ev ${player.evasion}`)
       if (Math.random()*100 < player.evasion) {
         return;
       }
