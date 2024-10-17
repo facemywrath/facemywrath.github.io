@@ -82,6 +82,7 @@ body {
   color: white;
   height: 100px;
   padding: 0 30px;
+  overflow-x: auto;
 }
 
 #topBar button {
@@ -250,7 +251,7 @@ body {
 
 /* Bottom menu styles */
 #bottomMenu {
-  height: calc(80vh - 100px);
+  height: 60vh;
   background-color: #262626;
   border-top: 2px solid #444;
   display: none;
@@ -267,14 +268,14 @@ body {
 }
 
 #bottomMenu > div {
-  max-height: 60vh; /* Limit the height */
+  max-height: 50vh; /* Limit the height */
   overflow-y: auto; /* Allow scrolling */
   padding: 10px;
 }
 
 #bottomMenu div p {
   margin: 5px 0; /* Add space between paragraphs */
-  line-height: 1.5; /* Improve readability */
+  line-height: 1.0; /* Improve readability */
 }
 
 #bottomMenu p {
@@ -290,6 +291,9 @@ body {
   margin-left: 10px;
   padding: 2px 5px;
   font-size: 14px;
+}
+#resetButtonDiv{
+  height: 15vh;
 }
 
 /* General button styles */
@@ -312,7 +316,10 @@ button:disabled {
   padding-bottom: 177.78%; /* 16:9 aspect ratio (9/16 * 100) */
   background: #333; /* Color for the bars */
 }
-
+.stats-container p {
+  margin: 2px 0; /* Minimal margin between paragraphs */
+  line-height: 0.6; /* Tighter line-height */
+}
 /* Inner content container */
 .content {
   position: absolute;
