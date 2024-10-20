@@ -1,7 +1,7 @@
 //load?
 const doLoad = true;
-const maxOfflineTime = 1800;
-const offlineXPMulti = 1/6;
+const maxOfflineTime = 600;
+const offlineXPMulti = 1;
 //save?
 const doSave = true;
 const saveFrequency = 5000;
@@ -29,7 +29,8 @@ function saveGameState() {
     maxUnlockedLevel: maxUnlockedLevel,
     totalReincarnations: totalReincarnations,
     unlockedClasses: unlockedClasses,
-    lastSaveTime: Date.now()
+    lastSaveTime: Date.now(),
+    totalTractionResets: totalTractionResets
   };
 
   // Save the game state to localStorage as a JSON string
@@ -58,6 +59,7 @@ function loadGameState() {
       currentEnemyLevel = Math.max(1, currentEnemyLevel-1);
     }
     totalReincarnations = gameState.totalReincarnations;
+    totalTractionResets = gameState.totalTractionResets;
     unlockedClasses = gameState.unlockedClasses;
 
     // Calculate time passed since the last save
@@ -68,88 +70,94 @@ function loadGameState() {
     // Convert time passed to minutes and seconds
     const minutesPassed = Math.floor(timePassedInSeconds / 60);
     const secondsPassed = Math.floor(timePassedInSeconds % 60);
+    let xpPercentageGained=0;
+    let levelsGained=0;
+    if (player.currentClass !== "none") {
+      // Calculate the number of attacks the player could have made in that time
+      const attackInterval = player.attackSpeed; // Attack speed in seconds
+      const attacksInTimePassed = Math.floor(timePassed / attackInterval);
+      changeEnemyLevel(currentEnemyLevel);
+      // Calculate the XP gain based on the enemy's XP value
+      updateDamage();
+      killsInTimePassed = attacksInTimePassed/(enemy.baseHealth/player.damage);
+      const xpGain = killsInTimePassed * enemy.xp * player.xpMulti*offlineXPMulti;
 
-    // Calculate the number of attacks the player could have made in that time
-    const attackInterval = player.attackSpeed; // Attack speed in seconds
-    const attacksInTimePassed = Math.floor(timePassed / attackInterval);
-    changeEnemyLevel(currentEnemyLevel);
-    // Calculate the XP gain based on the enemy's XP value
-    updateDamage();
-    killsInTimePassed = attacksInTimePassed/(enemy.baseHealth/player.damage);
-    const xpGain = killsInTimePassed * enemy.xp * player.xpMulti*offlineXPMulti;
+      // Calculate how many levels were gained
+      let levelsGained = 0;
+      let prevXP = player.xp;
+      let prevLevel = player.level;
+      player.xp += xpGain;
+      levelUp(); // Handle leveling up and distributing points
+      levelsGained = player.level - prevLevel;
+      // Calculate XP percentage gained in the current level
+      let xpPercentageGained = (player.xp/player.maxXP*100).toFixed(2);
+      if (levelsGained == 0) {
+        xpPercentageGained = ((player.xp-prevXP)/player.maxXP*100).toFixed(2);
+      }
 
-    // Calculate how many levels were gained
-    let levelsGained = 0;
-    let prevXP = player.xp;
-    let prevLevel = player.level;
-    player.xp += xpGain;
-    levelUp(); // Handle leveling up and distributing points
-    console.log(`xpGain: ${xpGain}`);
-    console.log(`PrevXP: ${prevXP}`);
-    console.log(`NewXP: ${player.xp}`);
-    console.log(`prevLevel: ${prevLevel}`);
-    levelsGained = player.level - prevLevel;
-    // Calculate XP percentage gained in the current level
-    let xpPercentageGained = (player.xp/player.maxXP*100).toFixed(2);
-    if (levelsGained == 0) {
-      xpPercentageGained = ((player.xp-prevXP)/player.maxXP*100).toFixed(2);
-    }
+      // Create the popup content
+      const popupContent = `
+      <div id="popup" style="position: fixed; top: 20%; left: 50%; transform: translate(-50%, -20%); background: #444; padding: 20px; border-radius: 10px; color: white; text-align: center;">
+      <h2>Time Passed: ${minutesPassed}m ${secondsPassed}s</h2>
+      <p>Levels Gained: ${levelsGained}</p>
+      <p>XP Gained: ${xpPercentageGained}%</p>
+      <button id="closePopup" style="padding: 10px 20px; background-color: #555; border: none; color: white; cursor: pointer;">Continue</button>
+      </div>
+      `;
 
-    // Create the popup content
-    const popupContent = `
-    <div id="popup" style="position: fixed; top: 20%; left: 50%; transform: translate(-50%, -20%); background: #444; padding: 20px; border-radius: 10px; color: white; text-align: center;">
-    <h2>Time Passed: ${minutesPassed}m ${secondsPassed}s</h2>
-    <p>Levels Gained: ${levelsGained}</p>
-    <p>XP Gained: ${xpPercentageGained}%</p>
-    <button id="closePopup" style="padding: 10px 20px; background-color: #555; border: none; color: white; cursor: pointer;">Continue</button>
-    </div>
-    `;
+      // Insert the popup into the body
+      document.body.insertAdjacentHTML('beforeend', popupContent);
 
-    // Insert the popup into the body
-    document.body.insertAdjacentHTML('beforeend', popupContent);
+      // Add event listener to close the popup and start the game
+      document.getElementById('closePopup').addEventListener('click', function() {
+        // Remove the popup from the DOM
+        document.getElementById('popup').remove();
 
-    // Add event listener to close the popup and start the game
-    document.getElementById('closePopup').addEventListener('click', function() {
-      // Remove the popup from the DOM
-      document.getElementById('popup').remove();
+        // If player class is not "none", close the class selection menu
 
-      // If player class is not "none", close the class selection menu
-      if (player.currentClass !== "none") {
         document.getElementById('characterSelection').style.display = 'none';
         document.getElementById('topBar').style.display = 'flex';
         document.getElementById('battleArea').style.display = 'block';
         document.getElementById('levelDisplayRow').style.display = 'flex';
         document.getElementById('xpBarContainer').style.display = 'flex';
         document.getElementById('bottomMenu').style.display = 'block';
-      }
 
-      // Update any necessary UI elements after loading
-      updateAttributes();
-      updateAttributesMenu();
-      updateHealthBars();
-      updateXPBar();
-      tryUnlockSkills();
-      tryUnlockResolutionSkills();
-      unlockResolutionSkillsMenu();
-
-      // Start the necessary game functions after closing the popup
-
-      startSwordFills();
-      startCombat();
-
-      console.log(player);
-    });
-
+        // Update any necessary UI elements after loading
+        updateAttributes();
+        updateAttributesMenu();
+        updateHealthBars();
+        updateXPBar();
+        tryUnlockSkills();
+        tryUnlockResolutionSkills();
+        unlockResolutionSkillsMenu();
+        // Start the necessary game functions after closing the popup
+        startSwordFills();
+        startCombat();
+        console.log(player);
+        forceAttributes(400);
+        autoProgressBtn.checked = autoProgress
+      });
+  }
     console.log(`Game state loaded! Time passed: ${minutesPassed}m ${secondsPassed}s. XP gained: ${xpPercentageGained}%. Levels gained: ${levelsGained}`);
+     
   } else {
     console.log('No saved game state found.');
   }
   if (totalReincarnations == 0 && player.currentClass == "none") {
     return;
   }
+  unlockTractionMenu();
   saveLoop();
 }
 
+function forceAttributes(val){
+  player.strength = val;
+  player.intellect=val;
+  player.agility=val;
+  player.toughness=val;
+  player.mysticism=val;
+  updateAttributes();
+}
 // Screen elements
 const attributesScreenBtn = document.getElementById("attributesScreenBtn");
 const resolutionScreenBtn = document.getElementById("resolutionScreenBtn")
@@ -174,6 +182,9 @@ const archerCard = document.getElementById("archer-card");
 const wizardDescription = document.getElementById("wizard-desc");
 const wizardSelectBtn = document.getElementById("wizard-select-btn");
 const wizardCard = document.getElementById("wizard-card");
+const druidDescription = document.getElementById("druid-desc");
+const druidSelectBtn = document.getElementById("druid-select-btn");
+const druidCard = document.getElementById("druid-card");
 const hpBarSize = playerHealthBar.width;
 
 const strengthColor = "#a44";
@@ -186,9 +197,12 @@ let autoProgress = false;
 let currentEnemyLevel = 1;
 let maxUnlockedLevel = 1;
 let totalReincarnations = 0;
+let totalTractionResets = 0;
 let unlockedClasses = ["warrior"];
 let cleaveThroughDamage = []
 let magicMissileAttackCounter = 0;
+let purchaseMulti = 1;
+let purchaseMultiOptions = [1,10,25,100];
 
 let player = {
   currentClass: "none",
@@ -212,12 +226,75 @@ let player = {
   // Points to spend after leveling up
   skillPoints: 0,
   resolutionPoints: 0,
+  traction: {
+    warrior: {
+      points: 0,
+      skills: {
+        attribution: {
+          level: 0,
+          locked: false,
+          unlockAt: 0,
+          cost: 1,
+          max: 5
+        }
+      }
+    },
+    archer: {
+      points: 0,
+      skills: {
+        attribution: {
+          level: 0,
+          locked: false,
+          unlockAt: 0,
+          cost: 1,
+          max: 5
+        }
+      }
+    },
+    wizard: {
+      points: 0,
+      skills: {
+        attribution: {
+          level: 0,
+          locked: false,
+          unlockAt: 0,
+          cost: 1,
+          max: 5
+        }
+      }
+    },
+    druid: {
+      points: 0,
+      skills: {
+        attribution: {
+          level: 0,
+          locked: false,
+          unlockAt: 0,
+          cost: 1,
+          max: 5
+        }
+      }
+    },
+    vanguard: {
+      points: 0,
+      skills: {
+        attribution: {
+          level: 0,
+          locked: false,
+          unlockAt: 0,
+          cost: 1,
+          max: 5
+        }
+      }
+    }
+  },
   strength: 0,
   intellect: 0,
   agility: 0,
   toughness: 0,
   mysticism: 0,
-  firstAttack: false,
+  attacksThisFight: 0,
+  timeMulti: 1,
   skills: {
     overpower: {
       level: 0,
@@ -381,12 +458,75 @@ const heroInitialConfig = {
   attributePoints: 0,
   skillPoints: 0,
   resolutionPoints: 0,
+  traction: {
+    warrior: {
+      points: 0,
+      skills: {
+        attribution: {
+          level: 0,
+          locked: false,
+          unlockAt: 0,
+          cost: 1,
+          max: 5
+        }
+      }
+    },
+    archer: {
+      points: 0,
+      skills: {
+        attribution: {
+          level: 0,
+          locked: false,
+          unlockAt: 0,
+          cost: 1,
+          max: 5
+        }
+      }
+    },
+    wizard: {
+      points: 0,
+      skills: {
+        attribution: {
+          level: 0,
+          locked: false,
+          unlockAt: 0,
+          cost: 1,
+          max: 5
+        }
+      }
+    },
+    druid: {
+      points: 0,
+      skills: {
+        attribution: {
+          level: 0,
+          locked: false,
+          unlockAt: 0,
+          cost: 1,
+          max: 5
+        }
+      }
+    },
+    vanguard: {
+      points: 0,
+      skills: {
+        attribution: {
+          level: 0,
+          locked: false,
+          unlockAt: 0,
+          cost: 1,
+          max: 5
+        }
+      }
+    }
+  },
   strength: 0,
   intellect: 0,
   agility: 0,
   toughness: 0,
   mysticism: 0,
-  firstAttack: false,
+  attacksThisFight: 0,
+  timeMulti: 1,
   skills: {
     overpower: {
       level: 0,
@@ -515,11 +655,25 @@ const heroInitialConfig = {
 
 
 // Method to reset the player back to initial values
-function buildHero(reset) {
+function buildHero(resetTier) {
   // Reset player properties based on the initial configuration
+  if (resetTier == 1) {
+    totalReincarnations++;
+  } else if (resetTier == 2) {
+    totalTractionResets++;
+    totalReincarnations = 0;
+    player.traction[player.currentClass].points += Math.max(0, maxUnlockedLevel-99);
+  }
   oldResolutionSkills = player.resolutionSkills;
+
+  let oldTractionSkills = player.traction;
   Object.assign(player, JSON.parse(JSON.stringify(heroInitialConfig)));
-  player.resolutionSkills = oldResolutionSkills;
+  if (resetTier <= 1) {
+    player.resolutionSkills = oldResolutionSkills;
+  }
+  if (resetTier <= 2) {
+    player.traction = oldTractionSkills;
+  }
   for (let skill in player.resolutionSkills) {
     player.resolutionSkills[skill].locked = true;
   }
@@ -536,9 +690,6 @@ function buildHero(reset) {
   updateCritChance();
   updateCritMulti();
   changeEnemyLevel(1);
-  if(!reset){
-    totalReincarnations++;
-  }
   tryUnlockClasses();
   maxUnlockedLevel = 1;
   currentEnemyLevel = 1;
@@ -554,6 +705,7 @@ function buildHero(reset) {
   document.getElementById('bottomMenu').style.display = 'none';
 }
 function tryUnlockClasses() {
+  
   if (totalReincarnations < 2) {
     archerSelectBtn.textContent = `Give Up ${2-totalReincarnations} more times!`;
     archerSelectBtn.disabled = true;
@@ -574,6 +726,18 @@ function tryUnlockClasses() {
   wizardSelectBtn.textContent = "Select";
   wizardSelectBtn.disabled = false;
   wizardDescription.textContent = "Wizard";
+  if(totalReincarnations<15){
+    druidSelectBtn.textContent = `Give Up ${15-totalReincarnations} more times!`;
+    druidSelectBtn.disabled = true;
+    druidDescription.textContent = "Locked";
+    return;
+  }
+  if (totalTractionResets > 0) {
+    //    document.getElementById("druid-card").style.backgroundColor = mysticismColor;
+    druidSelectBtn.textContent = "Cannot Select";
+    druidSelectBtn.disabled = true;
+    druidDescription.textContent = "Druid(WIP)";
+  }
 }
 // Attributes and Settings menus
 const attributesContent = `
@@ -582,6 +746,7 @@ const attributesContent = `
 <span id="attributePoints" style="font-size: 20px; margin-bottom: 20px;">Attribute Points: 0</span>
 <span id="playerLevel" style="font-size: 20px; text-align: right; padding-right: 3vw">Level: ${player.level}</span>
 </p>
+<button id="purchaseMultiBtn" onclick="updatePurchaseMulti()">${purchaseMulti}x</button>
 <div style="width: 100%; height: 7vh; background-color: ${strengthColor}; display: flex; align-items: center; justify-content: space-between;">
 <button id="strengthDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 25vw;">${strengthDisplay}</button>
 <button id="playerStrength" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 15vw;">${player.strength}</button>
@@ -638,6 +803,30 @@ const resolutionScreenContent = `
 </div>
 `
 
+function unlockTractionMenu() {
+  const tractionSkillsBtn = document.getElementById("tractionSkillsBtn");
+  if (maxUnlockedLevel <= 100 && totalTractionResets == 0) {
+    tractionSkillsBtn.disabled = true;
+    tractionSkillsBtn.textContent = "Beat Depths 30";
+    return;
+  }
+
+  tractionSkillsBtn.textContent = "Traction";
+  tractionSkillsBtn.disabled = false;
+}
+function tractionReset() {
+  buildHero(2);
+}
+
+function updatePurchaseMulti(){
+  let val = purchaseMultiOptions.indexOf(purchaseMulti);
+  val++;
+  if(val > purchaseMultiOptions.length-1){
+    val=0;
+  }
+  purchaseMulti=purchaseMultiOptions[val];
+  document.getElementById("purchaseMultiBtn").textContent=`${purchaseMulti}x`;
+}
 function displayResoluteSkillsMenu() {
   let resolutionSkillsContent = `<h2>Resolution Points: ${player.resolutionPoints}</h2><div>`;
 
@@ -662,7 +851,7 @@ function displayResoluteSkillsMenu() {
 
   resolutionSkillsContent += `
   <div style="display: flex; justify-content: center; margin-top: 20px;">
-  <button id="giveUpButton" style="width: 80vw; height: 10vh;" onclick="buildHero()" >Give Up!</button>
+  <button id="giveUpButton" style="width: 80vw; height: 10vh;" onclick="buildHero(1)" >Give Up!</button>
   </div>
   `;
 
@@ -695,6 +884,60 @@ function unlockResolutionSkillsMenu() {
     resolutionScreenBtn.disabled = true;
     resolutionScreenBtn.textContent = "Beat Floor 30";
   }
+}
+function levelUpTractionSkill(skillName, className) {
+  console.log(`attempting level up ${skillName} for ${className}`);
+  if (player.traction[className].points < player.traction[className].skills[skillName].cost) {
+    console.log("level out of points");
+    return;
+  }
+  console.log("too low hero lvl?");
+  if (player.level <= player.traction[className].skills[skillName].level) {
+    return;
+  }
+  console.log(`skill is maxed?${player.traction[className].skills[skillName].max} ${player.traction[className].skills[skillName].level}`);
+  if (player.traction[className].skills[skillName].max <= player.traction[className].skills[skillName].level) {
+    return;
+  }
+  console.log("completed");
+  player.traction[className].points -= player.traction[className].skills[skillName].cost;
+  player.traction[className].skills[skillName].level++;
+
+
+  let displayButtonText = `${capitalize(skillName)}\n${player.traction[className].skills[skillName].level}`;
+
+  document.getElementById(`${skillName}Display`).textContent = displayButtonText;
+  displayClassTalents(className);
+  switch (skillName) {
+    case 'attribution':
+      player.traction[className].skills[skillName].cost = player.traction[className].skills[skillName].level*10;
+      break;
+    case 'bash':
+      updateBashEffect();
+      break;
+    case 'tactician':
+      updateTacticianEffect();
+      break;
+    case 'eagleEye':
+      updateEagleEyeEffect();
+      break;
+    case 'featheredShot':
+      updateFeatheredShotEffect();
+      break;
+    case 'volley':
+      updateVolleyEffect();
+      break;
+    case 'manaShield':
+      updateManaShieldEffect();
+      break;
+    case "memorize":
+      updateMemorizeEffect();
+      break;
+    default:
+      console.error("Unknown skill: " + skillName);
+      break;
+  }
+  displayClassTalents(className);
 }
 function levelUpResoluteSkill(skillName) {
   if (player.resolutionPoints == 0) {
@@ -1005,8 +1248,7 @@ function setMainStatDisplay(attribute) {
     return player[player.primaryAttribute];
   }
   function selectCharacter(character) {
-    tryUnlockSkills();
-    tryUnlockResolutionSkills();
+
     switch (character) {
     case 'warrior':
       player.strength += 5; // Example stat boost
@@ -1022,6 +1264,11 @@ function setMainStatDisplay(attribute) {
       player.intellect += 5; // Example stat boost
       setMainStatDisplay("intellect");
       player.currentClass = "wizard";
+      break;
+    case 'druid':
+      player.mysticism += 5; // Example stat boost
+      setMainStatDisplay("mysticism");
+      player.currentClass = "druid";
       break;
     default:
       console.error('Unknown character: ' + character);
@@ -1047,6 +1294,9 @@ function setMainStatDisplay(attribute) {
     startSwordFills();
     updateHealthBars();
     changeEnemyLevel(currentEnemyLevel);
+    tryUnlockSkills();
+    tryUnlockResolutionSkills();
+    unlockTractionMenu();
     if (!saveInterval) {
       saveLoop();
     }
@@ -1060,26 +1310,28 @@ function setMainStatDisplay(attribute) {
   }
   function increaseAttribute(attribute) {
     if (player.attributePoints > 0) {
-      player.attributePoints--; // Deduct 1 attribute point
+      let multi = Math.min(purchaseMulti,player.attributePoints);
+      
+      player.attributePoints-= multi; // Deduct 1 attribute point
       switch (attribute) {
       case 'strength':
-        player.strength++;
+        player.strength+=multi;
         updateStrength();
         break;
       case 'intellect':
-        player.intellect++;
+        player.intellect+=multi;
         updateIntellect();
         break;
       case 'agility':
-        player.agility++;
+        player.agility+=multi;
         updateAgility();
         break;
       case 'toughness':
-        player.toughness++;
+        player.toughness+=multi;
         updateToughness();
         break;
       case 'mysticism':
-        player.mysticism++;
+        player.mysticism+=multi;
         updateMysticism();
         break;
       default:
@@ -1107,10 +1359,11 @@ function setMainStatDisplay(attribute) {
     if (player.attackSpeed < 10) {
       ASMulti = 10/player.attackSpeed;
     }
-    let opMulti = 1+(0.2 * player.skills.overpower.level);
+    let opMulti = 1+(0.25 * player.skills.overpower.level);
     let weightMulti = 1+(0.15* player.resolutionSkills.weightLifting.level);
     let sharpnessMulti = 1 + (0.15*player.skills.sharpness.level);
     let empowerMulti = 1+(0.2*player.skills.empower.level);
+    let cleaveMulti = 1+(0.1*player.skills.cleave.level)
     player.damage = Math.floor(base*ASMulti*opMulti*weightMulti*sharpnessMulti*empowerMulti);
   }
   function updateEvasion() {
@@ -1124,12 +1377,12 @@ function setMainStatDisplay(attribute) {
     } else if (player.currentClass == "wizard") {
       base = 30;
     }
-    player.maxHealth = Math.floor(base * (player.toughness/4+1)*Math.pow(1.01, player.strength));
+    player.maxHealth = Math.floor(base * (player.toughness/4+1)*Math.pow(1.01, player.strength)*(1+(0.5*player.skills.shieldWall.level)));
     updateHealthBars();
   }
   function updateAttackSpeed() {
     let base = Math.exp(-0.02*player.agility);
-    let quickdrawMulti = Math.exp(-0.03*player.skills.quickdraw.level);
+    let quickdrawMulti = Math.exp(-0.02*player.skills.quickdraw.level);
     let volleyMulti = Math.exp(-0.01* player.resolutionSkills.volley.level);
     player.attackSpeed = 2000 * base*quickdrawMulti*volleyMulti;
   }
@@ -1253,7 +1506,7 @@ function setMainStatDisplay(attribute) {
     document.getElementById("softResetConfirm").addEventListener('click', function() {
       document.getElementById("popup").remove();
       // Clear all saved data from localStorage
-      buildHero(true);
+      buildHero(0);
 
     });
   }
@@ -1264,13 +1517,13 @@ function setMainStatDisplay(attribute) {
     document.getElementById("playerXPText").textContent = `${roundedXP}%`;
   }
   function levelUp() {
-    if (player.xp < player.maxXP) {
+    if (player.xp < player.maxXP || player.currentClass == "none") {
       return;
     }
     player.xp = player.xp - player.maxXP; // Carry over excess XP
     player.level++; // Increase player level
     player.maxXP = Math.floor(player.maxXP * 1.4); // Increase XP needed for next level
-    player.attributePoints += 3; // Give 3 attribute points to spend
+    player.attributePoints += 3+player.traction[player.currentClass].skills.attribution.level; // Give 3 attribute points to spend
     if (player.level >= 10) {
       player.skillPoints++;
       updateSkillPointsDisplay();
@@ -1317,7 +1570,7 @@ function setMainStatDisplay(attribute) {
         updateHealthBars(); // Update the UI
       }
     },
-      player.regenSpeed);
+      player.regenSpeed/player.timeMulti);
   }
 
   // Function to start healing the enemy
@@ -1334,7 +1587,7 @@ function setMainStatDisplay(attribute) {
         updateHealthBars(); // Update the UI
       }
     },
-      enemy.regenSpeed);
+      enemy.regenSpeed/player.timeMulti);
   }
   function updatePlayerSwordFill(progress) {
     const swordFill = document.getElementById('playerSwordFill');
@@ -1348,8 +1601,8 @@ function setMainStatDisplay(attribute) {
   // Function to update the sword fills based on time until next attack
   function updateSwordFills() {
     // Calculate progress as percentage of time passed relative to attack speed
-    playerAttackProgress += 10; // Progress per millisecond
-    enemyAttackProgress += 10;
+    playerAttackProgress += 10*player.timeMulti; // Progress per millisecond
+    enemyAttackProgress += 10*player.timeMulti;
     // Cap the progress at 100%
     if (playerAttackProgress >= player.attackSpeed) {
       playerAttackProgress = 0; // Reset after attack
@@ -1416,8 +1669,8 @@ function setMainStatDisplay(attribute) {
   function playerAttack() {
     let chargeMulti = 1;
     if (player.currentClass == "warrior") {
-      if (player.firstAttack) {
-        chargeMulti = player.skills.charge.level+1;
+      if (player.skills.charge.level > 0 && player.attacksThisFight%10 == 0) {
+        chargeMulti = (1+ player.skills.charge.level)*(1+(Math.floor(player.attacksThisFight/10)));
       }
     }
     let critMulti = 1;
@@ -1431,13 +1684,13 @@ function setMainStatDisplay(attribute) {
       magicMissileDamageMulti = 1+(player.skills.magicMissile.level*1.5);
     }
 
-    player.firstAttack = false;
+    player.attacksThisFight++;
     let damage = Math.floor(critMulti*player.damage*chargeMulti*magicMissileDamageMulti);
-    cleaveMulti = (1-Math.exp(player.skills.cleave.level/-28));
-    explosiveShotMulti = (1-Math.exp(player.skills.explosiveShot.level/-36));
-    fireballMulti = 1+(1-Math.exp(player.resolutionSkills.fireball.level/-32));
+    cleaveMulti = (1-Math.exp(player.skills.cleave.level/-8));
+    explosiveShotMulti = (1-Math.exp(player.skills.explosiveShot.level/-26));
+    fireballMulti = 1+(1-Math.exp(player.resolutionSkills.fireball.level/-42));
     cleaveDamage = fireballMulti*(1+cleaveMulti + explosiveShotMulti)*damage;
-    let cleaveThrough = (Math.floor(player.resolutionSkills.fireball.level/40)+1)*(player.skills.cleave.level/6+player.skills.explosiveShot.level/7);
+    let cleaveThrough = (Math.ceil(player.resolutionSkills.fireball.level/40)+1)*(player.skills.cleave.level/4+player.skills.explosiveShot.level/7);
     for (let i = 0; i < cleaveThrough; i++) {
       if (cleaveThroughDamage.length > i) {
         cleaveThroughDamage[i] += cleaveDamage
@@ -1459,7 +1712,6 @@ function setMainStatDisplay(attribute) {
   function enemyAttack() {
     if (player.health > 0) {
       let evasionVal = Math.random()*100;
-      console.log(`val ${evasionVal} + ev ${player.evasion}`)
       if (Math.random()*100 < player.evasion) {
         return;
       }
@@ -1491,7 +1743,7 @@ function setMainStatDisplay(attribute) {
         enemyDefeated();
       }
     }
-    player.firstAttack = true;
+    player.attacksThisFight = 0;
     // Start enemy's attack
   }
 
@@ -1524,7 +1776,7 @@ function setMainStatDisplay(attribute) {
       changeEnemyLevel(currentEnemyLevel); // Reset enemy's health and update display// Increase enemy level
     }
     unlockResolutionSkillsMenu();
-
+    unlockTractionMenu();
     resetPlayerHealth();
     saveGameState();
     startCombat(); // Restart combat
@@ -1540,8 +1792,205 @@ function setMainStatDisplay(attribute) {
       autoProgress = false;
       autoProgressCheckbox.checked = false;
     }
-    player.firstAttack = true;
+    player.attacksThisFight = 0;
   }
+
+
+  function createTalentTree() {
+    // Clear the bottomMenu first
+    let giveUpText = ">Really! Give Up!";
+    if (maxUnlockedLevel <= 100) {
+      giveUpText = "disabled>Beat Depths 30";
+
+    }
+    currentMenu = "traction";
+    const bottomMenu = document.getElementById('bottomMenu');
+    bottomMenu.innerHTML = '';
+
+    // HTML structure for the talent tree
+    const talentTreeHTML = `
+    <div id="talentTreeContainer" style="
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: scroll;">
+
+    <!-- Base Talent Button -->
+    <button id="baseTalent" style="
+    width: 60vw;
+    height: 30vw;
+    background-color: #555;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 2vh;
+    margin: 20px;">
+    Traction Points
+    </button>
+
+    <!-- Branch Container -->
+    <div id="branchContainer" style="
+    position: relative;
+    width: 150%;
+    height: 150%;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    overflow-x: scroll;
+    overflow-y: scroll;">
+
+    <!-- Branch Buttons -->
+    <button id="warrior-talent-menu-btn" class="talent-button" style="
+    width: 30vw;
+    height: 15vw;
+    background-color: ${strengthColor};
+    color: white;
+    border-radius: 3vh;
+    border: 0.5vw solid black;
+    cursor: pointer;
+    position: absolute;
+    left: 15%; top: 10%;">
+    Warrior<br>${player.traction.warrior.points}
+    </button>
+
+    <button id="archer-talent-menu-btn" class="talent-button" style="
+    width: 30vw;
+    height: 15vw;
+    background-color: ${agilityColor};
+    color: white;
+    border-radius: 3vh;
+    border: 0.5vw solid black;
+    cursor: pointer;
+    position: absolute;
+    left: 37%; top: 10%;">
+    Archer<br>${player.traction.archer.points}
+    </button>
+
+    <button id="wizard-talent-menu-btn" class="talent-button" style="
+    width: 30vw;
+    height: 15vw;
+    background-color: ${intellectColor};
+    color: white;
+    border-radius: 3vh;
+    border: 0.5vw solid black;
+    cursor: pointer;
+    position: absolute;
+    left: 59%; top: 10%;">
+    Wizard<br>${player.traction.wizard.points}
+    </button>
+
+    <button id="druid-talent-menu-btn" class="talent-button" style="
+    width: 30vw;
+    height: 15vw;
+    background-color: ${mysticismColor};
+    color: white;
+    border-radius: 3vh;
+    border: 0.5vw solid black;
+    cursor: pointer;
+    position: absolute;
+    left: 81%; top: 10%;">
+    Druid<br>${player.traction.druid.points}
+    </button>
+
+    <button id="vanguard-talent-menu-btn" class="talent-button" style="
+    width: 30vw;
+    height: 15vw;
+    background-color: ${toughnessColor};
+    color: white;
+    border-radius: 3vh;
+    border: 0.5vw solid black;
+    cursor: pointer;
+    position: absolute;
+    left: 103%; top: 10%;">
+    Beat Hell 30
+    </button>
+    </div>
+    <button id="tractionResetBtn" style="
+    width: 60vw;
+    height: 30vw;
+    background-color: #555;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 4vh;
+    margin: 20px;"
+    onclick="tractionReset()"
+    ${giveUpText}
+    </button>
+    </div>
+    `;
+
+    // Inject the talent tree HTML into the bottomMenu
+    bottomMenu.innerHTML = talentTreeHTML;
+
+    // Make the bottomMenu visible
+    bottomMenu.style.display = 'flex';
+
+    // Add click event listeners for each class to open their talent trees
+    document.getElementById('warrior-talent-menu-btn').addEventListener('click', () => displayClassTalents('warrior'));
+    document.getElementById('archer-talent-menu-btn').addEventListener('click', () => displayClassTalents('archer'));
+    document.getElementById('wizard-talent-menu-btn').addEventListener('click', () => displayClassTalents('wizard'));
+    document.getElementById('druid-talent-menu-btn').addEventListener('click', () => displayClassTalents('druid'));
+    document.getElementById('vanguard-talent-menu-btn').addEventListener('click', () => displayClassTalents('vanguard'));
+  }
+
+  // Function to display class-specific talents
+  function displayClassTalents(className) {
+    druidUnlockBtn = "";
+
+    let classTalentsContent = `<div style="display: flex;"><h2 id="classTalentPointsDisplay">${capitalize(className)} <br>Points: ${player.traction[className].points}</h2></div><div>`;
+    let classTalents = getClassTalents(className); // Function to fetch talents based on the class
+    for (let talent of Object.keys(classTalents)) {
+      let displayButtonText = ` disabled>Beat ${getFloorDisplay(player.traction[className].skills[talent].unlockAt)}`;
+      let levelButtonText = " disabled>Locked";
+      if (!player.traction[className].skills[talent].locked) {
+        displayButtonText = `>${capitalize(talent)}\n${player.traction[className].skills[talent].level}/${player.traction[className].skills[talent].max}`;
+        levelButtonText = `>Level Up<br>Cost: ${player.traction[className].skills[talent].cost}`;
+      }
+      classTalentsContent += `
+      <div style="display: flex; justify-content: center;">
+      <button id="${talent}Display" style="width: 60vw; height: 10vh; white-space: pre-wrap" ${displayButtonText}</button>
+      <button id="${talent}LevelUp" style="width: 20vw; height: 10vh; white-space: pre-wrap" onclick="levelUpTractionSkill('${talent}', '${className}')" ${levelButtonText}</button>
+      </div>
+      `;
+    }
+
+    classTalentsContent += `
+    <div style="display: flex; justify-content: center; margin-top: 20px;">
+    <button id="backButton" style="width: 80vw; height: 10vh;" onclick="createTalentTree()">Back</button>
+    </div>
+    `;
+
+    // Update the bottomMenu with the class talent menu
+    const bottomMenu = document.getElementById('bottomMenu');
+    bottomMenu.innerHTML = classTalentsContent;
+    bottomMenu.style.display = 'flex';
+  }
+
+  // Dummy function to get talents for each class (You should populate this based on your game logic)
+  function getClassTalents(className) {
+    // Example talents for the Warrior class
+    return player.traction[className].skills;
+  }
+
+  // Function to level up a talent
+  function levelUpTalent(talentName, className) {
+    alert(`Leveling up ${talentName} for ${className}`);
+    // Your logic for leveling up the talent
+  }
+
+  // Utility function to capitalize string
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  // Initialize the main talent tree when the traction skills button is clicked
+  document.getElementById('tractionSkillsBtn').addEventListener('click', createTalentTree);
+
+  // Function to switch to the talent tree when the traction screen is clicked
 
   // Optional: Reset the combat if the player changes the enemy level
   prevEnemyBtn.addEventListener("click", () => {
@@ -1561,28 +2010,47 @@ function setMainStatDisplay(attribute) {
       }
     });
 
+  function getFloorDisplay(floor) {
+    if (floor <= 70) {
+      return `Floor ${floor}`;
+    }
+    if (floor <= 140) {
+      return `Depths ${floor-70}`;
+    }
+    return `Hell ${floor-140}`;
+  }
   function updateEnemyAttackSpeed() {
     enemy.attackSpeed = 2005 *(Math.exp(player.resolutionSkills.bash.level/90))
   }
   // Function to change enemy level and reset health
   function changeEnemyLevel(level) {
+    if (level < 0) {
+      level = 1;
+      currentEnemyLevel = 1;
+    }
     enemy.baseHealth = Math.floor(30 + level*10 * Math.pow(1.32, level/2)); // Example health scaling
     enemy.health = enemy.baseHealth;
     enemy.attack = Math.floor(10 + Math.pow(level, 1.2)); // Optionally scale enemy attack
+    enemy.xp = 10 * Math.pow(1.35,
+      level-1);
     if (currentEnemyLevel > 70) {
       enemy.attack = Math.pow(enemy.attack, 2.2);
+      enemy.xp *= 3;
       enemy.baseHealth = Math.pow(enemy.baseHealth, 1.3);
       enemy.health = enemy.baseHealth;
       enemyLevelText.style.color = '#ffbbbb';
-      enemyLevelText.textContent = `Depths ${level-70}`;
+    }
+    if (currentEnemyLevel > 140) {
+      enemy.xp *= 3;
+      enemy.attack = Math.pow(enemy.attack, 2.2);
+      enemy.baseHealth = Math.pow(enemy.baseHealth, 1.3);
+      enemy.health = enemy.baseHealth;
+      enemyLevelText.style.color = '#ff0000';
     } else {
       enemyLevelText.style.color = "#ffffff";
-      enemyLevelText.textContent = `Floor ${level}`;
-
     }
+    enemyLevelText.textContent = getFloorDisplay(level);
     updateEnemyAttackSpeed();
-    enemy.xp = 10 * Math.pow(1.35,
-      level-1);
 
     updateHealthBars();
   }
