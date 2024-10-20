@@ -134,7 +134,7 @@ function loadGameState() {
         startSwordFills();
         startCombat();
         console.log(player);
-        forceAttributes(400);
+       
         autoProgressBtn.checked = autoProgress
       });
   }
