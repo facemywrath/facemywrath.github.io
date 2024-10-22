@@ -70,8 +70,8 @@ function loadGameState() {
     // Convert time passed to minutes and seconds
     const minutesPassed = Math.floor(timePassedInSeconds / 60);
     const secondsPassed = Math.floor(timePassedInSeconds % 60);
-    let xpPercentageGained=0;
-    let levelsGained=0;
+    let xpPercentageGained = 0;
+    let levelsGained = 0;
     if (player.currentClass !== "none") {
       // Calculate the number of attacks the player could have made in that time
       const attackInterval = player.attackSpeed; // Attack speed in seconds
@@ -129,17 +129,18 @@ function loadGameState() {
         updateXPBar();
         tryUnlockSkills();
         tryUnlockResolutionSkills();
+        setMainStatDisplay(player.primaryAttribute);
         unlockResolutionSkillsMenu();
         // Start the necessary game functions after closing the popup
         startSwordFills();
         startCombat();
+        addMissingKeys(player, heroInitialConfig);
         console.log(player);
-       
         autoProgressBtn.checked = autoProgress
       });
-  }
+    }
     console.log(`Game state loaded! Time passed: ${minutesPassed}m ${secondsPassed}s. XP gained: ${xpPercentageGained}%. Levels gained: ${levelsGained}`);
-     
+
   } else {
     console.log('No saved game state found.');
   }
@@ -150,12 +151,22 @@ function loadGameState() {
   saveLoop();
 }
 
-function forceAttributes(val){
+function addMissingKeys(obj, config) {
+  for (const key in config) {
+    if (!obj.hasOwnProperty(key)) {
+      obj[key] = config[key];
+    } else if (typeof config[key] === 'object' && config[key] !== null && !Array.isArray(config[key])) {
+      // If it's a sub-object, recurse into it
+      addMissingKeys(obj[key], config[key]);
+    }
+  }
+}
+function forceAttributes(val) {
   player.strength = val;
-  player.intellect=val;
-  player.agility=val;
-  player.toughness=val;
-  player.mysticism=val;
+  player.intellect = val;
+  player.agility = val;
+  player.toughness = val;
+  player.mysticism = val;
   updateAttributes();
 }
 // Screen elements
@@ -202,7 +213,7 @@ let unlockedClasses = ["warrior"];
 let cleaveThroughDamage = []
 let magicMissileAttackCounter = 0;
 let purchaseMulti = 1;
-let purchaseMultiOptions = [1,10,25,100];
+let purchaseMultiOptions = [1, 10, 25, 100];
 
 let player = {
   currentClass: "none",
@@ -233,9 +244,16 @@ let player = {
         attribution: {
           level: 0,
           locked: false,
-          unlockAt: 0,
+          unlockText: 'Locked',
           cost: 1,
           max: 5
+        },
+        skillful: {
+          level: 0,
+          locked: true,
+          unlockText: 'Max Attribution',
+          cost: 50,
+          max: 1
         }
       }
     },
@@ -245,9 +263,23 @@ let player = {
         attribution: {
           level: 0,
           locked: false,
-          unlockAt: 0,
+          unlockText: 'Locked',
           cost: 1,
           max: 5
+        },
+        skillful: {
+          level: 0,
+          locked: true,
+          unlockText: 'Max Attribution',
+          cost: 50,
+          max: 1
+        },
+        bullseye: {
+          level: 0,
+          locked: true,
+          unlockText: 'Max Skillful',
+          cost: 30,
+          max: 20
         }
       }
     },
@@ -257,9 +289,16 @@ let player = {
         attribution: {
           level: 0,
           locked: false,
-          unlockAt: 0,
+          unlockText: 'Locked',
           cost: 1,
           max: 5
+        },
+        skillful: {
+          level: 0,
+          locked: true,
+          unlockText: 'Max Attribution',
+          cost: 50,
+          max: 1
         }
       }
     },
@@ -269,9 +308,16 @@ let player = {
         attribution: {
           level: 0,
           locked: false,
-          unlockAt: 0,
+          unlockText: 'Locked',
           cost: 1,
           max: 5
+        },
+        skillful: {
+          level: 0,
+          locked: true,
+          unlockText: 'Max Attribution',
+          cost: 50,
+          max: 1
         }
       }
     },
@@ -281,9 +327,16 @@ let player = {
         attribution: {
           level: 0,
           locked: false,
-          unlockAt: 0,
+          unlockText: 'Locked',
           cost: 1,
           max: 5
+        },
+        skillful: {
+          level: 0,
+          locked: true,
+          unlockText: 'Max Attribution',
+          cost: 50,
+          max: 1
         }
       }
     }
@@ -361,6 +414,12 @@ let player = {
       locked: true,
       unlockAt: 40,
       unlockClass: "wizard"
+    },
+    mirrorImage: {
+      level: 0,
+      locked: true,
+      unlockAt: 60,
+      unlockClass: "wizard"
     }
   },
   resolutionSkills: {
@@ -400,19 +459,19 @@ let player = {
       unlockAt: 70,
       unlockClass: "archer"
     },
-    manaShield: {
+    memorize: {
       level: 0,
       locked: true,
       unlockAt: 30,
       unlockClass: "wizard"
     },
-    memorize: {
+    fireball: {
       level: 0,
       locked: true,
       unlockAt: 50,
       unlockClass: "wizard"
     },
-    fireball: {
+    timeWarp: {
       level: 0,
       locked: true,
       unlockAt: 70,
@@ -465,9 +524,16 @@ const heroInitialConfig = {
         attribution: {
           level: 0,
           locked: false,
-          unlockAt: 0,
+          unlockText: 'Locked',
           cost: 1,
           max: 5
+        },
+        skillful: {
+          level: 0,
+          locked: true,
+          unlockText: 'Max Attribution',
+          cost: 50,
+          max: 1
         }
       }
     },
@@ -477,9 +543,23 @@ const heroInitialConfig = {
         attribution: {
           level: 0,
           locked: false,
-          unlockAt: 0,
+          unlockText: 'Locked',
           cost: 1,
           max: 5
+        },
+        skillful: {
+          level: 0,
+          locked: true,
+          unlockText: 'Max Attribution',
+          cost: 50,
+          max: 1
+        },
+        bullseye: {
+          level: 0,
+          locked: true,
+          unlockText: 'Max Skillful',
+          cost: 30,
+          max: 20
         }
       }
     },
@@ -489,9 +569,16 @@ const heroInitialConfig = {
         attribution: {
           level: 0,
           locked: false,
-          unlockAt: 0,
+          unlockText: 'Locked',
           cost: 1,
           max: 5
+        },
+        skillful: {
+          level: 0,
+          locked: true,
+          unlockText: 'Max Attribution',
+          cost: 50,
+          max: 1
         }
       }
     },
@@ -501,9 +588,16 @@ const heroInitialConfig = {
         attribution: {
           level: 0,
           locked: false,
-          unlockAt: 0,
+          unlockText: 'Locked',
           cost: 1,
           max: 5
+        },
+        skillful: {
+          level: 0,
+          locked: true,
+          unlockText: 'Max Attribution',
+          cost: 50,
+          max: 1
         }
       }
     },
@@ -513,9 +607,16 @@ const heroInitialConfig = {
         attribution: {
           level: 0,
           locked: false,
-          unlockAt: 0,
+          unlockText: 'Locked',
           cost: 1,
           max: 5
+        },
+        skillful: {
+          level: 0,
+          locked: true,
+          unlockText: 'Max Attribution',
+          cost: 50,
+          max: 1
         }
       }
     }
@@ -593,6 +694,12 @@ const heroInitialConfig = {
       locked: true,
       unlockAt: 40,
       unlockClass: "wizard"
+    },
+    mirrorImage: {
+      level: 0,
+      locked: true,
+      unlockAt: 60,
+      unlockClass: "wizard"
     }
   },
   resolutionSkills: {
@@ -632,19 +739,19 @@ const heroInitialConfig = {
       unlockAt: 70,
       unlockClass: "archer"
     },
-    manaShield: {
+    memorize: {
       level: 0,
       locked: true,
       unlockAt: 30,
       unlockClass: "wizard"
     },
-    memorize: {
+    fireball: {
       level: 0,
       locked: true,
       unlockAt: 50,
       unlockClass: "wizard"
     },
-    fireball: {
+    timeWarp: {
       level: 0,
       locked: true,
       unlockAt: 70,
@@ -662,7 +769,7 @@ function buildHero(resetTier) {
   } else if (resetTier == 2) {
     totalTractionResets++;
     totalReincarnations = 0;
-    player.traction[player.currentClass].points += Math.max(0, maxUnlockedLevel-99);
+    player.traction[player.currentClass].points += Math.max(0, maxUnlockedLevel-100);
   }
   oldResolutionSkills = player.resolutionSkills;
 
@@ -695,6 +802,7 @@ function buildHero(resetTier) {
   currentEnemyLevel = 1;
   tryUnlockSkills();
   tryUnlockResolutionSkills();
+  cleaveThroughDamage = [];
 
   // Return to the character selection screen
   document.getElementById('characterSelection').style.display = 'block';
@@ -705,11 +813,14 @@ function buildHero(resetTier) {
   document.getElementById('bottomMenu').style.display = 'none';
 }
 function tryUnlockClasses() {
-  
+
   if (totalReincarnations < 2) {
     archerSelectBtn.textContent = `Give Up ${2-totalReincarnations} more times!`;
     archerSelectBtn.disabled = true;
     archerDescription.textContent = "Locked";
+    wizardSelectBtn.textContent = `Give Up ${9-totalReincarnations} more times!`;
+    wizardSelectBtn.disabled = true;
+    wizardDescription.textContent = "Locked";
     return;
   }
   document.getElementById("archer-card").style.backgroundColor = agilityColor;
@@ -717,16 +828,14 @@ function tryUnlockClasses() {
   archerSelectBtn.disabled = false;
   archerDescription.textContent = "Archer";
   if (totalReincarnations < 9) {
-    wizardSelectBtn.textContent = `Give Up ${9-totalReincarnations} more times!`;
-    wizardSelectBtn.disabled = true;
-    wizardDescription.textContent = "Locked";
+
     return;
   }
   document.getElementById("wizard-card").style.backgroundColor = intellectColor;
   wizardSelectBtn.textContent = "Select";
   wizardSelectBtn.disabled = false;
   wizardDescription.textContent = "Wizard";
-  if(totalReincarnations<15){
+  if (totalReincarnations < 15) {
     druidSelectBtn.textContent = `Give Up ${15-totalReincarnations} more times!`;
     druidSelectBtn.disabled = true;
     druidDescription.textContent = "Locked";
@@ -746,7 +855,6 @@ const attributesContent = `
 <span id="attributePoints" style="font-size: 20px; margin-bottom: 20px;">Attribute Points: 0</span>
 <span id="playerLevel" style="font-size: 20px; text-align: right; padding-right: 3vw">Level: ${player.level}</span>
 </p>
-<button id="purchaseMultiBtn" onclick="updatePurchaseMulti()">${purchaseMulti}x</button>
 <div style="width: 100%; height: 7vh; background-color: ${strengthColor}; display: flex; align-items: center; justify-content: space-between;">
 <button id="strengthDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 25vw;">${strengthDisplay}</button>
 <button id="playerStrength" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 15vw;">${player.strength}</button>
@@ -818,14 +926,14 @@ function tractionReset() {
   buildHero(2);
 }
 
-function updatePurchaseMulti(){
+function updatePurchaseMulti() {
   let val = purchaseMultiOptions.indexOf(purchaseMulti);
   val++;
-  if(val > purchaseMultiOptions.length-1){
-    val=0;
+  if (val > purchaseMultiOptions.length-1) {
+    val = 0;
   }
-  purchaseMulti=purchaseMultiOptions[val];
-  document.getElementById("purchaseMultiBtn").textContent=`${purchaseMulti}x`;
+  purchaseMulti = purchaseMultiOptions[val];
+  document.getElementById("purchaseMultiBtn").textContent = `${purchaseMulti}x`;
 }
 function displayResoluteSkillsMenu() {
   let resolutionSkillsContent = `<h2>Resolution Points: ${player.resolutionPoints}</h2><div>`;
@@ -887,33 +995,56 @@ function unlockResolutionSkillsMenu() {
 }
 function levelUpTractionSkill(skillName, className) {
   console.log(`attempting level up ${skillName} for ${className}`);
+
+  // Check if player has enough points
   if (player.traction[className].points < player.traction[className].skills[skillName].cost) {
     console.log("level out of points");
     return;
   }
+
+  // Check if player's level is high enough
   console.log("too low hero lvl?");
-  if (player.level <= player.traction[className].skills[skillName].level) {
-    return;
-  }
-  console.log(`skill is maxed?${player.traction[className].skills[skillName].max} ${player.traction[className].skills[skillName].level}`);
+
+
+  // Check if skill is already maxed out
+  console.log(`skill is maxed? ${player.traction[className].skills[skillName].max} ${player.traction[className].skills[skillName].level}`);
   if (player.traction[className].skills[skillName].max <= player.traction[className].skills[skillName].level) {
     return;
   }
+
+  // Deduct points and level up the skill
   console.log("completed");
   player.traction[className].points -= player.traction[className].skills[skillName].cost;
   player.traction[className].skills[skillName].level++;
 
-
+  // Update the skill display
   let displayButtonText = `${capitalize(skillName)}\n${player.traction[className].skills[skillName].level}`;
+  let level = player.traction[className].skills[skillName].level;
+  let max = player.traction[className].skills[skillName].max;
+
+  // Check if the skill is maxed and unlock the next skill
+  if (level === max) {
+    let skillKeys = Object.keys(player.traction[className].skills);
+    let currentSkillIndex = skillKeys.findIndex(key => key === skillName);
+
+    if (currentSkillIndex !== -1 && currentSkillIndex < skillKeys.length - 1) {
+      // Unlock the next skill
+      let nextSkillName = skillKeys[currentSkillIndex + 1];
+      player.traction[className].skills[nextSkillName].locked = false;
+      console.log(`${nextSkillName} has been unlocked!`);
+      displayClassTalents(className);
+    }
+  }
 
   document.getElementById(`${skillName}Display`).textContent = displayButtonText;
   displayClassTalents(className);
+
+  // Update cost and effect for specific skills
   switch (skillName) {
     case 'attribution':
-      player.traction[className].skills[skillName].cost = player.traction[className].skills[skillName].level*10;
+      player.traction[className].skills[skillName].cost = level * 10;
       break;
-    case 'bash':
-      updateBashEffect();
+    case 'skillful':
       break;
     case 'tactician':
       updateTacticianEffect();
@@ -927,9 +1058,6 @@ function levelUpTractionSkill(skillName, className) {
     case 'volley':
       updateVolleyEffect();
       break;
-    case 'manaShield':
-      updateManaShieldEffect();
-      break;
     case "memorize":
       updateMemorizeEffect();
       break;
@@ -937,6 +1065,7 @@ function levelUpTractionSkill(skillName, className) {
       console.error("Unknown skill: " + skillName);
       break;
   }
+
   displayClassTalents(className);
 }
 function levelUpResoluteSkill(skillName) {
@@ -947,8 +1076,10 @@ function levelUpResoluteSkill(skillName) {
   if (player.level <= player.resolutionSkills[skillName].level) {
     return;
   }
-  player.resolutionPoints--;
-  player.resolutionSkills[skillName].level++;
+  let purchaseAmount = Math.min(purchaseMulti, player.resolutionPoints);
+  purchaseAmount = Math.min(player.level-player.resolutionSkills[skillName].level, purchaseAmount);
+  player.resolutionPoints -= purchaseAmount;
+  player.resolutionSkills[skillName].level += purchaseAmount;
   if (currentMenu == "resolution") {
     displayResoluteSkillsMenu();
   }
@@ -961,7 +1092,7 @@ function levelUpResoluteSkill(skillName) {
       updateBashEffect();
       break;
     case 'tactician':
-      updateTacticianEffect();
+      updateTacticianEffect(purchaseAmount);
       break;
     case 'eagleEye':
       updateEagleEyeEffect();
@@ -972,11 +1103,13 @@ function levelUpResoluteSkill(skillName) {
     case 'volley':
       updateVolleyEffect();
       break;
-    case 'manaShield':
-      updateManaShieldEffect();
+    case 'timeWarp':
+      updateTimeWarpEffect();
       break;
     case "memorize":
       updateMemorizeEffect();
+      break;
+    case "fireball":
       break;
     default:
       console.error("Unknown skill: " + skillName);
@@ -987,8 +1120,8 @@ function levelUpResoluteSkill(skillName) {
 function updateMemorizeEffect() {
   updateXPMulti();
 }
-function updateManaShieldEffect() {
-  updateDefense();
+function updateTimeWarpEffect() {
+  updateTimeMulti();
 }
 function updateVolleyEffect() {
   updateAttackSpeed();
@@ -999,12 +1132,12 @@ function updateFeatheredShotEffect() {
 function updateEagleEyeEffect() {
   updateCritChance();
 }
-function updateTacticianEffect() {
-  player.strength++;
-  player.intellect++;
-  player.agility++;
-  player.toughness++;
-  player.mysticism++;
+function updateTacticianEffect(level) {
+  player.strength += level;
+  player.intellect += level;
+  player.agility += level;
+  player.toughness += level;
+  player.mysticism += level;
   if (currentMenu == "attributes") {
     updateAttributesMenu();
   }
@@ -1022,9 +1155,10 @@ function levelUpSkill(skillName) {
     console.log("level out of points");
     return;
   }
-  player.skillPoints--;
+  let purchaseAmount = Math.min(purchaseMulti, player.skillPoints);
+  player.skillPoints -= purchaseAmount;
   updateSkillPointsDisplay();
-  player.skills[skillName].level++;
+  player.skills[skillName].level += purchaseAmount;
   if (currentMenu == "skills") {
     displaySkillsMenu();
   }
@@ -1098,6 +1232,11 @@ function displaySkillsMenu() {
   skillsContent += "</div>";
 
   switchMenu(skillsContent, "skills");
+}
+
+function updateMirrorImageEffect() {
+  updateEvasion();
+  updateDamage();
 }
 
 function updateEmpowerEffect() {
@@ -1310,28 +1449,28 @@ function setMainStatDisplay(attribute) {
   }
   function increaseAttribute(attribute) {
     if (player.attributePoints > 0) {
-      let multi = Math.min(purchaseMulti,player.attributePoints);
-      
-      player.attributePoints-= multi; // Deduct 1 attribute point
+      let multi = Math.min(purchaseMulti, player.attributePoints);
+
+      player.attributePoints -= multi; // Deduct 1 attribute point
       switch (attribute) {
       case 'strength':
-        player.strength+=multi;
+        player.strength += multi;
         updateStrength();
         break;
       case 'intellect':
-        player.intellect+=multi;
+        player.intellect += multi;
         updateIntellect();
         break;
       case 'agility':
-        player.agility+=multi;
+        player.agility += multi;
         updateAgility();
         break;
       case 'toughness':
-        player.toughness+=multi;
+        player.toughness += multi;
         updateToughness();
         break;
       case 'mysticism':
-        player.mysticism+=multi;
+        player.mysticism += multi;
         updateMysticism();
         break;
       default:
@@ -1351,24 +1490,32 @@ function setMainStatDisplay(attribute) {
     let val = getPrimaryAttributeValue();
     if (player.primaryAttribute == "agility") {
       val *= .5;
+
     } else if (player.primaryAttribute == "intellect") {
-      val *= .25;
+      val *= .45;
+    } else if (player.primaryAttribute == "strength") {
+      val *= 1.2;
     }
     let base = 3*(val+1);
     let ASMulti = 1;
     if (player.attackSpeed < 10) {
-      ASMulti = 10/player.attackSpeed;
+      ASMulti = Math.sqrt(5/(player.attackSpeed/player.timeMulti))
     }
+
     let opMulti = 1+(0.25 * player.skills.overpower.level);
     let weightMulti = 1+(0.15* player.resolutionSkills.weightLifting.level);
     let sharpnessMulti = 1 + (0.15*player.skills.sharpness.level);
-    let empowerMulti = 1+(0.2*player.skills.empower.level);
+    let empowerMulti = 1+(1.2*player.skills.empower.level);
     let cleaveMulti = 1+(0.1*player.skills.cleave.level)
     player.damage = Math.floor(base*ASMulti*opMulti*weightMulti*sharpnessMulti*empowerMulti);
   }
   function updateEvasion() {
-    let val = 100*(1-Math.exp(player.skills.evasion.level/-18))
-    player.evasion = val;
+    let evasionVal = 100*(1-Math.exp(player.skills.evasion.level/-18));
+    let mirrorImageVal = 100*(1-(1/(1+(player.skills.mirrorImage.level/3)/10)));
+    player.evasion = evasionVal+mirrorImageVal;
+  }
+  function updateTimeMulti() {
+    timeMulti = 1+3*(1-Math.exp(player.resolutionSkills.timeWarp.level/-40))
   }
   function updateMaxHealth() {
     let base = 50;
@@ -1377,21 +1524,23 @@ function setMainStatDisplay(attribute) {
     } else if (player.currentClass == "wizard") {
       base = 30;
     }
-    player.maxHealth = Math.floor(base * (player.toughness/4+1)*Math.pow(1.01, player.strength)*(1+(0.5*player.skills.shieldWall.level)));
+    player.maxHealth = Math.floor(base * (player.toughness/4+1)*Math.pow(1.007, player.strength)*(1+(0.5*player.skills.shieldWall.level)));
     updateHealthBars();
   }
   function updateAttackSpeed() {
     let base = Math.exp(-0.02*player.agility);
     let quickdrawMulti = Math.exp(-0.02*player.skills.quickdraw.level);
     let volleyMulti = Math.exp(-0.01* player.resolutionSkills.volley.level);
-    player.attackSpeed = 2000 * base*quickdrawMulti*volleyMulti;
+    let mirrorMulti = Math.exp(-0.04*player.skills.mirrorImage.level);
+    player.attackSpeed = 2000 * base*quickdrawMulti*volleyMulti*mirrorMulti;
   }
   function updateCritChance() {
-    let val = 100*(1-Math.exp(player.resolutionSkills.eagleEye.level/-40))
+    let val = player.traction.archer.skills.bullseye.level + 80*(1-Math.exp(player.resolutionSkills.eagleEye.level/-30))
     player.critChance = val;
   }
   function updateCritMulti() {
     let val = 2+(player.resolutionSkills.featheredShot.level/4);
+    val *= (1+player.traction.archer.skills.bullseye.level/2);
     player.critMulti = val;
   }
   function updateXPMulti() {
@@ -1410,8 +1559,7 @@ function setMainStatDisplay(attribute) {
   }
   let shieldWallMulti = (0.1+0.9*Math.exp(-0.1*player.skills.shieldWall.level));
   function updateDefense() {
-    let manaShieldMulti = (0.1+0.9*Math.exp(-0.1*player.resolutionSkills.manaShield.level));
-    player.defense = shieldWallMulti*manaShieldMulti;
+    player.defense = shieldWallMulti;
   }
   function updateStrength() {
     updateMaxHealth();
@@ -1450,6 +1598,7 @@ function setMainStatDisplay(attribute) {
     document.getElementById("playerMysticism").textContent = player.mysticism;
     document.getElementById("mysticismDisplay").textContent = mysticismDisplay;
     document.getElementById("attributePoints").textContent = `Attribute Points: ${player.attributePoints}`;
+    document.getElementById("purchaseMultiBtn").textContent = `${purchaseMulti}x`
   }
 
 
@@ -1525,7 +1674,11 @@ function setMainStatDisplay(attribute) {
     player.maxXP = Math.floor(player.maxXP * 1.4); // Increase XP needed for next level
     player.attributePoints += 3+player.traction[player.currentClass].skills.attribution.level; // Give 3 attribute points to spend
     if (player.level >= 10) {
-      player.skillPoints++;
+      let skillfulPoints = 0;
+      if (player.traction[player.currentClass].skills.hasOwnProperty("skillful")) {
+        skillfulPoints = player.traction[player.currentClass].skills.skillful.level;
+      }
+      player.skillPoints += (1+skillfulPoints);
       updateSkillPointsDisplay();
     }
     updateAttributesMenu();
@@ -1669,8 +1822,8 @@ function setMainStatDisplay(attribute) {
   function playerAttack() {
     let chargeMulti = 1;
     if (player.currentClass == "warrior") {
-      if (player.skills.charge.level > 0 && player.attacksThisFight%10 == 0) {
-        chargeMulti = (1+ player.skills.charge.level)*(1+(Math.floor(player.attacksThisFight/10)));
+      if (player.skills.charge.level > 0 && player.attacksThisFight%7 == 0) {
+        chargeMulti = (1+ player.skills.charge.level)*(1+(Math.floor(player.attacksThisFight/7)));
       }
     }
     let critMulti = 1;
@@ -1688,14 +1841,21 @@ function setMainStatDisplay(attribute) {
     let damage = Math.floor(critMulti*player.damage*chargeMulti*magicMissileDamageMulti);
     cleaveMulti = (1-Math.exp(player.skills.cleave.level/-8));
     explosiveShotMulti = (1-Math.exp(player.skills.explosiveShot.level/-26));
-    fireballMulti = 1+(1-Math.exp(player.resolutionSkills.fireball.level/-42));
+    fireballMulti = 1+(1-Math.exp(player.resolutionSkills.fireball.level/-20));
     cleaveDamage = fireballMulti*(1+cleaveMulti + explosiveShotMulti)*damage;
+
     let cleaveThrough = (Math.ceil(player.resolutionSkills.fireball.level/40)+1)*(player.skills.cleave.level/4+player.skills.explosiveShot.level/7);
-    for (let i = 0; i < cleaveThrough; i++) {
-      if (cleaveThroughDamage.length > i) {
-        cleaveThroughDamage[i] += cleaveDamage
-      } else {
-        cleaveThroughDamage[i] = cleaveDamage;
+    if (player.skills.cleave.level == 0 && player.skills.explosiveShot.level == 0) {
+      cleaveThrough = Math.ceil(player.resolutionSkills.fireball.level/40)
+    }
+    
+    if (cleaveThrough >= 1) {
+      for (let i = 0; i < cleaveThrough; i++) {
+        if (cleaveThroughDamage.length > i) {
+          cleaveThroughDamage[i] += cleaveDamage
+        } else {
+          cleaveThroughDamage[i] = cleaveDamage;
+        }
       }
     }
     if (enemy.health > 0) {
@@ -1733,6 +1893,9 @@ function setMainStatDisplay(attribute) {
     enemyAttackProgress = 0;
     stopRegen();
     updateAttributes();
+    updateCritChance();
+    updateCritMulti();
+    updateEvasion();
     startPlayerRegen();
     startEnemyRegen();
     if (cleaveThroughDamage.length > 0 && enemy.health > 0) {
@@ -1939,12 +2102,12 @@ function setMainStatDisplay(attribute) {
 
   // Function to display class-specific talents
   function displayClassTalents(className) {
-    druidUnlockBtn = "";
+
 
     let classTalentsContent = `<div style="display: flex;"><h2 id="classTalentPointsDisplay">${capitalize(className)} <br>Points: ${player.traction[className].points}</h2></div><div>`;
     let classTalents = getClassTalents(className); // Function to fetch talents based on the class
     for (let talent of Object.keys(classTalents)) {
-      let displayButtonText = ` disabled>Beat ${getFloorDisplay(player.traction[className].skills[talent].unlockAt)}`;
+      let displayButtonText = ` disabled> ${player.traction[className].skills[talent].unlockText}`;
       let levelButtonText = " disabled>Locked";
       if (!player.traction[className].skills[talent].locked) {
         displayButtonText = `>${capitalize(talent)}\n${player.traction[className].skills[talent].level}/${player.traction[className].skills[talent].max}`;
@@ -2014,10 +2177,10 @@ function setMainStatDisplay(attribute) {
     if (floor <= 70) {
       return `Floor ${floor}`;
     }
-    if (floor <= 140) {
+    if (floor <= 240) {
       return `Depths ${floor-70}`;
     }
-    return `Hell ${floor-140}`;
+    return `Hell ${floor-240}`;
   }
   function updateEnemyAttackSpeed() {
     enemy.attackSpeed = 2005 *(Math.exp(player.resolutionSkills.bash.level/90))
@@ -2036,11 +2199,11 @@ function setMainStatDisplay(attribute) {
     if (currentEnemyLevel > 70) {
       enemy.attack = Math.pow(enemy.attack, 2.2);
       enemy.xp *= 3;
-      enemy.baseHealth = Math.pow(enemy.baseHealth, 1.3);
+      enemy.baseHealth = Math.pow(enemy.baseHealth, 1.25);
       enemy.health = enemy.baseHealth;
       enemyLevelText.style.color = '#ffbbbb';
     }
-    if (currentEnemyLevel > 140) {
+    if (currentEnemyLevel > 240) {
       enemy.xp *= 3;
       enemy.attack = Math.pow(enemy.attack, 2.2);
       enemy.baseHealth = Math.pow(enemy.baseHealth, 1.3);
