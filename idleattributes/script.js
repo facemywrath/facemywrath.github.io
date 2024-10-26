@@ -78,8 +78,9 @@ function loadGameState() {
       const attacksInTimePassed = Math.floor(timePassed / attackInterval);
       changeEnemyLevel(currentEnemyLevel);
       // Calculate the XP gain based on the enemy's XP value
-      updateDamage();
-      killsInTimePassed = attacksInTimePassed/(enemy.baseHealth/player.damage);
+      console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
+      let averageDamage = (player.damage *1-player.critChance)+(player.damage*player.critChance*player.critMulti);
+      killsInTimePassed = attacksInTimePassed/(enemy.baseHealth/averageDamage);
       const xpGain = killsInTimePassed * enemy.xp * player.xpMulti*offlineXPMulti;
 
       // Calculate how many levels were gained
@@ -136,7 +137,16 @@ function loadGameState() {
         startCombat();
         addMissingKeys(player, heroInitialConfig);
         console.log(player);
-        autoProgressBtn.checked = autoProgress
+        console.log(gameState);
+        updateTimeMulti();
+        
+        autoProgressBtn.checked = autoProgress;
+        for (let className of Object.keys(player.traction)) {
+          for (let skillName of Object.keys(player.traction[className].skills)) {
+            checkUnlockTractionSkill(className, skillName);
+          }
+        }
+        
       });
     }
     console.log(`Game state loaded! Time passed: ${minutesPassed}m ${secondsPassed}s. XP gained: ${xpPercentageGained}%. Levels gained: ${levelsGained}`);
@@ -210,10 +220,12 @@ let maxUnlockedLevel = 1;
 let totalReincarnations = 0;
 let totalTractionResets = 0;
 let unlockedClasses = ["warrior"];
+let druidUnlockParts = 0;
 let cleaveThroughDamage = []
 let magicMissileAttackCounter = 0;
 let purchaseMulti = 1;
-let purchaseMultiOptions = [1, 10, 25, 100];
+let purchaseMultiPercent = false;
+let purchaseMultiOptions = [1, 10, 25, 50, 100];
 
 let player = {
   currentClass: "none",
@@ -254,6 +266,20 @@ let player = {
           unlockText: 'Max Attribution',
           cost: 50,
           max: 1
+        },
+        strategist: {
+          level: 0,
+          locked: true,
+          unlockText: 'Max Skillful',
+          cost: 20,
+          max: 20
+        },
+        unlockDruid: {
+          level: 0,
+          locked: true,
+          unlockText: "Max Strategist",
+          cost: 100,
+          max: 1
         }
       }
     },
@@ -278,8 +304,15 @@ let player = {
           level: 0,
           locked: true,
           unlockText: 'Max Skillful',
-          cost: 30,
+          cost: 20,
           max: 20
+        },
+        unlockDruid: {
+          level: 0,
+          locked: true,
+          unlockText: "Max Bullseye",
+          cost: 100,
+          max: 1
         }
       }
     },
@@ -298,6 +331,20 @@ let player = {
           locked: true,
           unlockText: 'Max Attribution',
           cost: 50,
+          max: 1
+        },
+        lore: {
+          level: 0,
+          locked: true,
+          unlockText: "Max Skillful",
+          cost: 20,
+          max: 20
+        },
+        unlockDruid: {
+          level: 0,
+          locked: true,
+          unlockText: "Max Lore",
+          cost: 100,
           max: 1
         }
       }
@@ -385,13 +432,13 @@ let player = {
       unlockAt: 20,
       unlockClass: "archer"
     },
-    evasion: {
+    explosiveShot: {
       level: 0,
       locked: true,
       unlockAt: 40,
       unlockClass: "archer"
     },
-    explosiveShot: {
+    evasion: {
       level: 0,
       locked: true,
       unlockAt: 60,
@@ -420,6 +467,30 @@ let player = {
       locked: true,
       unlockAt: 60,
       unlockClass: "wizard"
+    },
+    waterTotem: {
+      level: 0,
+      locked: true,
+      unlockAt: 10,
+      unlockClass: "druid"
+    },
+    fireTotem: {
+      level: 0,
+      locked: true,
+      unlockAt: 40,
+      unlockClass: "druid"
+    },
+    earthTotem: {
+      level: 0,
+      locked: true,
+      unlockAt: 90,
+      unlockClass: "druid"
+    },
+    airTotem: {
+      level: 0,
+      locked: true,
+      unlockAt: 120,
+      unlockClass: "druid"
     }
   },
   resolutionSkills: {
@@ -476,6 +547,24 @@ let player = {
       locked: true,
       unlockAt: 70,
       unlockClass: "wizard"
+    },
+    thorns: {
+      level: 0,
+      locked: true,
+      unlockAt: 70,
+      unlockClass: "druid"
+    },
+    fairyFire: {
+      level: 0,
+      locked: true,
+      unlockAt: 130,
+      unlockClass: "druid"
+    },
+    entangle: {
+      level: 0,
+      locked: true,
+      unlockAt: 170,
+      unlockClass: "druid"
     }
   }
 };
@@ -534,6 +623,20 @@ const heroInitialConfig = {
           unlockText: 'Max Attribution',
           cost: 50,
           max: 1
+        },
+        strategist: {
+          level: 0,
+          locked: true,
+          unlockText: 'Max Skillful',
+          cost: 20,
+          max: 20
+        },
+        unlockDruid: {
+          level: 0,
+          locked: true,
+          unlockText: "Max Strategist",
+          cost: 100,
+          max: 1
         }
       }
     },
@@ -558,8 +661,15 @@ const heroInitialConfig = {
           level: 0,
           locked: true,
           unlockText: 'Max Skillful',
-          cost: 30,
+          cost: 20,
           max: 20
+        },
+        unlockDruid: {
+          level: 0,
+          locked: true,
+          unlockText: "Max Bullseye",
+          cost: 100,
+          max: 1
         }
       }
     },
@@ -578,6 +688,20 @@ const heroInitialConfig = {
           locked: true,
           unlockText: 'Max Attribution',
           cost: 50,
+          max: 1
+        },
+        lore: {
+          level: 0,
+          locked: true,
+          unlockText: "Max Skillful",
+          cost: 20,
+          max: 20
+        },
+        unlockDruid: {
+          level: 0,
+          locked: true,
+          unlockText: "Max Lore",
+          cost: 100,
           max: 1
         }
       }
@@ -665,13 +789,13 @@ const heroInitialConfig = {
       unlockAt: 20,
       unlockClass: "archer"
     },
-    evasion: {
+    explosiveShot: {
       level: 0,
       locked: true,
       unlockAt: 40,
       unlockClass: "archer"
     },
-    explosiveShot: {
+    evasion: {
       level: 0,
       locked: true,
       unlockAt: 60,
@@ -700,6 +824,30 @@ const heroInitialConfig = {
       locked: true,
       unlockAt: 60,
       unlockClass: "wizard"
+    },
+    waterTotem: {
+      level: 0,
+      locked: true,
+      unlockAt: 10,
+      unlockClass: "druid"
+    },
+    fireTotem: {
+      level: 0,
+      locked: true,
+      unlockAt: 40,
+      unlockClass: "druid"
+    },
+    earthTotem: {
+      level: 0,
+      locked: true,
+      unlockAt: 90,
+      unlockClass: "druid"
+    },
+    airTotem: {
+      level: 0,
+      locked: true,
+      unlockAt: 120,
+      unlockClass: "druid"
     }
   },
   resolutionSkills: {
@@ -756,10 +904,46 @@ const heroInitialConfig = {
       locked: true,
       unlockAt: 70,
       unlockClass: "wizard"
+    },
+    thorns: {
+      level: 0,
+      locked: true,
+      unlockAt: 70,
+      unlockClass: "druid"
+    },
+    fairyFire: {
+      level: 0,
+      locked: true,
+      unlockAt: 130,
+      unlockClass: "druid"
+    },
+    entangle: {
+      level: 0,
+      locked: true,
+      unlockAt: 170,
+      unlockClass: "druid"
     }
   }
 };
 
+function getPurchaseMulti(points) {
+  if (!purchaseMultiPercent) {
+    return purchaseMulti;
+  }
+  return Math.ceil(points*purchaseMulti/100);
+}
+function updatePurchaseMultiType() {
+  purchaseMultiPercent = !purchaseMultiPercent;
+  let typeText = "x";
+  let purchaseMultiText = `${purchaseMulti}x`;
+  if (purchaseMultiPercent) {
+    purchaseMultiText = `${purchaseMulti}%`
+    typeText = "%";
+  }
+  document.getElementById("purchaseMultiBtn").textContent = `${purchaseMultiText}`;
+
+  document.getElementById("purchaseMultiTypeBtn").textContent = typeText;
+}
 
 // Method to reset the player back to initial values
 function buildHero(resetTier) {
@@ -785,11 +969,11 @@ function buildHero(resetTier) {
     player.resolutionSkills[skill].locked = true;
   }
   // Update display elements to reflect the reset values
-  player.strength += player.resolutionSkills.tactician.level;
-  player.intellect += player.resolutionSkills.tactician.level;
-  player.agility += player.resolutionSkills.tactician.level;
-  player.toughness += player.resolutionSkills.tactician.level;
-  player.mysticism += player.resolutionSkills.tactician.level;
+  player.strength += player.resolutionSkills.tactician.level+player.traction.warrior.skills.strategist.level;
+  player.intellect += player.resolutionSkills.tactician.level+player.traction.warrior.skills.strategist.level;
+  player.agility += player.resolutionSkills.tactician.level+player.traction.warrior.skills.strategist.level;
+  player.toughness += player.resolutionSkills.tactician.level+player.traction.warrior.skills.strategist.level;
+  player.mysticism += player.resolutionSkills.tactician.level+player.traction.warrior.skills.strategist.level;
   updateAttributesMenu();
   updateHealthBars();
   updateXPBar();
@@ -799,10 +983,13 @@ function buildHero(resetTier) {
   changeEnemyLevel(1);
   tryUnlockClasses();
   maxUnlockedLevel = 1;
+  
   currentEnemyLevel = 1;
+  changeEnemyLevel(currentEnemyLevel);
   tryUnlockSkills();
   tryUnlockResolutionSkills();
   cleaveThroughDamage = [];
+  
 
   // Return to the character selection screen
   document.getElementById('characterSelection').style.display = 'block';
@@ -818,23 +1005,23 @@ function tryUnlockClasses() {
     archerSelectBtn.textContent = `Give Up ${2-totalReincarnations} more times!`;
     archerSelectBtn.disabled = true;
     archerDescription.textContent = "Locked";
+
+  } else {
+    document.getElementById("archer-card").style.backgroundColor = agilityColor;
+    archerSelectBtn.textContent = "Select";
+    archerSelectBtn.disabled = false;
+    archerDescription.textContent = "Archer";
+  }
+  if (totalReincarnations < 9) {
     wizardSelectBtn.textContent = `Give Up ${9-totalReincarnations} more times!`;
     wizardSelectBtn.disabled = true;
     wizardDescription.textContent = "Locked";
-    return;
+  } else {
+    document.getElementById("wizard-card").style.backgroundColor = intellectColor;
+    wizardSelectBtn.textContent = "Select";
+    wizardSelectBtn.disabled = false;
+    wizardDescription.textContent = "Wizard";
   }
-  document.getElementById("archer-card").style.backgroundColor = agilityColor;
-  archerSelectBtn.textContent = "Select";
-  archerSelectBtn.disabled = false;
-  archerDescription.textContent = "Archer";
-  if (totalReincarnations < 9) {
-
-    return;
-  }
-  document.getElementById("wizard-card").style.backgroundColor = intellectColor;
-  wizardSelectBtn.textContent = "Select";
-  wizardSelectBtn.disabled = false;
-  wizardDescription.textContent = "Wizard";
   if (totalReincarnations < 15) {
     druidSelectBtn.textContent = `Give Up ${15-totalReincarnations} more times!`;
     druidSelectBtn.disabled = true;
@@ -842,10 +1029,16 @@ function tryUnlockClasses() {
     return;
   }
   if (totalTractionResets > 0) {
-    //    document.getElementById("druid-card").style.backgroundColor = mysticismColor;
-    druidSelectBtn.textContent = "Cannot Select";
-    druidSelectBtn.disabled = true;
-    druidDescription.textContent = "Druid(WIP)";
+    if (druidUnlockParts < 3) {
+      druidSelectBtn.textContent = `Almost unlocked! (${druidUnlockParts}/3)`;
+      druidSelectBtn.disabled = true;
+      druidDescription.textContent = "Locked";
+      return;
+    }
+    document.getElementById("druid-card").style.backgroundColor = mysticismColor;
+    druidSelectBtn.textContent = "Select";
+    druidSelectBtn.disabled = false;
+    druidDescription.textContent = "Druid";
   }
 }
 // Attributes and Settings menus
@@ -853,32 +1046,32 @@ const attributesContent = `
 <div>
 <p style="display: flex; justify-content: space-between;">
 <span id="attributePoints" style="font-size: 20px; margin-bottom: 20px;">Attribute Points: 0</span>
-<span id="playerLevel" style="font-size: 20px; text-align: right; padding-right: 3vw">Level: ${player.level}</span>
+<span id="playerLevel" style="font-size: 20px; text-align: right; padding-right: 3${getARPref()}">Level: ${player.level}</span>
 </p>
-<div style="width: 100%; height: 7vh; background-color: ${strengthColor}; display: flex; align-items: center; justify-content: space-between;">
-<button id="strengthDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 25vw;">${strengthDisplay}</button>
-<button id="playerStrength" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 15vw;">${player.strength}</button>
-<button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 35vw;" onclick="increaseAttribute('strength')">+</button>
+<div style="width: 100%; height: 12${getARPref()}; background-color: ${strengthColor}; display: flex; align-items: center; justify-content: space-between;">
+<button id="strengthDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 25${getARPref()};">${strengthDisplay}</button>
+<button id="playerStrength" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 15${getARPref()};">${player.strength}</button>
+<button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 35${getARPref()};" onclick="increaseAttribute('strength')">+</button>
 </div>
-<div style="width: 100%; height: 7vh; background-color: ${intellectColor}; display: flex; align-items: center; justify-content: space-between;">
-<button id="intellectDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 25vw;">${intellectDisplay}</button>
-<button id="playerIntellect" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 15vw;">${player.intellect}</button>
-<button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 35vw;" onclick="increaseAttribute('intellect')">+</button>
+<div style="width: 100%; height: 12${getARPref()}; background-color: ${intellectColor}; display: flex; align-items: center; justify-content: space-between;">
+<button id="intellectDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 25${getARPref()};">${intellectDisplay}</button>
+<button id="playerIntellect" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 15${getARPref()};">${player.intellect}</button>
+<button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 35${getARPref()};" onclick="increaseAttribute('intellect')">+</button>
 </div>
-<div style="width: 100%; height: 7vh; background-color: ${agilityColor}; display: flex; align-items: center; justify-content: space-between;">
-<button id="agilityDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 25vw;">${agilityDisplay}</button>
-<button id="playerAgility" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 15vw;">${player.agility}</button>
-<button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 35vw;" onclick="increaseAttribute('agility')">+</button>
+<div style="width: 100%; height: 12${getARPref()}; background-color: ${agilityColor}; display: flex; align-items: center; justify-content: space-between;">
+<button id="agilityDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 25${getARPref()};">${agilityDisplay}</button>
+<button id="playerAgility" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 15${getARPref()};">${player.agility}</button>
+<button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 35${getARPref()};" onclick="increaseAttribute('agility')">+</button>
 </div>
-<div style="width: 100%; height: 7vh; background-color: ${toughnessColor}; display: flex; align-items: center; justify-content: space-between;">
-<button id="toughnessDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 25vw;">${toughnessDisplay}</button>
-<button id="playerToughness" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 15vw;">${player.toughness}</button>
-<button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 35vw;" onclick="increaseAttribute('toughness')">+</button>
+<div style="width: 100%; height: 12${getARPref()}; background-color: ${toughnessColor}; display: flex; align-items: center; justify-content: space-between;">
+<button id="toughnessDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 25${getARPref()};">${toughnessDisplay}</button>
+<button id="playerToughness" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 15${getARPref()};">${player.toughness}</button>
+<button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 35${getARPref()};" onclick="increaseAttribute('toughness')">+</button>
 </div>
-<div style="width: 100%; height: 7vh; background-color: ${mysticismColor}; display: flex; align-items: center; justify-content: space-between;">
-<button id="mysticismDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 25vw;">${mysticismDisplay}</button>
-<button id="playerMysticism" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 15vw;">${player.mysticism}</button>
-<button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2vh; border: 0.3vh solid black; height: 100%; width: 35vw;" onclick="increaseAttribute('mysticism')">+</button>
+<div style="width: 100%; height: 12${getARPref()}; background-color: ${mysticismColor}; display: flex; align-items: center; justify-content: space-between;">
+<button id="mysticismDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 25${getARPref()};">${mysticismDisplay}</button>
+<button id="playerMysticism" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 15${getARPref()};">${player.mysticism}</button>
+<button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 35${getARPref()};" onclick="increaseAttribute('mysticism')">+</button>
 </div>
 </div>
 `;
@@ -886,7 +1079,7 @@ const attributesContent = `
 const statsContent = `
 <div class="stats-container">
 <h2>Stats</h2>
-<p>Attack Speed: ${(player.attackSpeed / 1000).toFixed(2)} seconds</p>
+<p>Attack Speed: ${(1/(player.attackSpeed / 1000)).toFixed(2)} Atk/second</p>
 <p>Damage: ${player.damage}</p>
 <p>Health: ${player.maxHealth}</p>
 <p>Regen: ${player.regen}</p>
@@ -933,7 +1126,11 @@ function updatePurchaseMulti() {
     val = 0;
   }
   purchaseMulti = purchaseMultiOptions[val];
-  document.getElementById("purchaseMultiBtn").textContent = `${purchaseMulti}x`;
+  let purchaseMultiText = `${purchaseMulti}x`;
+  if (purchaseMultiPercent) {
+    purchaseMultiText = `${purchaseMulti}%`
+  }
+  document.getElementById("purchaseMultiBtn").textContent = `${purchaseMultiText}`;
 }
 function displayResoluteSkillsMenu() {
   let resolutionSkillsContent = `<h2>Resolution Points: ${player.resolutionPoints}</h2><div>`;
@@ -950,8 +1147,8 @@ function displayResoluteSkillsMenu() {
       let skillLevel = player.resolutionSkills[skill].level;
       resolutionSkillsContent += `
       <div style="display: flex; justify-content: center;">
-      <button id="${skill}Display" style="width: 60vw; height: 10vh; white-space: pre-wrap" ${displayButtonText}</button>
-      <button id="${skill}LevelUp" style="width: 20vw; height: 10vh; white-space: pre-wrap" onclick="levelUpResoluteSkill('${skill}')" ${levelButtonText}</button>
+      <button id="${skill}Display" style="width: 60${getARPref()}; height: 20${getARPref()}; white-space: pre-wrap" ${displayButtonText}</button>
+      <button id="${skill}LevelUp" style="width: 20${getARPref()}; height: 20${getARPref()}; white-space: pre-wrap" onclick="levelUpResoluteSkill('${skill}')" ${levelButtonText}</button>
       </div>
       `;
     }
@@ -959,7 +1156,7 @@ function displayResoluteSkillsMenu() {
 
   resolutionSkillsContent += `
   <div style="display: flex; justify-content: center; margin-top: 20px;">
-  <button id="giveUpButton" style="width: 80vw; height: 10vh;" onclick="buildHero(1)" >Give Up!</button>
+  <button id="giveUpButton" style="width: 80${getARPref()}; height: 10${getARPref()};" onclick="buildHero(1)" >Give Up!</button>
   </div>
   `;
 
@@ -1023,21 +1220,9 @@ function levelUpTractionSkill(skillName, className) {
   let max = player.traction[className].skills[skillName].max;
 
   // Check if the skill is maxed and unlock the next skill
-  if (level === max) {
-    let skillKeys = Object.keys(player.traction[className].skills);
-    let currentSkillIndex = skillKeys.findIndex(key => key === skillName);
-
-    if (currentSkillIndex !== -1 && currentSkillIndex < skillKeys.length - 1) {
-      // Unlock the next skill
-      let nextSkillName = skillKeys[currentSkillIndex + 1];
-      player.traction[className].skills[nextSkillName].locked = false;
-      console.log(`${nextSkillName} has been unlocked!`);
-      displayClassTalents(className);
-    }
-  }
+  checkUnlockTractionSkill(className, skillName)
 
   document.getElementById(`${skillName}Display`).textContent = displayButtonText;
-  displayClassTalents(className);
 
   // Update cost and effect for specific skills
   switch (skillName) {
@@ -1046,11 +1231,16 @@ function levelUpTractionSkill(skillName, className) {
       break;
     case 'skillful':
       break;
-    case 'tactician':
-      updateTacticianEffect();
+    case 'unlockDruid':
+      druidUnlockParts++;
       break;
-    case 'eagleEye':
-      updateEagleEyeEffect();
+    case 'strategist':
+      player.strength++;
+      player.intellect++;
+      player.agility++;
+      player.mysticism++;
+      player.toughness++;
+      updateAttributes();
       break;
     case 'featheredShot':
       updateFeatheredShotEffect();
@@ -1068,6 +1258,24 @@ function levelUpTractionSkill(skillName, className) {
 
   displayClassTalents(className);
 }
+function checkUnlockTractionSkill(className, skillName) {
+  let level = player.traction[className].skills[skillName].level;
+  let max = player.traction[className].skills[skillName].max;
+  if (level === max) {
+    let skillKeys = Object.keys(player.traction[className].skills);
+    let currentSkillIndex = skillKeys.findIndex(key => key === skillName);
+
+    if (currentSkillIndex !== -1 && currentSkillIndex < skillKeys.length - 1) {
+      // Unlock the next skill
+      let nextSkillName = skillKeys[currentSkillIndex + 1];
+      player.traction[className].skills[nextSkillName].locked = false;
+      console.log(`${nextSkillName} has been unlocked!`);
+      if (currentMenu == "traction") {
+        displayClassTalents(className);
+      }
+    }
+  }
+}
 function levelUpResoluteSkill(skillName) {
   if (player.resolutionPoints == 0) {
     console.log("level out of points");
@@ -1076,7 +1284,7 @@ function levelUpResoluteSkill(skillName) {
   if (player.level <= player.resolutionSkills[skillName].level) {
     return;
   }
-  let purchaseAmount = Math.min(purchaseMulti, player.resolutionPoints);
+  let purchaseAmount = Math.min(getPurchaseMulti(player.resolutionPoints), player.resolutionPoints);
   purchaseAmount = Math.min(player.level-player.resolutionSkills[skillName].level, purchaseAmount);
   player.resolutionPoints -= purchaseAmount;
   player.resolutionSkills[skillName].level += purchaseAmount;
@@ -1147,7 +1355,7 @@ function updateBashEffect() {
   updateEnemyAttackSpeed();
 }
 function updateWeightLiftingEffect() {
-  updateDamage();
+  console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
 }
 
 function levelUpSkill(skillName) {
@@ -1155,7 +1363,7 @@ function levelUpSkill(skillName) {
     console.log("level out of points");
     return;
   }
-  let purchaseAmount = Math.min(purchaseMulti, player.skillPoints);
+  let purchaseAmount = Math.min(getPurchaseMulti(player.skillPoints), player.skillPoints);
   player.skillPoints -= purchaseAmount;
   updateSkillPointsDisplay();
   player.skills[skillName].level += purchaseAmount;
@@ -1191,6 +1399,21 @@ function levelUpSkill(skillName) {
     case 'empower':
       updateEmpowerEffect();
       break;
+    case "magicMissile":
+      break;
+    case "mirrorImage":
+      break;
+    case "waterTotem":
+      updateRegen();
+      break;
+    case "fireTotem":
+      updateRegenDamage();
+      break;
+    case "earthTotem":
+      updateDefense();
+      break;
+    case "airTotem":
+      updateAttackSpeed();
     default:
       console.error("Unknown skill: " + skillName);
       break;
@@ -1221,8 +1444,8 @@ function displaySkillsMenu() {
       }
       skillsContent += `
       <div style = "display: flex; justify-content: center;">
-      <button id="${skill}Display" style="width: 60vw; height: 10vh; white-space: pre-wrap" ${displayButtonText}</button>
-      <button id="${skill}LevelUp" style="width: 20vw; height: 10vh; white-space: pre-wrap" onclick=levelUpSkill("${skill}")${levelButtonText}</button>
+      <button id="${skill}Display" style="width: 60${getARPref()}; height: 20${getARPref()}; white-space: pre-wrap" ${displayButtonText}</button>
+      <button id="${skill}LevelUp" style="width: 20${getARPref()}; height: 20${getARPref()}; white-space: pre-wrap" onclick=levelUpSkill("${skill}")${levelButtonText}</button>
       </div>
       `;
     }
@@ -1236,18 +1459,18 @@ function displaySkillsMenu() {
 
 function updateMirrorImageEffect() {
   updateEvasion();
-  updateDamage();
+  console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
 }
 
 function updateEmpowerEffect() {
-  updateDamage();
+  console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
 }
 function updateCollegiateEffect() {
   updateXPMulti();
 }
 
 function updateSharpnessEffect() {
-  updateDamage();
+  console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
 }
 function updateQuickdrawEffect() {
   updateAttackSpeed();
@@ -1258,7 +1481,7 @@ function updateEvasionEffect() {
 
 function updateOverpowerEffect() {
   // Implement the passive effect for Overpower based on the skill level
-  updateDamage();
+  console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
   // Fill in the details for the passive effect
 }
 
@@ -1308,7 +1531,7 @@ function updateStats() {
   <div class="stats-container" style="line-height: 0.2;">
   ${settingsContent}
   <h2>Stats</h2>
-  <p>Attack Speed: ${(player.attackSpeed / 1000).toFixed(2)} seconds</p>
+  <p>Attack Speed: ${(1/(player.attackSpeed / 1000)).toFixed(2)} Atk/Second</p>
   <p>Damage: ${player.damage}</p>
   <p>Health: ${player.maxHealth}</p>
   <p>Regen: ${player.regen}</p>
@@ -1316,10 +1539,11 @@ function updateStats() {
   <p>XP Multiplier: ${player.xpMulti.toFixed(2)}</p>
   <p>Level: ${player.level}</p>
   <p>Defense: ${player.defense}</p>
-  <p>Cleave Damage: ${cleaveDamage*100}%</p>
-  <p>Cleave Distance: ${Math.floor(cleaveThrough)} enemies</p>
+  <p>Cleave Damage: ${getCleaveMulti()*100}%</p>
+  <p>Cleave Distance: ${getCleaveThrough()} enemies</p>
   <p>Crit Chance: ${player.critChance}%</p>
   <p>Crit Multi: ${player.critMulti}x</p>
+  <p>Time Multi: ${player.timeMulti}x</p>
   <p>Evasion Chance: ${player.evasion}%</p>
   </div>
   `;
@@ -1387,59 +1611,56 @@ function setMainStatDisplay(attribute) {
     return player[player.primaryAttribute];
   }
   function selectCharacter(character) {
-
+    // Apply general class-specific boosts or modifications here
     switch (character) {
-    case 'warrior':
-      player.strength += 5; // Example stat boost
-      player.currentClass = "warrior";
-      setMainStatDisplay("strength");
-      break;
-    case 'archer':
-      player.agility += 5; // Example stat boost
-      player.currentClass = "archer";
-      setMainStatDisplay("agility");
-      break;
-    case 'wizard':
-      player.intellect += 5; // Example stat boost
-      setMainStatDisplay("intellect");
-      player.currentClass = "wizard";
-      break;
-    case 'druid':
-      player.mysticism += 5; // Example stat boost
-      setMainStatDisplay("mysticism");
-      player.currentClass = "druid";
-      break;
-    default:
-      console.error('Unknown character: ' + character);
-
+        case 'warrior':
+            player.strength += 5;
+            player.currentClass = "warrior";
+            setMainStatDisplay("strength");
+            break;
+        case 'archer':
+            player.agility += 5;
+            player.currentClass = "archer";
+            setMainStatDisplay("agility");
+            break;
+        case 'wizard':
+            player.intellect += 5;
+            player.currentClass = "wizard";
+            setMainStatDisplay("intellect");
+            break;
+        case 'druid':
+            player.mysticism += 5;
+            player.currentClass = "druid";
+            setMainStatDisplay("mysticism");
+            break;
+        default:
+            console.error('Unknown character: ' + character);
+            return;
     }
 
-    // Hide the character selection and show the game
+    // Initialize or unlock skills and stats relevant to the selected class
+    switchMenu(attributesContent, "attributes");
+    updateAttributesMenu();
+    tryUnlockSkills();
+    tryUnlockResolutionSkills();
+    updateAttributesMenu();
+    updateTimeMulti();
+    updateDamage();
+    
+    updateHealthBars();
+
+    // Start the combat and sword fill processes
+    startCombat();
+    startSwordFills();
+
+    // Hide the character selection and show the main game screen
     document.getElementById('characterSelection').style.display = 'none';
     document.getElementById('topBar').style.display = 'flex';
     document.getElementById('battleArea').style.display = 'block';
     document.getElementById('levelDisplayRow').style.display = 'flex';
     document.getElementById('xpBarContainer').style.display = 'flex';
     document.getElementById('bottomMenu').style.display = 'block';
-    updateStrength();
-    updateIntellect();
-    updateAgility();
-    updateToughness();
-    updateMysticism();
-    switchMenu(attributesContent, "attributes");
-    updateAttributesMenu();
-    // Start the game
-    startCombat();
-    startSwordFills();
-    updateHealthBars();
-    changeEnemyLevel(currentEnemyLevel);
-    tryUnlockSkills();
-    tryUnlockResolutionSkills();
-    unlockTractionMenu();
-    if (!saveInterval) {
-      saveLoop();
-    }
-  }
+}
   function increaseAttribute(attribute) {
     if (player.attributePoints > 0) {
       player[attribute]++;
@@ -1449,7 +1670,7 @@ function setMainStatDisplay(attribute) {
   }
   function increaseAttribute(attribute) {
     if (player.attributePoints > 0) {
-      let multi = Math.min(purchaseMulti, player.attributePoints);
+      let multi = Math.min(getPurchaseMulti(player.attributePoints), player.attributePoints);
 
       player.attributePoints -= multi; // Deduct 1 attribute point
       switch (attribute) {
@@ -1489,33 +1710,39 @@ function setMainStatDisplay(attribute) {
   function updateDamage() {
     let val = getPrimaryAttributeValue();
     if (player.primaryAttribute == "agility") {
-      val *= .5;
+      val *= .85;
 
     } else if (player.primaryAttribute == "intellect") {
       val *= .45;
     } else if (player.primaryAttribute == "strength") {
       val *= 1.2;
+    } else if (player.primaryAttribute == "mysticism") {
+      val *= 0.4;
     }
     let base = 3*(val+1);
+    
     let ASMulti = 1;
     if (player.attackSpeed < 10) {
-      ASMulti = Math.sqrt(5/(player.attackSpeed/player.timeMulti))
+      ASMulti = 10/(player.attackSpeed/player.timeMulti)
     }
 
     let opMulti = 1+(0.25 * player.skills.overpower.level);
     let weightMulti = 1+(0.15* player.resolutionSkills.weightLifting.level);
     let sharpnessMulti = 1 + (0.15*player.skills.sharpness.level);
     let empowerMulti = 1+(1.2*player.skills.empower.level);
-    let cleaveMulti = 1+(0.1*player.skills.cleave.level)
-    player.damage = Math.floor(base*ASMulti*opMulti*weightMulti*sharpnessMulti*empowerMulti);
+    let cleaveMulti = 1+(0.1*player.skills.cleave.level);
+    let fireTotemMulti = 1+(player.skills.fireTotem.level);
+    console.log(`${val} + ${base} + ${ASMulti} + ${opMulti} + ${weightMulti}`)
+    player.damage = Math.floor(base*ASMulti*opMulti*weightMulti*sharpnessMulti*empowerMulti*cleaveMulti*fireTotemMulti);
   }
   function updateEvasion() {
     let evasionVal = 100*(1-Math.exp(player.skills.evasion.level/-18));
-    let mirrorImageVal = 100*(1-(1/(1+(player.skills.mirrorImage.level/3)/10)));
+    let mirrorImageVal = 100*(1-(1/(1+(player.skills.mirrorImage.level/2)/10)));
     player.evasion = evasionVal+mirrorImageVal;
   }
   function updateTimeMulti() {
-    timeMulti = 1+3*(1-Math.exp(player.resolutionSkills.timeWarp.level/-40))
+    
+    player.timeMulti = 1+Math.ceil(player.resolutionSkills.timeWarp.level/20);
   }
   function updateMaxHealth() {
     let base = 50;
@@ -1528,11 +1755,12 @@ function setMainStatDisplay(attribute) {
     updateHealthBars();
   }
   function updateAttackSpeed() {
-    let base = Math.exp(-0.02*player.agility);
-    let quickdrawMulti = Math.exp(-0.02*player.skills.quickdraw.level);
+    let base = 0.005+Math.exp(-0.02*player.agility);
+    let quickdrawMulti = Math.exp(-0.03*player.skills.quickdraw.level);
     let volleyMulti = Math.exp(-0.01* player.resolutionSkills.volley.level);
     let mirrorMulti = Math.exp(-0.04*player.skills.mirrorImage.level);
-    player.attackSpeed = 2000 * base*quickdrawMulti*volleyMulti*mirrorMulti;
+    let airMulti = Math.exp(-0.06*player.skills.airTotem.level)
+    player.attackSpeed = 2000 * base*quickdrawMulti*volleyMulti*mirrorMulti*airMulti;
   }
   function updateCritChance() {
     let val = player.traction.archer.skills.bullseye.level + 80*(1-Math.exp(player.resolutionSkills.eagleEye.level/-30))
@@ -1540,7 +1768,7 @@ function setMainStatDisplay(attribute) {
   }
   function updateCritMulti() {
     let val = 2+(player.resolutionSkills.featheredShot.level/4);
-    val *= (1+player.traction.archer.skills.bullseye.level/2);
+    val *= (1+player.traction.archer.skills.bullseye.level*0.2);
     player.critMulti = val;
   }
   function updateXPMulti() {
@@ -1550,37 +1778,44 @@ function setMainStatDisplay(attribute) {
     player.xpMulti = base*collMulti*memorizeMulti;
   }
   function updateRegen() {
-    player.regen = player.mysticism;
+    player.regen = player.mysticism*(1+(player.skills.waterTotem.level*3));
   }
   function updateRegenSpeed() {
-    player.regenSpeed = 1800 * (0.2+0.8*Math.exp(-0.02*player.intellect));
+    player.regenSpeed = 1800 * (0.2+0.8*Math.exp(-0.02*player.intellect)) * (0.1+0.9*Math.exp(-0.05*player.skills.waterTotem.level));
     stopRegen();
     startPlayerRegen();
   }
-  let shieldWallMulti = (0.1+0.9*Math.exp(-0.1*player.skills.shieldWall.level));
+
   function updateDefense() {
-    player.defense = shieldWallMulti;
+    let shieldWallMulti = (0.1+0.9*Math.exp(-0.1*player.skills.shieldWall.level));
+    if (player.skills.shieldWall.level == 0) {
+      shieldWallMulti = 1
+    }
+    let earthTotemMulti = (0.1 + 0.9*Math.exp(-0.1*player.skills.earthTotem.level));
+    if (player.skills.earthTotem.level == 0)
+      earthTotemMulti = 1;
+    player.defense = shieldWallMulti*earthTotemMulti;
   }
   function updateStrength() {
     updateMaxHealth();
-    updateDamage();
+    console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
   }
   function updateAgility() {
     updateAttackSpeed();
-    updateDamage();
+    console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
   }
   function updateIntellect() {
     updateXPMulti();
     updateRegenSpeed();
-    updateDamage();
+    console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
   }
   function updateToughness() {
     updateMaxHealth();
-    updateDamage();
+    console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
   }
   function updateMysticism() {
     updateRegen();
-    updateDamage();
+    console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
   }
   function updateAttributesMenu() {
     if (currentMenu != "attributes") {
@@ -1598,7 +1833,6 @@ function setMainStatDisplay(attribute) {
     document.getElementById("playerMysticism").textContent = player.mysticism;
     document.getElementById("mysticismDisplay").textContent = mysticismDisplay;
     document.getElementById("attributePoints").textContent = `Attribute Points: ${player.attributePoints}`;
-    document.getElementById("purchaseMultiBtn").textContent = `${purchaseMulti}x`
   }
 
 
@@ -1608,18 +1842,18 @@ function setMainStatDisplay(attribute) {
   }
   const settingsContent = `
   <h2>Settings</h2>
-  <div id="resetButtonDiv">
-  <button style="width: 35vw;" id="resetHeroBtn" onClick="softResetGame()">Reset Hero</button>
-  <button style="width: 35vw;" id="hardResetBtn" onClick="hardResetGame()">Hard Reset</button>
+  <div id="ButtonDiv">
+  <button style="width: 35${getARPref()};" id="resetHeroBtn" onClick="softResetGame()">Reset Hero</button>
+  <button style="width: 35${getARPref()};" id="hardResetBtn" onClick="hardResetGame()">Hard Reset</button>
   </div>
   `;
   function hardResetGame() {
     const popupContent = `
-    <div id="popup" style="position: fixed; top: 20%; left: 50%; transform: translate(-50%, -20%); background: #444; border: 0.5vw solid black; padding: 20px; border-radius: 10px; color: white; text-align: center;">
+    <div id="popup" style="position: fixed; top: 20%; left: 50%; transform: translate(-50%, -20%); background: #444; border: 0.5${getARPref()} solid black; padding: 20px; border-radius: 10px; color: white; text-align: center;">
     <h1>Are you sure?</h1>
     <div>
-    <button style="border: 0.5vh solid black; border-radius: 3vw; background-color: #8d8; color: black" id="hardResetConfirm">Yes</button>
-    <button style="border: 0.5vh solid black; border-radius: 3vw; background-color: #d88; color: black" id="hardResetCancel">No</button>
+    <button style="border: 0.5${getARPref()} solid black; border-radius: 3${getARPref()}; background-color: #8d8; color: black" id="hardResetConfirm">Yes</button>
+    <button style="border: 0.5${getARPref()} solid black; border-radius: 3${getARPref()}; background-color: #d88; color: black" id="hardResetCancel">No</button>
     </div>
     </div>
     `
@@ -1640,11 +1874,11 @@ function setMainStatDisplay(attribute) {
   }
   function softResetGame() {
     const popupContent = `
-    <div id="popup" style="position: fixed; top: 20%; left: 50%; transform: translate(-50%, -20%); background: #444; border: 0.5vw solid black; padding: 20px; border-radius: 10px; color: white; text-align: center;">
+    <div id="popup" style="position: fixed; top: 20%; left: 50%; transform: translate(-50%, -20%); background: #444; border: 0.5${getARPref()} solid black; padding: 20px; border-radius: 10px; color: white; text-align: center;">
     <h1>Are you sure?</h1>
     <div>
-    <button style="border: 0.5vh solid black; border-radius: 3vw; background-color: #8d8; color: black" id="softResetConfirm">Yes</button>
-    <button style="border: 0.5vh solid black; border-radius: 3vw; background-color: #d88; color: black" id="softResetCancel">No</button>
+    <button style="border: 0.5${getARPref()} solid black; border-radius: 3${getARPref()}; background-color: #8d8; color: black" id="softResetConfirm">Yes</button>
+    <button style="border: 0.5${getARPref()} solid black; border-radius: 3${getARPref()}; background-color: #d88; color: black" id="softResetCancel">No</button>
     </div>
     </div>
     `
@@ -1720,6 +1954,9 @@ function setMainStatDisplay(attribute) {
     playerRegenInterval = setInterval(() => {
       if (player.health < player.maxHealth) {
         player.health = Math.floor(Math.min(player.maxHealth, player.health + player.regen));
+        if (player.skills.fireTotem.level > 0) {
+          playerAttack();
+        }
         updateHealthBars(); // Update the UI
       }
     },
@@ -1753,10 +1990,11 @@ function setMainStatDisplay(attribute) {
 
   // Function to update the sword fills based on time until next attack
   function updateSwordFills() {
-    // Calculate progress as percentage of time passed relative to attack speed
+    // Calculate progress as percentage of time 
     playerAttackProgress += 10*player.timeMulti; // Progress per millisecond
     enemyAttackProgress += 10*player.timeMulti;
     // Cap the progress at 100%
+    
     if (playerAttackProgress >= player.attackSpeed) {
       playerAttackProgress = 0; // Reset after attack
       playerAttack(); // Trigger player attack
@@ -1767,8 +2005,8 @@ function setMainStatDisplay(attribute) {
     }
 
     // Update the sword fills
-    updatePlayerSwordFill(playerAttackProgress/player.attackSpeed*100);
-    updateEnemySwordFill(enemyAttackProgress/enemy.attackSpeed*100);
+    updatePlayerSwordFill(Math.min(playerAttackProgress/player.attackSpeed*100,100));
+    updateEnemySwordFill(Math.min(enemyAttackProgress/enemy.attackSpeed*100));
   }
 
   let swordFillInterval;
@@ -1814,18 +2052,23 @@ function setMainStatDisplay(attribute) {
     playerHealthBar.style.width = val + '%';
     playerHealthText.textContent = `Your Health: ${val.toFixed(1)}%`;
     let enemyVal = (enemy.health / enemy.baseHealth) * 100;
+
     enemyHealthBar.style.width = enemyVal + '%';
     enemyHealthText.textContent = `Enemy Health: ${enemyVal.toFixed(1)}%`;
+
   }
 
   // Function to handle player attacking the enemy
   function playerAttack() {
+    let enemyVal = (enemy.health / enemy.baseHealth) * 100;
+    
     let chargeMulti = 1;
     if (player.currentClass == "warrior") {
       if (player.skills.charge.level > 0 && player.attacksThisFight%7 == 0) {
         chargeMulti = (1+ player.skills.charge.level)*(1+(Math.floor(player.attacksThisFight/7)));
       }
     }
+    player.attacksThisFight++;
     let critMulti = 1;
     if (Math.random()*100 < player.critChance) {
       critMulti = player.critMulti;
@@ -1834,21 +2077,23 @@ function setMainStatDisplay(attribute) {
     magicMissileAttackCounter += (1+(player.skills.magicMissile.level/20));
     if (magicMissileAttackCounter >= 10) {
       magicMissileAttackCounter = 0;
-      magicMissileDamageMulti = 1+(player.skills.magicMissile.level*1.5);
+      magicMissileDamageMulti = 1+(player.skills.magicMissile.level*(player.attacksThisFight/20));
+    }
+    let strategistMulti = 1;
+    let strategistLevel = player.traction.warrior.skills.strategist.level;
+    if (strategistLevel > 0) {
+      let percentHPMissing = 1-(player.health/player.maxHealth);
+      strategistMulti = 1+percentHPMissing*strategistLevel*0.07
+
     }
 
-    player.attacksThisFight++;
-    let damage = Math.floor(critMulti*player.damage*chargeMulti*magicMissileDamageMulti);
-    cleaveMulti = (1-Math.exp(player.skills.cleave.level/-8));
-    explosiveShotMulti = (1-Math.exp(player.skills.explosiveShot.level/-26));
-    fireballMulti = 1+(1-Math.exp(player.resolutionSkills.fireball.level/-20));
-    cleaveDamage = fireballMulti*(1+cleaveMulti + explosiveShotMulti)*damage;
-
-    let cleaveThrough = (Math.ceil(player.resolutionSkills.fireball.level/40)+1)*(player.skills.cleave.level/4+player.skills.explosiveShot.level/7);
+    let damage = Math.floor(critMulti*player.damage*chargeMulti*magicMissileDamageMulti*strategistMulti);
+    let cleaveDamage = damage*getCleaveMulti();
+    let cleaveThrough = getCleaveThrough();
     if (player.skills.cleave.level == 0 && player.skills.explosiveShot.level == 0) {
       cleaveThrough = Math.ceil(player.resolutionSkills.fireball.level/40)
     }
-    
+
     if (cleaveThrough >= 1) {
       for (let i = 0; i < cleaveThrough; i++) {
         if (cleaveThroughDamage.length > i) {
@@ -1860,14 +2105,26 @@ function setMainStatDisplay(attribute) {
     }
     if (enemy.health > 0) {
       enemy.health -= damage; // Player attacks based on strength
-      if (enemy.health <= 0) {
-        enemyDefeated();
-        // Schedule next player attack
-      }
     }
+    if (enemy.health <= 0) {
+      enemyDefeated();
+      // Schedule next player attack
+    }
+    enemyVal = (enemy.health / enemy.baseHealth) * 100;
+    
     updateHealthBars();
   }
 
+function getCleaveThrough(){
+  return  Math.ceil((Math.ceil(player.resolutionSkills.fireball.level/40)+1)*(player.skills.cleave.level/4+player.skills.explosiveShot.level/6));
+}
+function getCleaveMulti(){
+  cleaveMulti = (1-Math.exp(player.skills.cleave.level/-8));
+    explosiveShotMulti = (1-Math.exp(player.skills.explosiveShot.level/-26));
+    fireballMulti = 1+(1-Math.exp(player.resolutionSkills.fireball.level/-20));
+    cleaveDamage = fireballMulti*(1+cleaveMulti + explosiveShotMulti);
+    return cleaveDamage;
+}
   // Function to handle enemy attacking the player
   function enemyAttack() {
     if (player.health > 0) {
@@ -1898,6 +2155,7 @@ function setMainStatDisplay(attribute) {
     updateEvasion();
     startPlayerRegen();
     startEnemyRegen();
+
     if (cleaveThroughDamage.length > 0 && enemy.health > 0) {
       nextDamage = cleaveThroughDamage.shift();
 
@@ -1920,7 +2178,8 @@ function setMainStatDisplay(attribute) {
 
   // Function to handle when the enemy is defeated
   function enemyDefeated() {
-    player.xp += enemy.xp*player.xpMulti; // Add enemy XP to player XP
+    let loreMulti = 1+maxUnlockedLevel/50*player.traction.wizard.skills.lore.level;
+    player.xp += enemy.xp*player.xpMulti*loreMulti; // Add enemy XP to player XP
     if (player.xp >= player.maxXP) {
       levelUp(); // Level up if XP threshold is reached
     }
@@ -1983,13 +2242,13 @@ function setMainStatDisplay(attribute) {
 
     <!-- Base Talent Button -->
     <button id="baseTalent" style="
-    width: 60vw;
-    height: 30vw;
+    width: 60${getARPref()};
+    height: 30${getARPref()};
     background-color: #555;
     color: white;
     border-radius: 10px;
     cursor: pointer;
-    font-size: 2vh;
+    font-size: 4${getARPref()};
     margin: 20px;">
     Traction Points
     </button>
@@ -2007,12 +2266,12 @@ function setMainStatDisplay(attribute) {
 
     <!-- Branch Buttons -->
     <button id="warrior-talent-menu-btn" class="talent-button" style="
-    width: 30vw;
-    height: 15vw;
+    width: 30${getARPref()};
+    height: 15${getARPref()};
     background-color: ${strengthColor};
     color: white;
-    border-radius: 3vh;
-    border: 0.5vw solid black;
+    border-radius: 3${getARPref()};
+    border: 0.5${getARPref()} solid black;
     cursor: pointer;
     position: absolute;
     left: 15%; top: 10%;">
@@ -2020,12 +2279,12 @@ function setMainStatDisplay(attribute) {
     </button>
 
     <button id="archer-talent-menu-btn" class="talent-button" style="
-    width: 30vw;
-    height: 15vw;
+    width: 30${getARPref()};
+    height: 15${getARPref()};
     background-color: ${agilityColor};
     color: white;
-    border-radius: 3vh;
-    border: 0.5vw solid black;
+    border-radius: 3${getARPref()};
+    border: 0.5${getARPref()} solid black;
     cursor: pointer;
     position: absolute;
     left: 37%; top: 10%;">
@@ -2033,12 +2292,12 @@ function setMainStatDisplay(attribute) {
     </button>
 
     <button id="wizard-talent-menu-btn" class="talent-button" style="
-    width: 30vw;
-    height: 15vw;
+    width: 30${getARPref()};
+    height: 15${getARPref()};
     background-color: ${intellectColor};
     color: white;
-    border-radius: 3vh;
-    border: 0.5vw solid black;
+    border-radius: 3${getARPref()};
+    border: 0.5${getARPref()} solid black;
     cursor: pointer;
     position: absolute;
     left: 59%; top: 10%;">
@@ -2046,12 +2305,12 @@ function setMainStatDisplay(attribute) {
     </button>
 
     <button id="druid-talent-menu-btn" class="talent-button" style="
-    width: 30vw;
-    height: 15vw;
+    width: 30${getARPref()};
+    height: 15${getARPref()};
     background-color: ${mysticismColor};
     color: white;
-    border-radius: 3vh;
-    border: 0.5vw solid black;
+    border-radius: 3${getARPref()};
+    border: 0.5${getARPref()} solid black;
     cursor: pointer;
     position: absolute;
     left: 81%; top: 10%;">
@@ -2059,12 +2318,12 @@ function setMainStatDisplay(attribute) {
     </button>
 
     <button id="vanguard-talent-menu-btn" class="talent-button" style="
-    width: 30vw;
-    height: 15vw;
+    width: 30${getARPref()};
+    height: 15${getARPref()};
     background-color: ${toughnessColor};
     color: white;
-    border-radius: 3vh;
-    border: 0.5vw solid black;
+    border-radius: 3${getARPref()};
+    border: 0.5${getARPref()} solid black;
     cursor: pointer;
     position: absolute;
     left: 103%; top: 10%;">
@@ -2072,13 +2331,13 @@ function setMainStatDisplay(attribute) {
     </button>
     </div>
     <button id="tractionResetBtn" style="
-    width: 60vw;
-    height: 30vw;
+    width: 60${getARPref()};
+    height: 30${getARPref()};
     background-color: #555;
     color: white;
     border-radius: 10px;
     cursor: pointer;
-    font-size: 4vh;
+    font-size: 4${getARPref()};
     margin: 20px;"
     onclick="tractionReset()"
     ${giveUpText}
@@ -2086,7 +2345,7 @@ function setMainStatDisplay(attribute) {
     </div>
     `;
 
-    // Inject the talent tree HTML into the bottomMenu
+    // Inject the talent tre e HTML into the bottomMenu
     bottomMenu.innerHTML = talentTreeHTML;
 
     // Make the bottomMenu visible
@@ -2102,28 +2361,32 @@ function setMainStatDisplay(attribute) {
 
   // Function to display class-specific talents
   function displayClassTalents(className) {
-
-
+    console.log("wtf")
     let classTalentsContent = `<div style="display: flex;"><h2 id="classTalentPointsDisplay">${capitalize(className)} <br>Points: ${player.traction[className].points}</h2></div><div>`;
     let classTalents = getClassTalents(className); // Function to fetch talents based on the class
     for (let talent of Object.keys(classTalents)) {
       let displayButtonText = ` disabled> ${player.traction[className].skills[talent].unlockText}`;
       let levelButtonText = " disabled>Locked";
+      let max = (player.traction[className].skills[talent].level == player.traction[className].skills[talent].max);
+
       if (!player.traction[className].skills[talent].locked) {
         displayButtonText = `>${capitalize(talent)}\n${player.traction[className].skills[talent].level}/${player.traction[className].skills[talent].max}`;
         levelButtonText = `>Level Up<br>Cost: ${player.traction[className].skills[talent].cost}`;
       }
+      if (max) {
+        levelButtonText = " disabled> Maxed";
+      }
       classTalentsContent += `
       <div style="display: flex; justify-content: center;">
-      <button id="${talent}Display" style="width: 60vw; height: 10vh; white-space: pre-wrap" ${displayButtonText}</button>
-      <button id="${talent}LevelUp" style="width: 20vw; height: 10vh; white-space: pre-wrap" onclick="levelUpTractionSkill('${talent}', '${className}')" ${levelButtonText}</button>
+      <button id="${talent}Display" style="width: 60${getARPref()}; height: 10${getARPref()}; white-space: pre-wrap" ${displayButtonText}</button>
+      <button id="${talent}LevelUp" style="width: 20${getARPref()}; height: 10${getARPref()}; white-space: pre-wrap" onclick="levelUpTractionSkill('${talent}', '${className}')" ${levelButtonText}</button>
       </div>
       `;
     }
 
     classTalentsContent += `
     <div style="display: flex; justify-content: center; margin-top: 20px;">
-    <button id="backButton" style="width: 80vw; height: 10vh;" onclick="createTalentTree()">Back</button>
+    <button id="backButton" style="width: 80${getARPref()}; height: 10${getARPref()};" onclick="createTalentTree()">Back</button>
     </div>
     `;
 
@@ -2183,7 +2446,7 @@ function setMainStatDisplay(attribute) {
     return `Hell ${floor-240}`;
   }
   function updateEnemyAttackSpeed() {
-    enemy.attackSpeed = 2005 *(Math.exp(player.resolutionSkills.bash.level/90))
+    enemy.attackSpeed = 2005 *(1+Math.exp(player.resolutionSkills.bash.level/40))
   }
   // Function to change enemy level and reset health
   function changeEnemyLevel(level) {
@@ -2202,13 +2465,13 @@ function setMainStatDisplay(attribute) {
       enemy.baseHealth = Math.pow(enemy.baseHealth, 1.25);
       enemy.health = enemy.baseHealth;
       enemyLevelText.style.color = '#ffbbbb';
-    }
-    if (currentEnemyLevel > 240) {
-      enemy.xp *= 3;
-      enemy.attack = Math.pow(enemy.attack, 2.2);
-      enemy.baseHealth = Math.pow(enemy.baseHealth, 1.3);
-      enemy.health = enemy.baseHealth;
-      enemyLevelText.style.color = '#ff0000';
+      if (currentEnemyLevel > 240) {
+        enemy.xp *= 3;
+        enemy.attack = Math.pow(enemy.attack, 2.2);
+        enemy.baseHealth = Math.pow(enemy.baseHealth, 1.3);
+        enemy.health = enemy.baseHealth;
+        enemyLevelText.style.color = '#ff0000';
+      }
     } else {
       enemyLevelText.style.color = "#ffffff";
     }
@@ -2216,7 +2479,69 @@ function setMainStatDisplay(attribute) {
     updateEnemyAttackSpeed();
 
     updateHealthBars();
+
   }
+  
+  function showAttributeTooltip(button,attribute){
+    let message = attributeTooltips[attribute];
+    if(player.primaryAttribute==attribute){
+      message = `${message}\nPRI: Increases damage.`
+    }
+    showTooltip(button,message)
+  }
+function showTooltip(element, message) {
+  const tooltip = document.createElement("div");
+  tooltip.className = "tooltip";
+  tooltip.innerText = message;
+  tooltip.style.position = "absolute";
+  tooltip.style.backgroundColor = "#333";
+  tooltip.style.color = "#fff";
+  tooltip.style.padding = "5px";
+  tooltip.style.borderRadius = "5px";
+  tooltip.style.fontSize = "3vw";
+  tooltip.style.zIndex = "10";
+  tooltip.style.whiteSpace = "pre-wrap";
+  tooltip.style.userSelect = "none";
+
+  const rect = element.getBoundingClientRect();
+  tooltip.style.top = rect.top + window.scrollY - tooltip.offsetHeight-60 + "px";
+  tooltip.style.left = rect.left + window.scrollX + "px";
+
+  document.body.appendChild(tooltip);
+  element.tooltip = tooltip;
+}
+function getARPref(){
+  const vw=window.innerWidth;
+  const vh = window.innerHeight;
+  if(vw>vh)return "vh";
+  return "vw"
+}
+function hideTooltip(element) {
+  if (element.tooltip) {
+    document.body.removeChild(element.tooltip);
+    element.tooltip = null;
+  }
+}
+
+const attributeTooltips = {
+  strength: "Increases your physical power, boosting health.",
+  intellect: "Enhances magical ability, increasing spell power and XP gain.",
+  agility: "Boosts speed, improving attack rate.",
+  toughness: "Increases resilience, raising health significantly.",
+  mysticism: "Strengthens regeneration and mystical defenses."
+};
+
+["strength", "intellect", "agility", "toughness", "mysticism"].forEach(attr => {
+  const button = document.getElementById(`${attr}Display`);
+  
+  // Handle mouse and touch events
+  button.addEventListener("mousedown", () => showAttributeTooltip(button, attr));
+  button.addEventListener("mouseup", () => hideTooltip(button));
+  button.addEventListener("mouseleave", () => hideTooltip(button));
+  
+  button.addEventListener("touchstart", () => showAttributeTooltip(button, attr));
+  button.addEventListener("touchend", () => hideTooltip(button));
+});
   loadGameState();
 
   // Initialize combat when the page loads

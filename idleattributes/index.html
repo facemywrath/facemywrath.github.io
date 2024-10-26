@@ -13,112 +13,109 @@
         <div class="character-row" id="character-row1">
           <div class="character-card" id="warrior-card" onclick="selectCharacter('warrior')">
             <h1>Warrior</h1>
-            <p>
-              Main stat: STR
-            </p>
-            <p>
-              Warriors are excellent in close-quartees combat.
-            </p>
             <button>Select</button>
           </div>
           <div class="character-card" id="archer-card" onclick="selectCharacter('archer')">
             <h1 id="archer-desc">Locked</h1>
-            <button id= "archer-select-btn" disabled>Give up 2 more times!</button>
+            <button id="archer-select-btn" disabled>Give up 2 more times!</button>
           </div>
           <div class="character-card" id="wizard-card" onclick="selectCharacter('wizard')">
             <h1 id="wizard-desc">Locked</h1>
             <button id="wizard-select-btn" disabled>Give up 6 more times!</button></button>
-          </div>
-        </div>
-        <div class="character-row" id="character-row2">
-          <div class="character-card" id="druid-card" onclick="selectCharacter('druid')">
-            <h1 id="druid-desc">Locked</h1>
-            <button id="druid-select-btn" disabled>Locked</button>
-          </div>
-          <div class="character-card" onclick="selectCharacter('vanguard')">
-            <h1 id="vanguard-desc">Locked</h1>
-            <button id="vanguard-select-btn" disabled>Locked</button>
-          </div>
         </div>
       </div>
-
-      <div id="topBar">
-        <button id="statsScreenBtn">Stats</button> <!-- New Stats button -->
-        <button id="attributesScreenBtn">Attributes</button>
-        <!-- Inside the topBar div -->
-        <button id="skillsScreenBtn" disabled>Reach Level 10</button>
-        <button id="resolutionScreenBtn" disabled>Beat Floor 30</button>
-        <button id="tractionSkillsBtn" disabled>Beat Depths 30</button>
-      </div>
-
-      <!-- New thin row for enemy level display -->
-
-      <div id="levelDisplayRow">
-        <label>
-          <input type="checkbox" id="autoProgressCheckbox" name="autoProgress">
-          Auto Progress
-        </label>
-        <button id="prevEnemyBtn">&lt;</button>
-        <p id="enemyLevelText">
-         Floor 1
-        </p>
-        <button id="nextEnemyBtn">&gt;</button>
-      </div>
-
-
-      <!-- Battle area where content is confined -->
-      <div id="battleArea">
-        <div class="healthBarContainer">
-          <div class="iconAndHealth">
-            <div class="swordIconContainer">
-              <img class="swordIcon" src="sword.png" alt="Attack Speed">
-              <div class="enemySwordFill" id="enemySwordFill"></div>
-              <!-- This will display the filled version -->
-            </div>
-            <div>
-              <p id="enemyHealthText">
-                Enemy Health: 50
-              </p>
-              <div class="healthBar">
-                <div id="enemyHealthBar" class="health"></div>
-              </div>
-            </div>
-          </div>
+      <div class="character-row" id="character-row2">
+        <div class="character-card" id="druid-card" onclick="selectCharacter('druid')">
+          <h1 id="druid-desc">Locked</h1>
+          <button id="druid-select-btn" disabled>Locked</button>
         </div>
-        <div class="healthBarContainer">
-          <div class="iconAndHealth">
-            <div class="swordIconContainer">
-              <img class="swordIcon" src="sword.png" alt="Attack Speed">
-              <div class="playerSwordFill" id="playerSwordFill"></div>
-              <!-- This will display the filled version -->
-            </div>
-            <div>
-              <p id="playerHealthText">
-                Your Health: 100
-              </p>
-              <div class="healthBar">
-                <div id="playerHealthBar" class="health"></div>
-              </div>
-            </div>
-          </div>
+        <div class="character-card" onclick="selectCharacter('vanguard')">
+          <h1 id="vanguard-desc">Locked</h1>
+          <button id="vanguard-select-btn" disabled>Locked</button>
         </div>
       </div>
-      <div id="xpBarContainer">
-        <p id="xpCaption">
-          XP:
-        </p>
-        <p id="playerXPText">
-          0%
-        </p>
-        <div class="xpBar">
-          <div id="playerXPBar" class="xp"></div>
-        </div>
-      </div>
-      <button id="purchaseMultiBtn" onclick="updatePurchaseMulti()" style="width: 80%; margin-left: 10%; border: .5vw solid black; border-radius: 1vw">1x</button>
-      <div id="bottomMenu" class="screen"></div>
-      <!-- Your website content goes here -->
     </div>
+
+    <div id="topBar">
+      <button id="statsScreenBtn">Stats</button> <!-- New Stats button -->
+      <button id="attributesScreenBtn">Attributes</button>
+      <!-- Inside the topBar div -->
+      <button id="skillsScreenBtn" disabled>Reach Level 10</button>
+      <button id="resolutionScreenBtn" disabled>Beat Floor 30</button>
+      <button id="tractionSkillsBtn" disabled>Beat Depths 30</button>
+    </div>
+
+    <!-- New thin row for enemy level display -->
+
+    <div id="levelDisplayRow">
+      <label>
+        <input type="checkbox" id="autoProgressCheckbox" name="autoProgress">
+        Auto Progress
+      </label>
+      <button id="prevEnemyBtn">&lt;</button>
+      <p id="enemyLevelText">
+        Floor 1
+      </p>
+      <button id="nextEnemyBtn">&gt;</button>
+    </div>
+
+
+    <!-- Battle area where content is confined -->
+    <div id="battleArea">
+      <div class="healthBarContainer">
+        <div class="iconAndHealth">
+          <div class="swordIconContainer">
+            <img class="swordIcon" src="sword.png" alt="Attack Speed">
+            <div class="enemySwordFill" id="enemySwordFill"></div>
+            <!-- This will display the filled version -->
+          </div>
+          <div>
+            <p id="enemyHealthText">
+              Enemy Health: 50
+            </p>
+            <div class="healthBar">
+              <div id="enemyHealthBar" class="health"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="healthBarContainer">
+        <div class="iconAndHealth">
+          <div class="swordIconContainer">
+            <img class="swordIcon" src="sword.png" alt="Attack Speed">
+            <div class="playerSwordFill" id="playerSwordFill"></div>
+            <!-- This will display the filled version -->
+          </div>
+          <div>
+            <p id="playerHealthText">
+              Your Health: 100
+            </p>
+            <div class="healthBar">
+              <div id="playerHealthBar" class="health"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="xpBarContainer">
+      <p id="xpCaption">
+        XP:
+      </p>
+      <p id="playerXPText">
+        0%
+      </p>
+      <div class="xpBar">
+        <div id="playerXPBar" class="xp"></div>
+      </div>
+    </div>
+    <div id="purchaseMultiRow">
+      <button id="purchaseMultiBtn" onclick="updatePurchaseMulti()" style="width: 65%; margin-left: 10%; border: .5vw solid black; border-radius: 1vw">1x</button>
+      <button id="purchaseMultiTypeBtn" onclick="updatePurchaseMultiType()" style="width: 15%; margin-left: 2%; border: .5vw solid black; border-radius: 1vw">x</button>
+    </div>
+    <div id="bottomMenu" class="screen"></div>
+    <!-- Your website content goes here -->
   </div>
-  <script src="script.js"></script>
+</div>
+<script src="script.js"></script>
 </body>
 </html>
