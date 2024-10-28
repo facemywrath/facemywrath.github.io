@@ -30,6 +30,7 @@ function saveGameState() {
     totalReincarnations: totalReincarnations,
     unlockedClasses: unlockedClasses,
     lastSaveTime: Date.now(),
+    druidUnlockParts: druidUnlockParts,
     totalTractionResets: totalTractionResets
   };
 
@@ -55,6 +56,7 @@ function loadGameState() {
     autoProgress = gameState.autoProgress;
     currentEnemyLevel = gameState.currentEnemyLevel;
     maxUnlockedLevel = gameState.maxUnlockedLevel;
+    druidUnlockParts = gameState.druidUnlockParts;
     if (currentEnemyLevel == maxUnlockedLevel) {
       currentEnemyLevel = Math.max(1, currentEnemyLevel-1);
     }
@@ -78,7 +80,7 @@ function loadGameState() {
       const attacksInTimePassed = Math.floor(timePassed / attackInterval);
       changeEnemyLevel(currentEnemyLevel);
       // Calculate the XP gain based on the enemy's XP value
-      console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
+
       let averageDamage = (player.damage *1-player.critChance)+(player.damage*player.critChance*player.critMulti);
       killsInTimePassed = attacksInTimePassed/(enemy.baseHealth/averageDamage);
       const xpGain = killsInTimePassed * enemy.xp * player.xpMulti*offlineXPMulti;
@@ -125,7 +127,9 @@ function loadGameState() {
 
         // Update any necessary UI elements after loading
         updateAttributes();
+        updateDefense();
         updateAttributesMenu();
+        setAttrTooltips();
         updateHealthBars();
         updateXPBar();
         tryUnlockSkills();
@@ -139,14 +143,14 @@ function loadGameState() {
         console.log(player);
         console.log(gameState);
         updateTimeMulti();
-        
         autoProgressBtn.checked = autoProgress;
         for (let className of Object.keys(player.traction)) {
           for (let skillName of Object.keys(player.traction[className].skills)) {
             checkUnlockTractionSkill(className, skillName);
           }
         }
-        
+        //    druidUnlockParts= 3;
+
       });
     }
     console.log(`Game state loaded! Time passed: ${minutesPassed}m ${secondsPassed}s. XP gained: ${xpPercentageGained}%. Levels gained: ${levelsGained}`);
@@ -244,6 +248,7 @@ let player = {
   critMulti: 2,
   regen: 0,
   regenSpeed: 1800,
+  thorns: 0,
   // XP needed for next level
   attributePoints: 0,
   // Points to spend after leveling up
@@ -368,7 +373,7 @@ let player = {
         }
       }
     },
-    vanguard: {
+    champion: {
       points: 0,
       skills: {
         attribution: {
@@ -483,13 +488,13 @@ let player = {
     earthTotem: {
       level: 0,
       locked: true,
-      unlockAt: 90,
+      unlockAt: 80,
       unlockClass: "druid"
     },
     airTotem: {
       level: 0,
       locked: true,
-      unlockAt: 120,
+      unlockAt: 110,
       unlockClass: "druid"
     }
   },
@@ -554,7 +559,7 @@ let player = {
       unlockAt: 70,
       unlockClass: "druid"
     },
-    fairyFire: {
+    growth: {
       level: 0,
       locked: true,
       unlockAt: 130,
@@ -603,6 +608,7 @@ const heroInitialConfig = {
   evasion: 0,
   regen: 0,
   regenSpeed: 1800,
+  thorns: 0,
   attributePoints: 0,
   skillPoints: 0,
   resolutionPoints: 0,
@@ -725,7 +731,7 @@ const heroInitialConfig = {
         }
       }
     },
-    vanguard: {
+    champion: {
       points: 0,
       skills: {
         attribution: {
@@ -840,13 +846,13 @@ const heroInitialConfig = {
     earthTotem: {
       level: 0,
       locked: true,
-      unlockAt: 90,
+      unlockAt: 80,
       unlockClass: "druid"
     },
     airTotem: {
       level: 0,
       locked: true,
-      unlockAt: 120,
+      unlockAt: 110,
       unlockClass: "druid"
     }
   },
@@ -911,7 +917,7 @@ const heroInitialConfig = {
       unlockAt: 70,
       unlockClass: "druid"
     },
-    fairyFire: {
+    growth: {
       level: 0,
       locked: true,
       unlockAt: 130,
@@ -954,6 +960,9 @@ function buildHero(resetTier) {
     totalTractionResets++;
     totalReincarnations = 0;
     player.traction[player.currentClass].points += Math.max(0, maxUnlockedLevel-100);
+  } else if(resetTier == 3){
+    totalTractionResets=0;
+    totalReincarnations=0;
   }
   oldResolutionSkills = player.resolutionSkills;
 
@@ -969,27 +978,29 @@ function buildHero(resetTier) {
     player.resolutionSkills[skill].locked = true;
   }
   // Update display elements to reflect the reset values
-  player.strength += player.resolutionSkills.tactician.level+player.traction.warrior.skills.strategist.level;
-  player.intellect += player.resolutionSkills.tactician.level+player.traction.warrior.skills.strategist.level;
-  player.agility += player.resolutionSkills.tactician.level+player.traction.warrior.skills.strategist.level;
-  player.toughness += player.resolutionSkills.tactician.level+player.traction.warrior.skills.strategist.level;
-  player.mysticism += player.resolutionSkills.tactician.level+player.traction.warrior.skills.strategist.level;
+  player.strength += player.resolutionSkills.tactician.level+player.traction.warrior.skills.strategist.level*(1+player.resolutionSkills.growth.level);
+  player.intellect += player.resolutionSkills.tactician.level+player.traction.warrior.skills.strategist.level*(1+player.resolutionSkills.growth.level);
+  player.agility += player.resolutionSkills.tactician.level+player.traction.warrior.skills.strategist.level*(1+player.resolutionSkills.growth.level);
+  player.toughness += player.resolutionSkills.tactician.level+player.traction.warrior.skills.strategist.level*(1+player.resolutionSkills.growth.level);
+  player.mysticism += player.resolutionSkills.tactician.level+player.traction.warrior.skills.strategist.level*(1+player.resolutionSkills.growth.level);
   updateAttributesMenu();
   updateHealthBars();
   updateXPBar();
   updateDefense();
   updateCritChance();
   updateCritMulti();
-  changeEnemyLevel(1);
+  updateThorns();
+  let startingLevel = 1+(Math.min(170,player.resolutionSkills.growth.level));
+
   tryUnlockClasses();
-  maxUnlockedLevel = 1;
-  
-  currentEnemyLevel = 1;
-  changeEnemyLevel(currentEnemyLevel);
+  maxUnlockedLevel = startingLevel;
+
+  currentEnemyLevel = startingLevel;
+  changeEnemyLevel(startingLevel);
   tryUnlockSkills();
   tryUnlockResolutionSkills();
   cleaveThroughDamage = [];
-  
+
 
   // Return to the character selection screen
   document.getElementById('characterSelection').style.display = 'block';
@@ -1049,22 +1060,22 @@ const attributesContent = `
 <span id="playerLevel" style="font-size: 20px; text-align: right; padding-right: 3${getARPref()}">Level: ${player.level}</span>
 </p>
 <div style="width: 100%; height: 12${getARPref()}; background-color: ${strengthColor}; display: flex; align-items: center; justify-content: space-between;">
-<button id="strengthDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 25${getARPref()};">${strengthDisplay}</button>
+<button id="strengthDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; user-select: none; width: 25${getARPref()};">${strengthDisplay}</button>
 <button id="playerStrength" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 15${getARPref()};">${player.strength}</button>
 <button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 35${getARPref()};" onclick="increaseAttribute('strength')">+</button>
 </div>
 <div style="width: 100%; height: 12${getARPref()}; background-color: ${intellectColor}; display: flex; align-items: center; justify-content: space-between;">
 <button id="intellectDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 25${getARPref()};">${intellectDisplay}</button>
-<button id="playerIntellect" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 15${getARPref()};">${player.intellect}</button>
+<button id="playerIntellect" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; user-select: none; border: 0.3${getARPref()} solid black; height: 100%; width: 15${getARPref()};">${player.intellect}</button>
 <button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 35${getARPref()};" onclick="increaseAttribute('intellect')">+</button>
 </div>
 <div style="width: 100%; height: 12${getARPref()}; background-color: ${agilityColor}; display: flex; align-items: center; justify-content: space-between;">
-<button id="agilityDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 25${getARPref()};">${agilityDisplay}</button>
+<button id="agilityDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; user-select: none; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 25${getARPref()};">${agilityDisplay}</button>
 <button id="playerAgility" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 15${getARPref()};">${player.agility}</button>
 <button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 35${getARPref()};" onclick="increaseAttribute('agility')">+</button>
 </div>
 <div style="width: 100%; height: 12${getARPref()}; background-color: ${toughnessColor}; display: flex; align-items: center; justify-content: space-between;">
-<button id="toughnessDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 25${getARPref()};">${toughnessDisplay}</button>
+<button id="toughnessDisplay" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; user-select: none;  border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 25${getARPref()};">${toughnessDisplay}</button>
 <button id="playerToughness" style="background-color: rgba(128, 128, 128, 0.8); font-size: ${attributesFontSize}; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 15${getARPref()};">${player.toughness}</button>
 <button style="line-length: 0; font-size: ${attributesFontSize}; background-color: rgba(128, 128, 128, 0.8); padding: 2px 5px; border-radius: 2${getARPref()}; border: 0.3${getARPref()} solid black; height: 100%; width: 35${getARPref()};" onclick="increaseAttribute('toughness')">+</button>
 </div>
@@ -1137,7 +1148,7 @@ function displayResoluteSkillsMenu() {
 
   for (let skill in player.resolutionSkills) {
     if (player.resolutionSkills[skill].unlockClass == player.currentClass) {
-      let displayButtonText = ` disabled>Beat Floor ${player.resolutionSkills[skill].unlockAt}`;
+      let displayButtonText = ` disabled>Beat ${getFloorDisplay(player.resolutionSkills[skill].unlockAt)}`;
       let levelButtonText = " disabled>Locked";
       if (!player.resolutionSkills[skill].locked) {
         displayButtonText = `>${capitalize(skill)}\nLevel ${player.resolutionSkills[skill].level}`;
@@ -1161,8 +1172,11 @@ function displayResoluteSkillsMenu() {
   `;
 
   resolutionSkillsContent += "</div>";
-
+  let flag = currentMenu == "resolution";
   switchMenu(resolutionSkillsContent, "resolution");
+  if (!flag) {
+    setResolutionSkillTooltips();
+  }
 }
 function tryUnlockResolutionSkills() {
   for (let skill in player.resolutionSkills) {
@@ -1232,7 +1246,28 @@ function levelUpTractionSkill(skillName, className) {
     case 'skillful':
       break;
     case 'unlockDruid':
-      druidUnlockParts++;
+      if (druidUnlockParts < 2) {
+        druidUnlockParts++;
+      } else {
+        buildPopup("Unlocking Druid will reset all current progress. Are you sure?", {
+          Yes: {
+            text: "Yes",
+            color: "8d8",
+            func: () => {
+              druidUnlockParts++;
+              buildHero(3);
+              document.getElementById("popup").remove();
+            }
+          },
+          No: {
+            text: "No",
+            color: "d88",
+            func: () => {
+              document.getElementById("popup").remove();
+            }
+          }
+        });
+      }
       break;
     case 'strategist':
       player.strength++;
@@ -1319,6 +1354,9 @@ function levelUpResoluteSkill(skillName) {
       break;
     case "fireball":
       break;
+    case "thorns":
+      updateThorns();
+      updateDefense();
     default:
       console.error("Unknown skill: " + skillName);
       break;
@@ -1405,6 +1443,7 @@ function levelUpSkill(skillName) {
       break;
     case "waterTotem":
       updateRegen();
+      updateRegenSpeed();
       break;
     case "fireTotem":
       updateRegenDamage();
@@ -1435,7 +1474,7 @@ function displaySkillsMenu() {
   let skillsContent = `<h2 id="skillPointsDisplay">Skill Points: ${player.skillPoints}</h2><div>`;
   for (let skill in player.skills) {
     if (player.skills[skill].unlockClass == player.currentClass) {
-      let displayButtonText = ` disabled>Beat Floor ${player.skills[skill].unlockAt}`;
+      let displayButtonText = ` disabled>Beat ${getFloorDisplay(player.skills[skill].unlockAt)}`;
       let levelButtonText = " disabled>Locked";
       if (!player.skills[skill].locked) {
         displayButtonText = `>${capitalize(skill)}\nLevel ${player.skills[skill].level}`;
@@ -1455,22 +1494,23 @@ function displaySkillsMenu() {
   skillsContent += "</div>";
 
   switchMenu(skillsContent, "skills");
+  setSkillTooltips();
 }
 
 function updateMirrorImageEffect() {
   updateEvasion();
-  console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
+
 }
 
 function updateEmpowerEffect() {
-  console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
+  updateDamage();
 }
 function updateCollegiateEffect() {
   updateXPMulti();
 }
 
 function updateSharpnessEffect() {
-  console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
+  updateDamage();
 }
 function updateQuickdrawEffect() {
   updateAttackSpeed();
@@ -1481,7 +1521,7 @@ function updateEvasionEffect() {
 
 function updateOverpowerEffect() {
   // Implement the passive effect for Overpower based on the skill level
-  console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
+  updateDamage();
   // Fill in the details for the passive effect
 }
 
@@ -1531,20 +1571,20 @@ function updateStats() {
   <div class="stats-container" style="line-height: 0.2;">
   ${settingsContent}
   <h2>Stats</h2>
-  <p>Attack Speed: ${(1/(player.attackSpeed / 1000)).toFixed(2)} Atk/Second</p>
-  <p>Damage: ${player.damage}</p>
-  <p>Health: ${player.maxHealth}</p>
+  <p>Attack Speed: ${(1/(player.attackSpeed / 1000)).toFixed(2).toLocaleString()} Atk/Second</p>
+  <p>Damage: ${player.damage.toLocaleString()}</p>
+  <p>Health: ${player.maxHealth.toLocaleString()}</p>
   <p>Regen: ${player.regen}</p>
   <p>Regen Speed: ${(player.regenSpeed / 1000).toFixed(2)} seconds</p>
   <p>XP Multiplier: ${player.xpMulti.toFixed(2)}</p>
   <p>Level: ${player.level}</p>
-  <p>Defense: ${player.defense}</p>
-  <p>Cleave Damage: ${getCleaveMulti()*100}%</p>
+  <p>Damage Taken: ${player.defense.toFixed(5)*100}%</p>
+  <p>Cleave Damage: ${(getCleaveMulti()*100).toFixed(3)}%</p>
   <p>Cleave Distance: ${getCleaveThrough()} enemies</p>
-  <p>Crit Chance: ${player.critChance}%</p>
+  <p>Crit Chance: ${player.critChance.toFixed(3).toLocaleString()}%</p>
   <p>Crit Multi: ${player.critMulti}x</p>
   <p>Time Multi: ${player.timeMulti}x</p>
-  <p>Evasion Chance: ${player.evasion}%</p>
+  <p>Evasion Chance: ${player.evasion.toFixed(3).toLocaleString()}%</p>
   </div>
   `;
 
@@ -1562,8 +1602,11 @@ statsScreenBtn.addEventListener("click", () => {
 });
 
 resolutionScreenBtn.addEventListener("click", () => {
-  switchMenu(resolutionScreenContent, "resolution");
-  displayResoluteSkillsMenu();
+  if (currentMenu != "resolution") {
+    currentMenu = "resolution";
+    displayResoluteSkillsMenu();
+    setResolutionSkillTooltips();
+  }
 });
 
 function setMainStatDisplay(attribute) {
@@ -1613,29 +1656,29 @@ function setMainStatDisplay(attribute) {
   function selectCharacter(character) {
     // Apply general class-specific boosts or modifications here
     switch (character) {
-        case 'warrior':
-            player.strength += 5;
-            player.currentClass = "warrior";
-            setMainStatDisplay("strength");
-            break;
-        case 'archer':
-            player.agility += 5;
-            player.currentClass = "archer";
-            setMainStatDisplay("agility");
-            break;
-        case 'wizard':
-            player.intellect += 5;
-            player.currentClass = "wizard";
-            setMainStatDisplay("intellect");
-            break;
-        case 'druid':
-            player.mysticism += 5;
-            player.currentClass = "druid";
-            setMainStatDisplay("mysticism");
-            break;
-        default:
-            console.error('Unknown character: ' + character);
-            return;
+    case 'warrior':
+      player.strength += 5;
+      player.currentClass = "warrior";
+      setMainStatDisplay("strength");
+      break;
+    case 'archer':
+      player.agility += 5;
+      player.currentClass = "archer";
+      setMainStatDisplay("agility");
+      break;
+    case 'wizard':
+      player.intellect += 5;
+      player.currentClass = "wizard";
+      setMainStatDisplay("intellect");
+      break;
+    case 'druid':
+      player.mysticism += 5;
+      player.currentClass = "druid";
+      setMainStatDisplay("mysticism");
+      break;
+    default:
+      console.error('Unknown character: ' + character);
+      return;
     }
 
     // Initialize or unlock skills and stats relevant to the selected class
@@ -1646,7 +1689,7 @@ function setMainStatDisplay(attribute) {
     updateAttributesMenu();
     updateTimeMulti();
     updateDamage();
-    
+
     updateHealthBars();
 
     // Start the combat and sword fill processes
@@ -1660,14 +1703,8 @@ function setMainStatDisplay(attribute) {
     document.getElementById('levelDisplayRow').style.display = 'flex';
     document.getElementById('xpBarContainer').style.display = 'flex';
     document.getElementById('bottomMenu').style.display = 'block';
-}
-  function increaseAttribute(attribute) {
-    if (player.attributePoints > 0) {
-      player[attribute]++;
-      player.attributePoints--;
-      updateAttributesMenu(); // Refresh the attributes display
-    }
   }
+
   function increaseAttribute(attribute) {
     if (player.attributePoints > 0) {
       let multi = Math.min(getPurchaseMulti(player.attributePoints), player.attributePoints);
@@ -1697,6 +1734,7 @@ function setMainStatDisplay(attribute) {
       default:
         console.error('Unknown attribute: ' + attribute);
       }
+      updateDamage();
       updateAttributesMenu(); // Update the attribute points display
     }
   }
@@ -1720,7 +1758,7 @@ function setMainStatDisplay(attribute) {
       val *= 0.4;
     }
     let base = 3*(val+1);
-    
+
     let ASMulti = 1;
     if (player.attackSpeed < 10) {
       ASMulti = 10/(player.attackSpeed/player.timeMulti)
@@ -1732,8 +1770,9 @@ function setMainStatDisplay(attribute) {
     let empowerMulti = 1+(1.2*player.skills.empower.level);
     let cleaveMulti = 1+(0.1*player.skills.cleave.level);
     let fireTotemMulti = 1+(player.skills.fireTotem.level);
-    console.log(`${val} + ${base} + ${ASMulti} + ${opMulti} + ${weightMulti}`)
+
     player.damage = Math.floor(base*ASMulti*opMulti*weightMulti*sharpnessMulti*empowerMulti*cleaveMulti*fireTotemMulti);
+    console.log(`${val} ${base} ${ASMulti} ${opMulti} ${weightMulti} ${cleaveMulti}`)
   }
   function updateEvasion() {
     let evasionVal = 100*(1-Math.exp(player.skills.evasion.level/-18));
@@ -1741,7 +1780,7 @@ function setMainStatDisplay(attribute) {
     player.evasion = evasionVal+mirrorImageVal;
   }
   function updateTimeMulti() {
-    
+
     player.timeMulti = 1+Math.ceil(player.resolutionSkills.timeWarp.level/20);
   }
   function updateMaxHealth() {
@@ -1778,10 +1817,10 @@ function setMainStatDisplay(attribute) {
     player.xpMulti = base*collMulti*memorizeMulti;
   }
   function updateRegen() {
-    player.regen = player.mysticism*(1+(player.skills.waterTotem.level*3));
+    player.regen = player.mysticism+(player.skills.waterTotem.level);
   }
   function updateRegenSpeed() {
-    player.regenSpeed = 1800 * (0.2+0.8*Math.exp(-0.02*player.intellect)) * (0.1+0.9*Math.exp(-0.05*player.skills.waterTotem.level));
+    player.regenSpeed = 1800 * (0.2+0.8*Math.exp(-0.02*player.intellect)) * (0.1+0.9*Math.exp(-0.03*player.skills.waterTotem.level));
     stopRegen();
     startPlayerRegen();
   }
@@ -1791,31 +1830,38 @@ function setMainStatDisplay(attribute) {
     if (player.skills.shieldWall.level == 0) {
       shieldWallMulti = 1
     }
-    let earthTotemMulti = (0.1 + 0.9*Math.exp(-0.1*player.skills.earthTotem.level));
+    let earthTotemMulti = (0.3 + 0.7*Math.exp(-0.1*player.skills.earthTotem.level));
     if (player.skills.earthTotem.level == 0)
       earthTotemMulti = 1;
-    player.defense = shieldWallMulti*earthTotemMulti;
+    let thornMulti = (0.05 + 0.95 * Math.exp(-0.05*player.thorns));
+    if (player.thorns == 0) {
+      thornMulti = 1;
+    }
+    player.defense = shieldWallMulti*earthTotemMulti*thornMulti;
+  }
+  function updateThorns() {
+    player.thorns = player.resolutionSkills.thorns.level;
   }
   function updateStrength() {
     updateMaxHealth();
-    console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
+
   }
   function updateAgility() {
     updateAttackSpeed();
-    console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
+
   }
   function updateIntellect() {
     updateXPMulti();
     updateRegenSpeed();
-    console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
+
   }
   function updateToughness() {
     updateMaxHealth();
-    console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
+
   }
   function updateMysticism() {
     updateRegen();
-    console.log("Damage before calculation:", player.damage); updateDamage(); console.log("Damage after calculation:", player.damage);
+
   }
   function updateAttributesMenu() {
     if (currentMenu != "attributes") {
@@ -1833,6 +1879,7 @@ function setMainStatDisplay(attribute) {
     document.getElementById("playerMysticism").textContent = player.mysticism;
     document.getElementById("mysticismDisplay").textContent = mysticismDisplay;
     document.getElementById("attributePoints").textContent = `Attribute Points: ${player.attributePoints}`;
+
   }
 
 
@@ -1848,50 +1895,46 @@ function setMainStatDisplay(attribute) {
   </div>
   `;
   function hardResetGame() {
-    const popupContent = `
-    <div id="popup" style="position: fixed; top: 20%; left: 50%; transform: translate(-50%, -20%); background: #444; border: 0.5${getARPref()} solid black; padding: 20px; border-radius: 10px; color: white; text-align: center;">
-    <h1>Are you sure?</h1>
-    <div>
-    <button style="border: 0.5${getARPref()} solid black; border-radius: 3${getARPref()}; background-color: #8d8; color: black" id="hardResetConfirm">Yes</button>
-    <button style="border: 0.5${getARPref()} solid black; border-radius: 3${getARPref()}; background-color: #d88; color: black" id="hardResetCancel">No</button>
-    </div>
-    </div>
-    `
-    document.body.insertAdjacentHTML('beforeend', popupContent);
-    document.getElementById("hardResetCancel").addEventListener('click', function() {
-      document.getElementById("popup").remove();
-    });
-    document.getElementById("hardResetConfirm").addEventListener('click', function() {
+    buildPopup("Are you sure?", {
+      Yes: {
+        text: "Yes",
+        color: "8d8",
+        func: () => {
+          localStorage.removeItem('gameState');
 
-      // Clear all saved data from localStorage
-      localStorage.removeItem('gameState');
+          // Reload the web page
+          location.reload();
 
-      // Reload the web page
-      location.reload();
-
-      console.log('All save data cleared. Page reloaded.');
+          console.log('All save data cleared. Page reloaded.');
+        }
+      },
+      No: {
+        text: "No",
+        color: "d88",
+        func: () => {
+          document.getElementById("popup").remove();
+        }
+      }
     });
   }
   function softResetGame() {
-    const popupContent = `
-    <div id="popup" style="position: fixed; top: 20%; left: 50%; transform: translate(-50%, -20%); background: #444; border: 0.5${getARPref()} solid black; padding: 20px; border-radius: 10px; color: white; text-align: center;">
-    <h1>Are you sure?</h1>
-    <div>
-    <button style="border: 0.5${getARPref()} solid black; border-radius: 3${getARPref()}; background-color: #8d8; color: black" id="softResetConfirm">Yes</button>
-    <button style="border: 0.5${getARPref()} solid black; border-radius: 3${getARPref()}; background-color: #d88; color: black" id="softResetCancel">No</button>
-    </div>
-    </div>
-    `
-    document.body.insertAdjacentHTML('beforeend', popupContent);
-    document.getElementById("softResetCancel").addEventListener('click', function() {
-      document.getElementById("popup").remove();
-    });
-    document.getElementById("softResetConfirm").addEventListener('click', function() {
-      document.getElementById("popup").remove();
-      // Clear all saved data from localStorage
-      buildHero(0);
-
-    });
+    buildPopup("Are you sure?", {
+      Yes: {
+        text: "Yes",
+        color: "8d8",
+        func: () => {
+          buildHero(0);
+          document.getElementById("popup").remove();
+        }
+      },
+      No: {
+        text: "No",
+        color: "d88",
+        func: () => {
+          document.getElementById("popup").remove();
+        }
+      }
+    })
   }
   function updateXPBar() {
     const xpPercentage = (player.xp / player.maxXP) * 100;
@@ -1952,11 +1995,13 @@ function setMainStatDisplay(attribute) {
     }
     // Start a new regen interval
     playerRegenInterval = setInterval(() => {
+      if (player.skills.fireTotem.level > 0) {
+        let val = Math.pow(player.regen, 1+(0.01*player.skills.fireTotem.level))*player.attacksThisFight;
+        //console.log(`totem dmg ${val.toLocaleString()}`)
+        damageEnemy(val)
+      }
       if (player.health < player.maxHealth) {
         player.health = Math.floor(Math.min(player.maxHealth, player.health + player.regen));
-        if (player.skills.fireTotem.level > 0) {
-          playerAttack();
-        }
         updateHealthBars(); // Update the UI
       }
     },
@@ -1990,11 +2035,11 @@ function setMainStatDisplay(attribute) {
 
   // Function to update the sword fills based on time until next attack
   function updateSwordFills() {
-    // Calculate progress as percentage of time 
+    // Calculate progress as percentage of time
     playerAttackProgress += 10*player.timeMulti; // Progress per millisecond
     enemyAttackProgress += 10*player.timeMulti;
     // Cap the progress at 100%
-    
+
     if (playerAttackProgress >= player.attackSpeed) {
       playerAttackProgress = 0; // Reset after attack
       playerAttack(); // Trigger player attack
@@ -2005,7 +2050,7 @@ function setMainStatDisplay(attribute) {
     }
 
     // Update the sword fills
-    updatePlayerSwordFill(Math.min(playerAttackProgress/player.attackSpeed*100,100));
+    updatePlayerSwordFill(Math.min(playerAttackProgress/player.attackSpeed*100, 100));
     updateEnemySwordFill(Math.min(enemyAttackProgress/enemy.attackSpeed*100));
   }
 
@@ -2032,7 +2077,11 @@ function setMainStatDisplay(attribute) {
 
   // Event listeners for menu buttons
   attributesScreenBtn.addEventListener("click", () => {
+    let flag = currentMenu == "attributes";
     switchMenu(attributesContent, "attributes");
+    if (!flag) {
+      setAttrTooltips();
+    }
     updateAttributesMenu();
   });
 
@@ -2061,7 +2110,7 @@ function setMainStatDisplay(attribute) {
   // Function to handle player attacking the enemy
   function playerAttack() {
     let enemyVal = (enemy.health / enemy.baseHealth) * 100;
-    
+
     let chargeMulti = 1;
     if (player.currentClass == "warrior") {
       if (player.skills.charge.level > 0 && player.attacksThisFight%7 == 0) {
@@ -2103,28 +2152,36 @@ function setMainStatDisplay(attribute) {
         }
       }
     }
+    if (player.attacksThisFight%50 == 0) {
+      console.log(`player dmg ${damage.toLocaleString()}`);
+    }
+    damageEnemy(damage);
+  }
+  function damageEnemy(damage) {
     if (enemy.health > 0) {
       enemy.health -= damage; // Player attacks based on strength
     }
     if (enemy.health <= 0) {
       enemyDefeated();
+      updateHealthBars();
+      return true;
       // Schedule next player attack
     }
-    enemyVal = (enemy.health / enemy.baseHealth) * 100;
-    
     updateHealthBars();
-  }
+    return false;
 
-function getCleaveThrough(){
-  return  Math.ceil((Math.ceil(player.resolutionSkills.fireball.level/40)+1)*(player.skills.cleave.level/4+player.skills.explosiveShot.level/6));
-}
-function getCleaveMulti(){
-  cleaveMulti = (1-Math.exp(player.skills.cleave.level/-8));
+
+  }
+  function getCleaveThrough() {
+    return Math.ceil((Math.ceil(player.resolutionSkills.fireball.level/40)+1)*(player.skills.cleave.level/4+player.skills.explosiveShot.level/6));
+  }
+  function getCleaveMulti() {
+    cleaveMulti = (1-Math.exp(player.skills.cleave.level/-8));
     explosiveShotMulti = (1-Math.exp(player.skills.explosiveShot.level/-26));
     fireballMulti = 1+(1-Math.exp(player.resolutionSkills.fireball.level/-20));
     cleaveDamage = fireballMulti*(1+cleaveMulti + explosiveShotMulti);
     return cleaveDamage;
-}
+  }
   // Function to handle enemy attacking the player
   function enemyAttack() {
     if (player.health > 0) {
@@ -2133,6 +2190,13 @@ function getCleaveMulti(){
         return;
       }
       player.health -= enemy.attack*player.defense; // Enemy attacks based on attack stat
+      if (player.thorns > 0) {
+        let val = enemy.attack*(1+0.1*player.thorns)*Math.pow(enemy.attackSpeed, 1.3)
+        console.log(`thorn dmg ${val.toLocaleString()} ${enemy.attack} ${player.thorns} ${enemy.attackSpeed}`)
+        if (damageEnemy(val)) {
+          return;
+        }
+      }
       player.health = Math.floor(player.health);
       if (player.health <= 0) {
         playerDefeated(); // Optional: handle what happens when the player loses
@@ -2159,15 +2223,30 @@ function getCleaveMulti(){
     if (cleaveThroughDamage.length > 0 && enemy.health > 0) {
       nextDamage = cleaveThroughDamage.shift();
 
-      enemy.health -= Math.floor(nextDamage);
-      if (enemy.health <= 0) {
-        enemyDefeated();
-      }
+      damageEnemy(Math.floor(nextDamage));
+
     }
     player.attacksThisFight = 0;
     // Start enemy's attack
   }
 
+  function buildPopup(message, options) {
+    let popupContent = `
+    <div id="popup" style="position: fixed; top: 20%; left: 50%; transform: translate(-50%, -20%); background: #444; border: 0.5${getARPref()} solid black; padding: 20px; border-radius: 10px; color: white; text-align: center;">
+    <h1>${message}</h1>
+    <div>
+    `
+    for (let option of Object.keys(options)) {
+      popupContent += `
+      <button style="border: 0.5${getARPref()} solid black; border-radius: 3${getARPref()}; background-color: #${options[option].color}; color: black" id="${option}">${options[option].text}</button>
+      `
+    }
+    popupContent += `</div>`
+    document.body.insertAdjacentHTML('beforeend', popupContent);
+    for (let option of Object.keys(options)) {
+      document.getElementById(option).addEventListener('click', options[option].func);
+    }
+  }
   // Function to reset player health
   function resetPlayerHealth() {
     player.health = player.maxHealth;
@@ -2317,7 +2396,7 @@ function getCleaveMulti(){
     Druid<br>${player.traction.druid.points}
     </button>
 
-    <button id="vanguard-talent-menu-btn" class="talent-button" style="
+    <button id="champion-talent-menu-btn" class="talent-button" style="
     width: 30${getARPref()};
     height: 15${getARPref()};
     background-color: ${toughnessColor};
@@ -2356,12 +2435,12 @@ function getCleaveMulti(){
     document.getElementById('archer-talent-menu-btn').addEventListener('click', () => displayClassTalents('archer'));
     document.getElementById('wizard-talent-menu-btn').addEventListener('click', () => displayClassTalents('wizard'));
     document.getElementById('druid-talent-menu-btn').addEventListener('click', () => displayClassTalents('druid'));
-    document.getElementById('vanguard-talent-menu-btn').addEventListener('click', () => displayClassTalents('vanguard'));
+    document.getElementById('champion-talent-menu-btn').addEventListener('click', () => displayClassTalents('champion'));
   }
 
   // Function to display class-specific talents
   function displayClassTalents(className) {
-    console.log("wtf")
+
     let classTalentsContent = `<div style="display: flex;"><h2 id="classTalentPointsDisplay">${capitalize(className)} <br>Points: ${player.traction[className].points}</h2></div><div>`;
     let classTalents = getClassTalents(className); // Function to fetch talents based on the class
     for (let talent of Object.keys(classTalents)) {
@@ -2446,7 +2525,7 @@ function getCleaveMulti(){
     return `Hell ${floor-240}`;
   }
   function updateEnemyAttackSpeed() {
-    enemy.attackSpeed = 2005 *(1+Math.exp(player.resolutionSkills.bash.level/40))
+    enemy.attackSpeed = 2005 *(1+Math.exp(player.resolutionSkills.bash.level/40)) *(1+Math.exp(player.resolutionSkills.entangle.level/40))
   }
   // Function to change enemy level and reset health
   function changeEnemyLevel(level) {
@@ -2455,7 +2534,7 @@ function getCleaveMulti(){
       currentEnemyLevel = 1;
     }
     enemy.baseHealth = Math.floor(30 + level*10 * Math.pow(1.32, level/2)); // Example health scaling
-    enemy.health = enemy.baseHealth;
+
     enemy.attack = Math.floor(10 + Math.pow(level, 1.2)); // Optionally scale enemy attack
     enemy.xp = 10 * Math.pow(1.35,
       level-1);
@@ -2463,85 +2542,150 @@ function getCleaveMulti(){
       enemy.attack = Math.pow(enemy.attack, 2.2);
       enemy.xp *= 3;
       enemy.baseHealth = Math.pow(enemy.baseHealth, 1.25);
-      enemy.health = enemy.baseHealth;
+
       enemyLevelText.style.color = '#ffbbbb';
       if (currentEnemyLevel > 240) {
         enemy.xp *= 3;
         enemy.attack = Math.pow(enemy.attack, 2.2);
         enemy.baseHealth = Math.pow(enemy.baseHealth, 1.3);
-        enemy.health = enemy.baseHealth;
+
         enemyLevelText.style.color = '#ff0000';
       }
     } else {
       enemyLevelText.style.color = "#ffffff";
     }
+    
     enemyLevelText.textContent = getFloorDisplay(level);
     updateEnemyAttackSpeed();
-
+    enemy.health = enemy.baseHealth;
     updateHealthBars();
 
   }
-  
-  function showAttributeTooltip(button,attribute){
+
+  function showAttributeTooltip(button, attribute) {
     let message = attributeTooltips[attribute];
-    if(player.primaryAttribute==attribute){
+    if (player.primaryAttribute == attribute) {
       message = `${message}\nPRI: Increases damage.`
     }
-    showTooltip(button,message)
+    showTooltip(button, message)
   }
-function showTooltip(element, message) {
-  const tooltip = document.createElement("div");
-  tooltip.className = "tooltip";
-  tooltip.innerText = message;
-  tooltip.style.position = "absolute";
-  tooltip.style.backgroundColor = "#333";
-  tooltip.style.color = "#fff";
-  tooltip.style.padding = "5px";
-  tooltip.style.borderRadius = "5px";
-  tooltip.style.fontSize = "3vw";
-  tooltip.style.zIndex = "10";
-  tooltip.style.whiteSpace = "pre-wrap";
-  tooltip.style.userSelect = "none";
 
-  const rect = element.getBoundingClientRect();
-  tooltip.style.top = rect.top + window.scrollY - tooltip.offsetHeight-60 + "px";
-  tooltip.style.left = rect.left + window.scrollX + "px";
+  function setTooltip(button, displayFunction) {
 
-  document.body.appendChild(tooltip);
-  element.tooltip = tooltip;
-}
-function getARPref(){
-  const vw=window.innerWidth;
-  const vh = window.innerHeight;
-  if(vw>vh)return "vh";
-  return "vw"
-}
-function hideTooltip(element) {
-  if (element.tooltip) {
-    document.body.removeChild(element.tooltip);
-    element.tooltip = null;
+    button.addEventListener("mousedown", displayFunction);
+    button.addEventListener("mouseup", () => hideTooltip(button));
+    button.addEventListener("mouseleave", () => hideTooltip(button));
+
+    button.addEventListener("touchstart", displayFunction);
+    button.addEventListener("touchend", () => hideTooltip(button));
   }
-}
+  function showTooltip(element, message) {
+    const tooltip = document.createElement("div");
+    tooltip.className = "tooltip";
+    tooltip.innerText = message;
+    tooltip.style.position = "absolute";
+    tooltip.style.backgroundColor = "#333";
+    tooltip.style.color = "#fff";
+    tooltip.style.padding = "5px";
+    tooltip.style.borderRadius = "5px";
+    tooltip.style.fontSize = "3vw";
+    tooltip.style.zIndex = "10";
+    tooltip.style.whiteSpace = "pre-wrap";
+    tooltip.style.userSelect = "none";
 
-const attributeTooltips = {
-  strength: "Increases your physical power, boosting health.",
-  intellect: "Enhances magical ability, increasing spell power and XP gain.",
-  agility: "Boosts speed, improving attack rate.",
-  toughness: "Increases resilience, raising health significantly.",
-  mysticism: "Strengthens regeneration and mystical defenses."
-};
+    const rect = element.getBoundingClientRect();
+    tooltip.style.top = rect.top + window.scrollY - tooltip.offsetHeight-60 + "px";
+    tooltip.style.left = rect.left + window.scrollX + "px";
 
-["strength", "intellect", "agility", "toughness", "mysticism"].forEach(attr => {
-  const button = document.getElementById(`${attr}Display`);
-  
-  // Handle mouse and touch events
-  button.addEventListener("mousedown", () => showAttributeTooltip(button, attr));
-  button.addEventListener("mouseup", () => hideTooltip(button));
-  button.addEventListener("mouseleave", () => hideTooltip(button));
-  
-  button.addEventListener("touchstart", () => showAttributeTooltip(button, attr));
-  button.addEventListener("touchend", () => hideTooltip(button));
-});
+    document.body.appendChild(tooltip);
+    element.tooltip = tooltip;
+  }
+  function getARPref() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    if (vw > vh)return "vh";
+    return "vw"
+  }
+  function hideTooltip(element) {
+    if (element.tooltip) {
+      document.body.removeChild(element.tooltip);
+      element.tooltip = null;
+    }
+  }
+  const resolutionSkillTooltips = {
+    weightLifting: "Increase damage dealt.",
+    bash: "Slow the enemy's attacks.",
+    tactician: "Gain bonus attributes.",
+    eagleEye: "Increase your chance to deal critical hits.",
+    featheredShot: "Increase the damage of critical hits.",
+    volley: "Increase attack speed.",
+    memorize: "Gain bonus XP.",
+    fireball: "Your attacks deal damage to multiple enemies. Multiplicative with similar effects.",
+    timeWarp: "Speed up time!\nWARNING: Messing with time can be dangerous!"
+  }
+  const skillTooltips = {
+    overpower: "Increase damage dealt.",
+    charge: "The first and every 7th hit each combat deal bonus damage.",
+    cleave: "Attacks deal more damage and pass through to multiple enemies.",
+    shieldWall: "Gain bonus health and defense.",
+    sharpness: "Increase damage dealt.",
+    quickdraw: "Increase attack speed",
+    explosiveShot: "Attacks hit multiple enemies",
+    evasion: "Attacks against you gain a chance to miss.",
+    magicMissile: "Attacks periodically deal bonus damage.",
+    collegiate: "Gain more XP",
+    empower: "Increase damage dealt.",
+    mirrorImage: "Gain attack speed and evasion chance."
+  }
+  const attributeTooltips = {
+    strength: "Increases your physical power, boosting health.",
+    intellect: "Enhances magical ability, increasing spell power and XP gain.",
+    agility: "Boosts speed, improving attack rate.",
+    toughness: "Increases resilience, raising health significantly.",
+    mysticism: "Strengthens regeneration and mystical defenses."
+  };
+
+  function setSkillTooltips() {
+    Object.keys(player.skills).forEach(skill => {
+      const button = document.getElementById(`${skill}Display`);
+      if (!skillTooltips.hasOwnProperty(skill) || !button) {
+        return;
+      }
+      setTooltip(button, () => {
+        if (!player.skills[skill].locked) {
+          showTooltip(button, skillTooltips[skill])
+        }
+      });
+      // Handle mouse and touch events
+
+    });
+  }
+  function setResolutionSkillTooltips() {
+    Object.keys(player.resolutionSkills).forEach(skill => {
+      const button = document.getElementById(`${skill}Display`);
+      if (!resolutionSkillTooltips.hasOwnProperty(skill) || !button) {
+        return;
+      }
+      setTooltip(button, () => {
+        if (!player.resolutionSkills[skill].locked) {
+          showTooltip(button, resolutionSkillTooltips[skill])
+        }
+      });
+      // Handle mouse and touch events
+
+    });
+  }
+  function setAttrTooltips() {
+    ["strength", "intellect", "agility", "toughness", "mysticism"].forEach(attr => {
+      const button = document.getElementById(`${attr}Display`);
+
+      // Handle mouse and touch events
+      setTooltip(button,
+        () => showAttributeTooltip(button, attr));
+
+    });
+  }
   loadGameState();
+
 
   // Initialize combat when the page loads
