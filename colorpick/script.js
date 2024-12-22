@@ -22,7 +22,7 @@ const COLORS = {
 };
 
 let PRESET_COLOR = "Black";
-let USE_PRESET_COLOR = true;
+let USE_PRESET_COLOR = false;
 
 // Circle and layout settings
 const CIRCLE_RADIUS = 150;
