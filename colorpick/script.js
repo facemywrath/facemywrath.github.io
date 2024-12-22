@@ -115,10 +115,46 @@ canvas.addEventListener("click", (e) => {
     handleTap(x, y);
 });
 
-// Start game
+const staticColorCheckbox = document.getElementById("staticColorCheckbox");
+const colorButtonsDiv = document.getElementById("colorButtons");
+const startButton = document.getElementById("startButton");
+
+// Populate color buttons
+// Populate color buttons
+selectedColor = document.getElementById("selected-button");
+
+Object.keys(COLORS).forEach(color => {
+    const button = document.createElement("button");
+    button.textContent = color;
+    button.style.backgroundColor = COLORS[color];
+    button.style.color = color === "Black" ? "white" : "black"; // Text color logic
+    button.addEventListener("click", () => {
+        PRESET_COLOR = color;
+        USE_PRESET_COLOR = true;
+        selectedColor.textContent=`SELECTED: ${color}`
+        selectedColor.style.backgroundColor=COLORS[color]
+        selectedColor.style.color = color === "Black" ? "white" : "black"; // Text color logic
+        staticColorCheckbox.checked = true;
+    });
+    colorButtonsDiv.appendChild(button);
+});
+
+
+
+// Handle checkbox toggle
+staticColorCheckbox.addEventListener("change", (e) => {
+    USE_PRESET_COLOR = e.target.checked;
+});
+
+// Handle start button click
+startButton.addEventListener("click", () => {
+  document.getElementById("controls").style.display = "none"
+    startGame();
+});
+
+// Update startGame to reset the game state
 function startGame() {
+    score = 0;
     randomizeGrid();
     gameLoop();
 }
-
-startGame();

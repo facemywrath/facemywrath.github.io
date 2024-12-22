@@ -13,9 +13,55 @@
         canvas {
             display: block;
         }
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .color-buttons {
+            margin-top: 10px;
+        }
+        .black-button {
+          color: white;
+        }
+        .color-buttons button {
+            margin: 5px;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            color: Black;
+            font-weight: bold;
+        }
+        .selected-button {
+          margin-top: 50px;
+          width: 190px;
+          height: 30px;
+          background-color: gray;
+        }
+        .start-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #555;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
+    <div class="controls" id="controls">
+        <label>
+            <input type="checkbox" id="staticColorCheckbox"> Static Color
+        </label>
+        <div class="color-buttons" id="colorButtons"></div>
+        <div id='selectionDisplay'>
+          <button class="selected-button" id="selected-button">SELECTED: NONE</button>
+        </div>
+        <button class="start-button" id="startButton">Start Game</button>
+    </div>
     <canvas id="gameCanvas"></canvas>
     <script src="script.js"></script>
 </body>
