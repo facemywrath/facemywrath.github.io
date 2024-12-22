@@ -38,8 +38,8 @@ let positions = [];
 // Initialize positions
 function calculatePositions() {
     positions = [];
-    const xStart = WIDTH / 2 - (HORIZONTAL_SPACING / 2);
-    const yStart = 200;
+    const xStart = WIDTH / 3 - (HORIZONTAL_SPACING / 2);
+    const yStart = 300;
     for (let row = 0; row < 5; row++) {
         for (let col = 0; col < 3; col++) {
             const x = xStart + col * HORIZONTAL_SPACING;
@@ -69,10 +69,10 @@ function drawHUD() {
     ctx.fillStyle = COLORS[targetColor];
     ctx.fillRect(0, HEIGHT - 100, WIDTH, 100);
     ctx.fillStyle = "white";
-    ctx.font = "30px Arial";
+    ctx.font = "60px Arial";
     ctx.textAlign = "center";
-    ctx.fillText(`Tap: ${targetColor}`, WIDTH / 2, HEIGHT - 60);
-    ctx.fillText(`Score: ${score}`, WIDTH / 2, 50);
+    ctx.fillText(`Tap: ${targetColor}`, WIDTH / 2, HEIGHT - 30);
+    ctx.fillText(`Score: ${score}`, WIDTH / 2 + 120, 80);
 }
 
 // Randomize grid colors
