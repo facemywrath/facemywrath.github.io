@@ -243,7 +243,7 @@ function synergyEffect(index) {
   const totalGenerators = gameState.elementStorage.reduce((acc, el) => acc + el.generators, 0);
   element.multipliers[0] = 1 + (0.01 * element.upgradeLevels[0]) * totalGenerators;
   console.log(`${ELEMENTS[index].SYMBOL} Synergy Upgrade updated.`);
-  element.upgradeCosts[0] = ELEMENTS[index].UPGRADES.BASE_COST*Math.pow(10, element.upgradeLevels[0])
+  element.upgradeCosts[0] = ELEMENTS[index].UPGRADES[0].BASE_COST*Math.pow(10, element.upgradeLevels[0] ?? 0);
 }
 console.log(gameState);
 
@@ -385,8 +385,8 @@ function selectElement(index) {
     upgradeDiv.style.flexDirection = "column";
     upgradeDiv.style.backgroundColor = upgrade.COLOR;
     const upgradeButton = document.createElement("button");
-    upgradeButton.textContent = `${gameState.elementStorage[index].upgradeLevels[upgradeIndex]}/${upgrade.MAX_LEVEL}\n - ${formatNumber(elementStorage.upgradeCosts[upgradeIndex])} J`;
-    upgradeButton.disabled = gameState.elementStorage[index].upgradeLevels[upgradeIndex] == upgrade.MAX_LEVEL || gameState.energy < upgrade.BASE_COST;
+    upgradeButton.textContent = `${gameState.elementStorage[index].upgradeLevels[upgradeIndex]}/${upgrade.MAX_LEVEL}\n - ${formatNumber(elementStorage.upgradeCosts[upgradeIndex]??element.UPGRADES[upgradeIndex].BASE_COST)} J`;
+    upgradeButton.disabled = gameState.elementStorage[index].upgradeLevels[upgradeIndex] == upgrade.MAX_LEVEL || gameState.energy < elementStorage.upgradeCosts[upgradeIndex];
     upgradeButton.addEventListener("click", () => purchaseUpgrade(index, upgradeIndex));
     upgradeDiv.appendChild(upgradeButton);
     upgradesList.appendChild(upgradeDiv);
