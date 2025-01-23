@@ -31,12 +31,22 @@ header h1 {
   font-size: 1.3rem;
   color: #999999;
 }
-
+#save {
+  background-color: #669;
+  border-radius: .8rem;
+  margin-right: 1rem;
+}
+#header-div {
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+}
 #energy-display {
   font-size: 1.2rem;
   display: flex;
   width: 100%;
   flex-direction: column;
+  padding: .1rem;
   align-items: center;
   border-radius: 2rem;
   border-width: 2rem;

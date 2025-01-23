@@ -566,10 +566,15 @@ function formatNumber(value) {
   }
   return value.toFixed(4); // Standard decimal notation with 4 decimal places
 }
-// Update energy display
+function formatNumberFixed(value, digits) {
+  if (value < 0.0001 || value > 1e6) {
+    return value.toExponential(digits); // Scientific notation with 4 significant digits
+  }
+  return value.toFixed(digits); // Standard decimal notation with 4 decimal places
+}
 // Update energy display
 function updateEnergy() {
-  document.getElementById("energy").textContent = `${formatNumber(gameState.energy)} J`;
+  document.getElementById("energy").textContent = `${formatNumberFixed(gameState.energy, 2)} J`;
 }
 
 function getProduction(index) {
@@ -717,8 +722,9 @@ document.getElementById("close-popup").addEventListener("click", () => {
   const popup = document.getElementById("offline-popup");
   popup.classList.add("hidden");
 });
+document.getElementById("save").addEventListener("click", () => saveGame());
 // Call loadGame when the game starts
 
 window.onload = loadGame;
-setInterval(saveGame, 3000); // Save every 30 seconds
+setInterval(saveGame, 15000); // Save every 30 seconds
 // Initialize the game
