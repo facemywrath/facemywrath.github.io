@@ -646,5 +646,5 @@ function calculateOfflineGains(lastTimestamp) {
 // Call loadGame when the game starts
 
 window.onload = loadGame;
-setInterval(saveGame, 3000); // Save every 30 seconds
+setInterval(saveGame, 10000); // Save every 30 seconds
 // Initialize the game
