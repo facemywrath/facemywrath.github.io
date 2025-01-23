@@ -692,16 +692,31 @@ function loadGame() {
 // Calculate offline gains
 function calculateOfflineGains(lastTimestamp) {
   const currentTime = Date.now();
-  const elapsedSeconds = Math.max(MAX_OFFLINE_SECONDS, (currentTime - lastTimestamp) / 1000);
+  const elapsedSeconds = Math.min(MAX_OFFLINE_SECONDS, (currentTime - lastTimestamp) / 1000);
+  let offlineProgMsg = `You were away for ${formatNumber(elapsedSeconds)} seconds (Max: ${MAX_OFFLINE_SECONDS}) and produced:\n`;
   gameState.elementStorage.forEach((element, index) => {
+    if(!element.locked){
     const productionPerSecond = getProduction(index);
     const offlineProduction = productionPerSecond * elapsedSeconds;
-
+    offlineProgMsg = offlineProgMsg + `${formatNumber(offlineProduction)} ${ELEMENTS[index].NAME}\n`
     element.count += offlineProduction; // Add offline production to element count
+    }
   });
 
   console.log(`Offline gains: ${elapsedSeconds} seconds simulated.`);
+  
+  // Show the pop-up
+  const offlineMessage = document.getElementById("offline-message");
+  offlineMessage.style.whiteSpace = "pre-line"
+  offlineMessage.textContent = offlineProgMsg;
+  const popup = document.getElementById("offline-popup");
+  popup.classList.remove("hidden");
 }
+
+document.getElementById("close-popup").addEventListener("click", () => {
+  const popup = document.getElementById("offline-popup");
+  popup.classList.add("hidden");
+});
 // Call loadGame when the game starts
 
 window.onload = loadGame;
