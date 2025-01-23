@@ -42,7 +42,7 @@ const ELEMENTS = [{
     NAME: "Nuclei Bombardment",
     DESCRIPTION: "Increases Hydrogen Energy gain by 20% per level for every element unlocked.",
     EVENTS: [{
-      TRIGGER: "elementProduced",
+      TRIGGER: "elementUnlocked",
       APPLY: () => nucleiBombardmentEffect(0)
     }],
     COLOR: "#600",
@@ -438,6 +438,9 @@ function checkUnlockNextElement() {
   if (isUnlocked) {
     if (nextElementStorage.locked) {
       gameState.maxUnlockedIndex += 1;
+      EventBus.emit("elementUnlocked", {
+      elementIndex: index
+    });
       nextElementStorage.locked = false;
     }
     button.style.display = "flex";
@@ -564,7 +567,8 @@ function annihilateElement() {
   if (elementStorage.count >= 1) {
     const maxAnnihilations = Math.floor(elementStorage.count); // Max annihilations based on integer count
     elementStorage.count -= maxAnnihilations;
-    const totalEnergy = maxAnnihilations * getEnergyProduction(index); // Total energy gained
+    const totalEnergy = maxAnnihilations * getEnergyProduction(gameState.selectedElementIndex); // Total energy gained
+    console.log(`${getEnergyProduction(gameState.selectedElementIndex)} + ${gameState.elementStorage[gameState.selectedElementIndex].energyMultipliers}`)
     gameState.energy += totalEnergy;
 
     console.log(
@@ -610,7 +614,7 @@ function getProduction(index) {
 function getEnergyProduction(index) {
   const element = gameState.elementStorage[index];
   let production = ELEMENTS[index].BASE_ENERGY;
-
+  
   // Apply all multipliers if they exist
   if (element.energyMultipliers && element.energyMultipliers.length > 0) {
     production *= element.energyMultipliers.reduce((total, multi) => total * multi, 1);
@@ -677,10 +681,10 @@ function loadGame() {
         element.upgradeLevels = mergeAndFillArrays(ELEMENTS[index].UPGRADES, element.upgradeLevels, 0);
         if (element.upgradeCosts.length < ELEMENTS[index].UPGRADES.length) {
           element.upgradeCosts = mergeAndFillArrays(ELEMENTS[index].UPGRADES, element.upgradeCosts, 0);
-          let newCosts = element.upgradeCosts.splice();
+          let newCosts = element.upgradeCosts.slice();
           element.upgradeCosts.forEach((cost, upgradeIndex) => {
             if (cost == 0) {
-              newCosts[index] = ELEMENTS[index].UPGRADES[upgradeIndex].BASE_COST;
+              newCosts[upgradeIndex] = ELEMENTS[index].UPGRADES[upgradeIndex].BASE_COST;
             }
           })
           element.upgradeCosts = newCosts;
@@ -724,7 +728,6 @@ function loadGame() {
       }
     });
   });
-
   initializeGame();
   updateEnergy();
   gameLoop();
