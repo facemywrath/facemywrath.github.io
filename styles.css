@@ -1,335 +1,75 @@
-* {
-  box-sizing: border-box;
-}
-
+/* General body styling */
 body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background-color: #3c3c3c;
-  color: #ffffff;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
 }
 
-/* Character selection styles */
-.character-container {
-  display: block;
-  height: 100%;
-  width: 100%;
-  gap: 20px;
-  justify-content: center;
-  margin-top: 50px;
-  font-size: 10px;
-  
-}
-.character-row {
-  display: flex;
-  
+/* Container for centering content */
+.container {
+    text-align: center;
+    background-color: white;
+    padding: 50px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.character-card {
-  background-color: #111;
-  padding: 20px;
-  margin: 10px 5px;
-  width: 30vw;
-  height: 25vh;
-  border-radius: 8px;
-  border: 2px solid black;
-  text-align: center;
-  align-content: center;
-  cursor: pointer;
-  font-size: 3vw;
-  transition: background-color 0.3s;
-}
-#warrior-card {
-  background-color: #a44;
-}
-.character-card h1 {
-  margin-top: 0;
-}
-.character-card button {
-  background-color: #444;
-  color: white;
-  border: none;
-  padding: 5px 5px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: 20px;
-  align-self: center;
+/* Title styling */
+h1 {
+    font-size: 36px;
+    color: #333;
+    margin-bottom: 30px;
 }
 
-.character-card button:hover {
-  background-color: #555;
+/* Styling for game links and rules links */
+.game-link {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
-.character-card:hover {
-  background-color: #222;
+/* Main game link styling */
+a {
+    font-size: 20px;
+    text-decoration: none;
+    color: #007bff;
+    padding: 10px 20px;
+    display: inline-block;
+    border: 2px solid #007bff;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    margin-right: 10px; /* Add space between the game link and the ? button */
 }
 
-/* Hide other game sections by default */
-#topBar, #battleArea, #levelDisplayRow, #xpBarContainer, #bottomMenu {
-  display: none;
+/* Link hover effects */
+a:hover {
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
 }
 
-/* Top bar styles */
-#topBar {
-  display: none;
-  justify-content: space-around;
-  align-items: center;
-  background-color: #333;
-  color: white;
-  height: 100px;
-  padding: 0 30px;
-  overflow-x: auto;
+/* Styling for the ? button (rules link) */
+.rules-link {
+    background-color: #008bff;
+    color: #ffffff;
+    font-size: 18px;
+    padding: 8px;
+    width: 40px;
+    text-align: center;
+    border: 2px solid #007bdd;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    display: inline-block;
 }
 
-#topBar button {
-  flex-grow: 1;
-  font-size: 16px;
-  background-color: #444;
-  color: white;
-  border: 2px solid #555;
-  border-radius: 8px;
-  padding: 10px;
-  margin: 10px 0;
-  height: calc(100% - 30px);
-  cursor: pointer;
-}
-
-#topBar button:hover {
-  background-color: #555;
-}
-
-/* Level display row styles */
-#levelDisplayRow {
-  display: none;
-  justify-content: center;
-  align-items: center;
-  background-color: #404040;
-  height: 35px;
-  padding-left: 10px;
-}
-
-#levelDisplayRow label {
-  margin-right: auto;
-  display: flex;
-  align-items: center;
-  font-size: 16px;
-  color: white;
-}
-
-#autoProgressCheckbox {
-  margin-right: 5px;
-}
-
-#levelDisplayRow button {
-  font-size: 18px;
-  background-color: #333;
-  color: white;
-  border: 2px solid #000;
-  border-radius: 5px;
-  cursor: pointer;
-  padding: 5px 10px;
-}
-
-#enemyLevelText {
-  margin: 0 15px;
-  font-size: 20px;
-}
-
-/* Battle area styles */
-#battleArea {
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 30vh;
-  padding: 10px;
-  background-color: #404040;
-  border-radius: 0px;
-}
-
-/* XP bar container styles */
-#xpBarContainer {
-  width: 100%;
-  margin: 0;
-  text-align: center;
-  align-items: center;
-  display: none;
-}
-
-.xpBar {
-  width: 100%;
-  height: 10px;
-  position: relative;
-  background-color: #777;
-  border: 1px solid black;
-  border-radius: 3px;
-}
-
-#playerXPBar {
-  height: 100%;
-  background-color: #0066ff;
-  width: 0%;
-}
-
-#xpBarContainer p {
-  color: #e0e0e0;
-}
-
-/* Sword icon styles */
-.iconAndHealth {
-  display: flex;
-  align-items: center;
-}
-
-.swordIconContainer {
-  position: relative;
-  width: 5vh;
-  height: 5vh;
-  overflow: hidden;
-}
-
-.swordIcon {
-  position: absolute;
-  width: 40px;
-  height: 40px;
-}
-
-.playerSwordFill, .enemySwordFill {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 0%;
-  background-size: auto;
-  background-repeat: no-repeat;
-  background-position: bottom;
-  transition: height 0.1s ease;
-}
-
-.playerSwordFill {
-  background-image: url('player-sword-fill.png');
-}
-
-.enemySwordFill {
-  background-image: url('enemy-sword-fill.png');
-}
-
-/* Health bar container styles */
-.healthBarContainer {
-  width: 100%;
-  max-width: 56.25vh;
-  border: 1px solid #000;
-  border-radius: 3px;
-}
-
-.healthBar {
-  max-width: 56.25vh;
-  display: block;
-  width: 80vw;
-  height: 5vh;
-  background-color: #777;
-  border: 1px solid black;
-}
-
-#playerHealthBar {
-  height: 100%;
-  background-color: #00cc00;
-  width: 100%;
-  max-width: 56.25vh;
-}
-
-#enemyHealthBar {
-  height: 100%;
-  background-color: #ff6f61;
-  max-width: 56.25vh;
-  width: 100%;
-}
-
-/* Bottom menu styles */
-#bottomMenu {
-  height: 60vh;
-  background-color: #262626;
-  border-top: 2px solid #444;
-  display: none;
-  justify-content: center;
-  align-items: flex-start;
-}
-
-#bottomMenu > div {
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-  margin-top: 15px;
-}
-
-#bottomMenu > div {
-  max-height: 50vh; /* Limit the height */
-  overflow-y: auto; /* Allow scrolling */
-  padding: 10px;
-}
-
-#bottomMenu div p {
-  margin: 5px 0; /* Add space between paragraphs */
-  line-height: 1.0; /* Improve readability */
-}
-
-#bottomMenu p {
-  margin: 5px 0;
-}
-/* Skills menu styles */
-#bottomMenu button {
-  margin: 10px 0;
-  padding: 8px 15px;
-  font-size: 18px;
-}
-#bottomMenu button {
-  margin-left: 10px;
-  padding: 2px 5px;
-  font-size: 14px;
-}
-#resetButtonDiv{
-  height: 15vh;
-}
-
-/* General button styles */
-button {
-  background-color: #444;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  user-select: none;
-}
-button:disabled {
-  background-color: #333;
-}
-/* Outer container that forces the aspect ratio */
-.aspect-ratio-container {
-  position: relative;
-  width: 100%;
-  height: 0;
-  padding-bottom: 177.78%; /* 16:9 aspect ratio (9/16 * 100) */
-  background: #333; /* Color for the bars */
-}
-.stats-container p {
-  margin: 2px 0; /* Minimal margin between paragraphs */
-  line-height: 0.6; /* Tighter line-height */
-}
-/* Inner content container */
-.content {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  height: 100%;
-  max-width: 56.25vh; /* Limits the content size to match aspect ratio */
-}
-button:hover {
-  background-color: #555;
+/* Hover effect for rules link */
+.rules-link:hover {
+    background-color: #007bff;
+    color: white;
 }
