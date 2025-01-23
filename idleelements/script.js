@@ -243,7 +243,7 @@ function synergyEffect(index) {
   const totalGenerators = gameState.elementStorage.reduce((acc, el) => acc + el.generators, 0);
   element.multipliers[0] = 1 + (0.01 * element.upgradeLevels[0]) * totalGenerators;
   console.log(`${ELEMENTS[index].SYMBOL} Synergy Upgrade updated.`);
-  element.upgradeCosts[0] = ELEMENTS[index].UPGRADES[0].BASE_COST*Math.pow(10, element.upgradeLevels[0] ?? 0);
+  element.upgradeCosts[0] = ELEMENTS[index].UPGRADES[0].BASE_COST*Math.pow(7, element.upgradeLevels[0] ?? 0);
 }
 console.log(gameState);
 
