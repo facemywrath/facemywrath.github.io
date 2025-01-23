@@ -119,7 +119,7 @@ const ELEMENTS = [{
       MAX_LEVEL: 5
     }],
     FISSION_INDEX: [2,
-      2] // 2 Lithium
+      1] // 1 Lithium 1 Helium
   },
   {
     NAME: "Carbon",
@@ -139,7 +139,7 @@ const ELEMENTS = [{
       MAX_LEVEL: 5
     }],
     FISSION_INDEX: [3,
-      0] // 1 Beryllium, 1 Hydrogen
+      1] // 1 Beryllium, 1 Helium
   },
   {
     NAME: "Nitrogen",
@@ -159,7 +159,7 @@ const ELEMENTS = [{
       MAX_LEVEL: 5
     }],
     FISSION_INDEX: [3,
-      1] // 1 Beryllium, 1 Helium
+      2] // 1 Beryllium, 1 Lithium
   },
   {
     NAME: "Oxygen",
@@ -199,7 +199,7 @@ const ELEMENTS = [{
       MAX_LEVEL: 5
     }],
     FISSION_INDEX: [4,
-      2] // 1 Boron, 1 Lithium
+      2,0] // 1 Boron, 1 Lithium, 1 Hydrogen
   },
   {
     NAME: "Neon",
@@ -228,8 +228,10 @@ const gameState = {
   lastTick: Date.now(),
   // Timestamp of the last game update
   selectedElementIndex: 0,
+  maxUnlockedIndex: 0,
   // The index of the currently selected element
   elementStorage: ELEMENTS.map((element) => ({
+    locked: true,
     count: 0, // Number of this element owned
     generators: 0, // Number of generators producing this element
     multipliers: [],
@@ -403,17 +405,39 @@ function selectElement(index) {
   }
   updateElementButtons();
 }
-//CONTINUE HERE
 
+function checkUnlockNextElement() {
+  const index = gameState.maxUnlockedIndex+1;
+  const nextElementStorage = gameState.elementStorage[index]
+  const generatorCost = getGeneratorCost(index);
+  const generatorCount = gameState.elementStorage[index].generators;
+  const canAffordGenerator = generatorCost <= gameState.energy;
+  const isUnlocked = (canAffordGenerator || generatorCount > 0);
+  const button = document.getElementById(`element-button-${ELEMENTS[index].NAME}`);
+  
+  if (isUnlocked) {
+    if(nextElementStorage.locked){
+      gameState.maxUnlockedIndex+=1;
+      nextElementStorage.locked = false;
+    }
+    button.style.display = "flex";
+  }
+}
 function updateElementButtons() {
-
+  checkUnlockNextElement();
   ELEMENTS.forEach((element, index) => {
     const generatorCost = getGeneratorCost(index);
     const canAffordGenerator = generatorCost <= gameState.energy;
-    if (canAffordGenerator) {
-      document.getElementById(`element-button-${element.NAME}`).style.outline = ".2rem solid #4d4";
+    const button = document.getElementById(`element-button-${element.NAME}`);
+    if (gameState.elementStorage[index].locked) {
+      button.style.display = "none";
     } else {
-      document.getElementById(`element-button-${element.NAME}`).style.outline = ".2rem solid #999";
+      button.style.display = "flex";
+    }
+    if (canAffordGenerator) {
+      button.style.outline = ".2rem solid #4d4";
+    } else {
+      button.style.outline = ".2rem solid #999";
     }
   });
 }
@@ -536,9 +560,9 @@ function annihilateElement() {
 // Helper function to format numbers
 function formatNumber(value) {
   if (value < 0.0001 || value > 1e6) {
-    return value.toExponential(3); // Scientific notation with 4 significant digits
+    return value.toExponential(4); // Scientific notation with 4 significant digits
   }
-  return value.toFixed(3); // Standard decimal notation with 4 decimal places
+  return value.toFixed(4); // Standard decimal notation with 4 decimal places
 }
 // Update energy display
 // Update energy display
@@ -596,6 +620,7 @@ function loadGame() {
       Object.assign(gameState, saveData.gameState);
     } else {
       gameState.elementStorage[0].generators = 1;
+      gameState.elementStorage[0].locked = false;
     }
 
     // Restore the events from the temp copy
@@ -606,6 +631,7 @@ function loadGame() {
     }
   } else {
     gameState.elementStorage[0].generators = 1;
+    gameState.elementStorage[0].locked = false;
     console.log("No save data found.");
   }
 
