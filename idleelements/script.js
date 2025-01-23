@@ -1,6 +1,6 @@
 const DO_LOAD = true;
-const DO_OFFLINE = false;
-const MAX_OFFLINE_SECONDS = 300;
+const DO_OFFLINE = true;
+const MAX_OFFLINE_SECONDS = 60;
 
 
 
@@ -199,7 +199,8 @@ const ELEMENTS = [{
       MAX_LEVEL: 5
     }],
     FISSION_INDEX: [4,
-      2,0] // 1 Boron, 1 Lithium, 1 Hydrogen
+      2,
+      0] // 1 Boron, 1 Lithium, 1 Hydrogen
   },
   {
     NAME: "Neon",
@@ -387,7 +388,8 @@ function selectElement(index) {
     upgradeDiv.style.flexDirection = "column";
     upgradeDiv.style.backgroundColor = upgrade.COLOR;
     const upgradeButton = document.createElement("button");
-    upgradeButton.textContent = `${gameState.elementStorage[index].upgradeLevels[upgradeIndex]}/${upgrade.MAX_LEVEL}\n - ${formatNumber(elementStorage.upgradeCosts[upgradeIndex]??element.UPGRADES[upgradeIndex].BASE_COST)} J`;
+
+    upgradeButton.textContent = `${gameState.elementStorage[index].upgradeLevels[upgradeIndex]}/${upgrade.MAX_LEVEL}\n - ${formatNumber(elementStorage.upgradeCosts[upgradeIndex] ?? element.UPGRADES[upgradeIndex].BASE_COST)} J`;
     upgradeButton.disabled = gameState.elementStorage[index].upgradeLevels[upgradeIndex] == upgrade.MAX_LEVEL || gameState.energy < elementStorage.upgradeCosts[upgradeIndex];
     upgradeButton.addEventListener("click", () => purchaseUpgrade(index, upgradeIndex));
     upgradeDiv.appendChild(upgradeButton);
@@ -414,10 +416,10 @@ function checkUnlockNextElement() {
   const canAffordGenerator = generatorCost <= gameState.energy;
   const isUnlocked = (canAffordGenerator || generatorCount > 0);
   const button = document.getElementById(`element-button-${ELEMENTS[index].NAME}`);
-  
+
   if (isUnlocked) {
-    if(nextElementStorage.locked){
-      gameState.maxUnlockedIndex+=1;
+    if (nextElementStorage.locked) {
+      gameState.maxUnlockedIndex += 1;
       nextElementStorage.locked = false;
     }
     button.style.display = "flex";
@@ -607,6 +609,21 @@ function saveGame() {
   localStorage.setItem("idleElementsSaveData", JSON.stringify(saveData));
   console.log("Game saved!");
 }
+
+function mergeAndFillArrays(arr1, arr2, fillValue) {
+  // Create a new array by copying all elements from arr2
+  if (arr1.length == arr2.length) return arr2;
+
+  const result = arr2.slice();
+
+  // Fill the remaining elements to match arr1's length with 1s
+  while (result.length < arr1.length) {
+    result.push(fillValue);
+  }
+
+  return result;
+}
+
 // Load the game state from localStorage
 // Load the game state from localStorage
 function loadGame() {
@@ -618,6 +635,22 @@ function loadGame() {
     // Load the saved game state
     if (DO_LOAD) {
       Object.assign(gameState, saveData.gameState);
+      gameState.elementStorage.forEach((element, index) => {
+        element.upgradeLevels = mergeAndFillArrays(ELEMENTS[index].UPGRADES, element.upgradeLevels, 0);
+        if (element.upgradeCosts.length < ELEMENTS[index].UPGRADES.length) {
+          element.upgradeCosts = mergeAndFillArrays(ELEMENTS[index].UPGRADES, element.upgradeCosts, 0);
+          let newCosts = element.upgradeCosts.splice();
+          element.upgradeCosts.forEach((cost, upgradeIndex) => {
+            if (cost == 0) {
+              newCosts[index] = ELEMENTS[index].UPGRADES[upgradeIndex].BASE_COST;
+            }
+          })
+          element.upgradeCosts = newCosts;
+        }
+        element.multipliers = mergeAndFillArrays(ELEMENTS[index].UPGRADES,
+          element.multipliers,
+          1);
+      })
     } else {
       gameState.elementStorage[0].generators = 1;
       gameState.elementStorage[0].locked = false;
@@ -672,5 +705,5 @@ function calculateOfflineGains(lastTimestamp) {
 // Call loadGame when the game starts
 
 window.onload = loadGame;
-setInterval(saveGame, 10000); // Save every 30 seconds
+setInterval(saveGame, 3000); // Save every 30 seconds
 // Initialize the game
