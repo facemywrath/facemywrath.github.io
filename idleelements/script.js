@@ -264,7 +264,7 @@ function nucleiBombardmentEffect(index){
   const elementsUnlocked = gameState.maxUnlockedIndex+1;
   element.energyMultipliers[0] = 1 + (0.2 * element.upgradeLevels[1]) * elementsUnlocked;
   console.log(`${ELEMENTS[index].SYMBOL} Synergy Upgrade updated.`);
-  element.upgradeCosts[0] = ELEMENTS[index].UPGRADES[1].BASE_COST*Math.pow(7, element.upgradeLevels[0] ?? 0);
+  element.upgradeCosts[1] = ELEMENTS[index].UPGRADES[1].BASE_COST*Math.pow(5, element.upgradeLevels[1] ?? 0);
 }
 console.log(gameState);
 
