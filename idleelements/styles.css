@@ -1,0 +1,126 @@
+/* General Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #1e1e2f;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 100vh;
+}
+
+/* Header */
+header {
+  width: 70%;
+  padding: 10px 20px;
+  background: #333;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  font-size: 1.3rem;
+  color: #999999;
+}
+
+#energy-display {
+  font-size: 1.2rem;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 2rem;
+  border-width: 2rem;
+  border-color: #996666;
+  background-color: #660066;
+}
+#energy {
+  font-size: 1.2rem;
+}
+
+/* Main Content */
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Element Selection Area */
+#element-selection {
+  background: #2a2a3c;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+#element-selection h2 {
+  margin-bottom: 10px;
+  font-size: 1.4rem;
+  text-align: center;
+}
+
+.element-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 10px;
+}
+
+.element-grid .element {
+  background: #444;
+  padding: 10px;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.element-grid .element:hover {
+  background: #666;
+}
+
+.element-grid .element span {
+  display: block;
+}
+
+/* Selected Element Details */
+#element-details {
+  background: #2a2a3c;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+#element-details h2 {
+  margin-bottom: 10px;
+  font-size: 1.4rem;
+  text-align: center;
+}
+
+#selected-element {
+  background: #444;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 1rem;
+  text-align: center;
+}
+
+/* Footer */
+footer {
+  width: 100%;
+  padding: 10px 20px;
+  background: #333;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #bbb;
+}
