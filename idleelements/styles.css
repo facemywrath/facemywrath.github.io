@@ -18,7 +18,7 @@ body {
 
 /* Header */
 header {
-  width: 70%;
+  width: 90%;
   padding: 10px 20px;
   background: #333;
   display: flex;
@@ -65,7 +65,7 @@ main {
   padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 1rem;
 }
 
 /* Element Selection Area */
@@ -107,7 +107,7 @@ main {
 /* Selected Element Details */
 #element-details {
   background: #2a2a3c;
-  padding: 20px;
+  padding: 40px;
   border-radius: 8px;
 }
 
@@ -115,6 +115,81 @@ main {
   margin-bottom: 10px;
   font-size: 1.4rem;
   text-align: center;
+}
+
+#menu-selection {
+  
+}
+
+.menu-btn {
+  border-radius: .5rem;
+  margin: .4rem 0rem;
+  width: 5rem;
+  height: 2rem;
+}
+
+#settings-menu-btn {
+  background-color: #777;
+}
+
+#elements-menu-btn {
+  background-color: #abc;
+}
+
+#molecules-menu-btn {
+  background-color: #6ce;
+}
+
+#molecule-menu {
+  display: none;
+  flex-direction: column;
+}
+#diatomic {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+.diatomic {
+  display: flex;
+  flex-direction: column;
+}
+.diatomic-btn {
+  width: 8rem;
+  height: 2.5rem;
+}
+.molecule {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 1rem;
+}
+#i2-div {
+  display: none;
+}
+#br2-div {
+  display: none;
+}
+#cl2-div {
+  display: none;
+}
+.diatomic-text {
+  display:flex;
+  flex-direction: column;
+  white-space: pre-line;
+}
+#molecule-header {
+  display: flex;
+  flex-direction: row;
+}
+#molecule-help-btn {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: .75rem;
+  margin-left: 1rem;
+}
+#fusion-menu-btn {
+  background-color: #ec6;
+  display: none;
 }
 
 #selected-element {
@@ -147,8 +222,14 @@ footer {
   text-align: center;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
   z-index: 1000;
+  white-space: pre-line;
 }
-
+.popup-temp-btn {
+  background-color: #88a;
+  width: 3rem;
+  height: 2rem;
+  border-radius: .5rem;
+}
 .popup.hidden {
   display: none;
 }

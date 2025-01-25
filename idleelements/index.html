@@ -7,10 +7,9 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="offline-popup" class="popup hidden">
-    <h3>Welcome Back!</h3>
-    <p id="offline-message"></p>
-    <button id="close-popup">Close</button>
+  <div id="popup" class="popup hidden">
+    <h1 id="popup-title"></h1>
+    <p id="popup-message"></p>
   </div>
   <header>
     <div id="header-div">
@@ -24,19 +23,94 @@
   </header>
 
   <main>
-    <section id="element-selection">
-      <h2>Periodic Table</h2>
-      <div class="element-grid">
-        <!-- Elements will be dynamically inserted here -->
-      </div>
+    <section id="menu-selection">
+      <button id="settings-menu-btn" class="menu-btn">Settings</button>
+      <button id="elements-menu-btn" class="menu-btn">Elements</button>
+      <button id="molecules-menu-btn" class="menu-btn">Molecules</button>
+      <button id="fusion-menu-btn" class="menu-btn">Fusion</button>
     </section>
+    <section id="element-menu">
+      <section id="element-selection">
+        <h2>Periodic Table</h2>
+        <div class="element-grid">
+          <!-- Elements will be dynamically inserted here -->
+        </div>
+      </section>
 
-    <section id="element-details">
-      <h2>Selected Element</h2>
-      <div id="selected-element">
-        <p>
-          Select an element to view its details.
-        </p>
+      <section id="element-details">
+        <h2>Selected Element</h2>
+        <div id="selected-element">
+          <p>
+            Select an element to view its details.
+          </p>
+        </div>
+      </section>
+    </section>
+    <section id="molecule-menu">
+      <div id="molecule-header">
+        <h1 style="font-size: 2rem;">Molecules</h1>
+        <button id="molecule-help-btn">?</button>
+      </div>
+<div id="diatomic" class="diatomic">
+  <h1>Diatomic Molecules</h1>
+  <div id="h2-div" class="molecule">
+    <button id="h2-btn" class="diatomic-btn">0 Hydrogen H<sub>2</sub></button>
+    <div class="diatomic-text">
+      <span id="h2-cost" class="diatomic-cost">Cost: 100H</span>
+      <span id="h2-bonus" class="diatomic-bonus">Bonus: 1x (2x)</span>
+    </div>
+  </div>
+  <div id="n2-div" class="molecule">
+    <button id="n2-btn" class="diatomic-btn">0 Nitrogen N<sub>2</sub></button>
+    <div class="diatomic-text">
+      <span id="n2-cost" class="diatomic-cost">Cost: 100N</span>
+      <span id="n2-bonus" class="diatomic-bonus">Bonus: 1x (2x)</span>
+    </div>
+  </div>
+  <div id="o2-div" class="molecule">
+    <button id="o2-btn" class="diatomic-btn">0 Oxygen O<sub>2</sub></button>
+    <div class="diatomic-text">
+      <span id="o2-cost" class="diatomic-cost">Cost: 100O</span>
+      <span id="o2-bonus" class="diatomic-bonus">Bonus: 1x (2x)</span>
+    </div>
+  </div>
+  <div id="f2-div" class="molecule">
+    <button id="f2-btn" class="diatomic-btn">0 Fluorine F<sub>2</sub></button>
+    <div class="diatomic-text">
+      <span id="f2-cost" class="diatomic-cost">Cost: 100F</span>
+      <span id="f2-bonus" class="diatomic-bonus">Bonus: 1x (2x)</span>
+    </div>
+  </div>
+  <div id="cl2-div" class="molecule">
+    <button id="cl2-btn" class="diatomic-btn">0 Chlorine Cl<sub>2</sub></button>
+    <div class="diatomic-text">
+      <span id="cl2-cost" class="diatomic-cost">Cost: 100Cl</span>
+      <span id="cl2-bonus" class="diatomic-bonus">Bonus: 1x (2x)</span>
+    </div>
+  </div>
+  <div id="br2-div" class="molecule">
+    <button id="br2-btn" class="diatomic-btn">0 Bromine Br<sub>2</sub></button>
+    <div class="diatomic-text">
+      <span id="br2-cost" class="diatomic-cost">Cost: 100Br</span>
+      <span id="br2-bonus" class="diatomic-bonus">Bonus: 1x (2x)</span>
+    </div>
+  </div>
+  <div id="i2-div" class="molecule">
+    <button id="i2-btn" class="diatomic-btn">0 Iodine I<sub>2</sub></button>
+    <div class="diatomic-text">
+      <span id="i2-cost" class="diatomic-cost">Cost: 100I</span>
+      <span id="i2-bonus" class="diatomic-bonus">Bonus: 1x (2x)</span>
+    </div>
+  </div>
+</div>
+      <div id="triatomic">
+        <h2>Triatomic Molecules WIP</h2>
+        <ul>
+          <li>Water (H₂O)</li>
+          <li>Ozone (O₃)</li>
+          <li>Carbon Dioxide (CO₂)</li>
+          <li>Sulfur Dioxide (SO₂)</li>
+        </ul>
       </div>
     </section>
   </main>
