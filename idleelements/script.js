@@ -1,4 +1,4 @@
-const DO_LOAD = false;
+const DO_LOAD = true;
 const DO_OFFLINE = true;
 const MAX_OFFLINE_SECONDS = 60;
 const LOCALSTORAGE_KEY = "idleElementsSaveData1.0"
