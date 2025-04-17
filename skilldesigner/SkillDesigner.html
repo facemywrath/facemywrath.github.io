@@ -1,0 +1,223 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Skill Creator</title>
+  <style>
+    body { font-family: sans-serif; background: #1e1e1e; color: #eee; padding: 2em; }
+    label, select, input { display: block; margin: 0.5em 0; }
+    input, select {
+      width: 100%; padding: 0.4em; background: #333; color: #fff;
+      border: 1px solid #555; border-radius: 4px;
+    }
+    .section {
+      margin-top: 1.5em; padding: 1em;
+      border: 1px solid #444; border-radius: 5px;
+      background: #2a2a2a;
+    }
+    button {
+      background: #2c7; color: #000; border: none;
+      padding: 0.5em 1em; margin-top: 1em; border-radius: 4px; cursor: pointer;
+    }
+    .json-output {
+      margin-top: 2em; background: #111; padding: 1em;
+      white-space: pre-wrap; border: 1px solid #444;
+    }
+    .effect-group {
+      border: 1px solid #555; padding: 1em;
+      margin: 1em 0; background: #1c1c1c;
+    }
+  </style>
+</head>
+<body><h1>Create a Skill</h1><div class="section">
+  <label>Name: <input id="name"></label>
+  <label>Cooldown Base: <input type="number" id="cooldownBase"></label>
+  <label>Cooldown Scaling:
+    <select id="cooldownScaling">
+      <option value="strength">strength</option>
+      <option value="dexterity">dexterity</option>
+      <option value="constitution">constitution</option>
+      <option value="intellect">intellect</option>
+      <option value="wisdom">wisdom</option>
+      <option value="willpower">willpower</option>
+    </select>
+  </label>
+  <label>Cooldown Scale: <input type="number" step="0.01" id="cooldownScale" value="-0.01"></label><label>Cost MP: <input type="number" id="costMp" value="0"></label> <label>Cost HP: <input type="number" id="costHp" value="0"></label> <label>Cost SP: <input type="number" id="costSp" value="0"></label>
+
+<label>Target: <select id="target"> <option value="single">single</option> <option value="self">self</option> <option value="all">all</option> <option value="allEnemies">allEnemies</option> <option value="allAllies">allAllies</option> <option value="random">random</option> <option value="randomAlly">randomAlly</option> <option value="randomEnemy">randomEnemy</option> <option value="adjacent">adjacent</option> </select> </label>
+
+<label>Requires Target: <select id="requiresTarget"> <option value="true">true</option> <option value="false">false</option> </select> </label>
+
+</div><div class="section">
+  <h3>Effects</h3>
+  <div id="effectsContainer"></div>
+  <button onclick="addEffect()">Add Effect</button>
+</div><div class="section">
+  <h3>Level Up Effects</h3>
+  <div id="levelUpContainer"></div>
+  <button onclick="addLevelUpEffect()">Add Level Up Effect</button>
+</div><button onclick="generateJSON()">Generate JSON</button>
+
+<div class="json-output" id="outputBox"></div><script>
+const attributes = ["strength", "dexterity", "constitution", "intellect", "wisdom", "willpower"];
+const stats = [
+  "hp", "maxHp", "hpRegen", "sp", "maxSp", "spRegen", "spEfficiency", "mp", "maxMp", "mpRegen",
+  "mpEfficiency", "attackSpeed", "attackPower", "spellPower", "critChance", "critMulti",
+  "lifestealMulti", "lifestealChance", "cooldownReduction", "armorPenetration", "magicPenetration"
+];
+const damageTypes = ["physical", "magic", "blunt", "piercing", "slashing", "force", "corrupt", "holy", "elemental", "arcane", "shock", "nature", "heat", "cold", "water", "blood", "psychic", "gravity", "blight", "void", "poison", "radiant", "ethereal", "spirit", "sonic"];
+
+function createDropdown(labelText, key, options) {
+  const wrapper = document.createElement("label");
+  wrapper.textContent = labelText + ": ";
+  const select = document.createElement("select");
+  options.forEach(opt => {
+    const o = document.createElement("option");
+    o.value = o.textContent = opt;
+    select.appendChild(o);
+  });
+  select.setAttribute("data-key", key);
+  wrapper.appendChild(select);
+  return wrapper;
+}
+
+function createInput(labelText, key) {
+  const wrapper = document.createElement("label");
+  wrapper.textContent = labelText + ": ";
+  const input = document.createElement("input");
+  input.setAttribute("data-key", key);
+  wrapper.appendChild(input);
+  return wrapper;
+}
+
+function buildEffectGroup(container, typeOptions, isLevelUp = false) {
+  const group = document.createElement("div");
+  group.className = "effect-group";
+
+  const select = document.createElement("select");
+  select.innerHTML = typeOptions.map(t => `<option value="${t}">${t}</option>`).join('');
+  group.appendChild(select);
+
+  const dynamicFields = document.createElement("div");
+  group.appendChild(dynamicFields);
+
+  const removeBtn = document.createElement("button");
+  removeBtn.textContent = "Remove";
+  removeBtn.onclick = () => group.remove();
+  group.appendChild(removeBtn);
+
+  function renderFields(type) {
+    dynamicFields.innerHTML = '';
+    const fields = [];
+
+    const targetDropdown = createDropdown("Target", "target", [
+      "single", "self", "all", "allEnemies", "allAllies",
+      "random", "randomAlly", "randomEnemy", "adjacent"
+    ]);
+    fields.push(targetDropdown);
+
+    if (["damage", "dot", "heal"].includes(type)) {
+      fields.push(createInput("Amount", "amount"));
+      if (type !== "heal") fields.push(createDropdown("Damage Type", "damageType", damageTypes));
+      fields.push(createDropdown("Scaling", "scaling", attributes));
+      fields.push(createInput("Scale", "scale"));
+      if (type === "dot") {
+        fields.push(createInput("Duration", "duration"));
+        fields.push(createInput("Tick Speed", "tickSpeed"));
+      }
+    } else if (["buff", "debuff", "affliction"].includes(type)) {
+      const statTypeLabel = document.createElement("label");
+      statTypeLabel.textContent = "Stat Type: ";
+      const statTypeSelect = document.createElement("select");
+      statTypeSelect.setAttribute("data-key", "statType");
+      ["attribute", "stat"].forEach(opt => {
+        const o = document.createElement("option");
+        o.value = o.textContent = opt;
+        statTypeSelect.appendChild(o);
+      });
+      statTypeSelect.onchange = () => {
+        const existing = dynamicFields.querySelector('[data-key="stat"]')?.parentElement;
+        if (existing) existing.remove();
+        const newDropdown = createDropdown("Stat", "stat", statTypeSelect.value === "attribute" ? attributes : stats);
+        dynamicFields.insertBefore(newDropdown, dynamicFields.querySelector("label[data-key='effect']") || null);
+      };
+      statTypeLabel.appendChild(statTypeSelect);
+      fields.push(statTypeLabel);
+      fields.push(createDropdown("Stat", "stat", attributes));
+      fields.push(createInput("Effect", "effect"));
+      fields.push(createInput("Value", "value"));
+      fields.push(createInput("Duration", "duration"));
+    } else if (["add", "multi"].includes(type)) {
+      fields.push(createDropdown("Stat", "stat", stats));
+      fields.push(createInput("Value", "value"));
+    }
+
+    fields.forEach(f => dynamicFields.appendChild(f));
+  }
+
+  select.addEventListener("change", () => renderFields(select.value));
+  renderFields(select.value);
+  container.appendChild(group);
+}
+
+function addEffect() {
+  buildEffectGroup(document.getElementById("effectsContainer"), [
+    "damage", "dot", "heal", "buff", "debuff", "affliction", "interrupt"
+  ]);
+}
+
+function addLevelUpEffect() {
+  buildEffectGroup(document.getElementById("levelUpContainer"), [
+    "add", "multi"
+  ], true);
+}
+
+function parseEffectGroup(group) {
+  const type = group.querySelector("select").value;
+  const inputs = group.querySelectorAll("[data-key]");
+  const obj = { type };
+  inputs.forEach(input => {
+    const val = input.value.trim();
+    if (!isNaN(val) && val !== '') {
+      obj[input.dataset.key] = parseFloat(val);
+    } else {
+      obj[input.dataset.key] = val;
+    }
+  });
+  return obj;
+}
+
+function generateJSON() {
+  const name = document.getElementById("name").value.trim();
+  const json = {};
+
+  const skill = {
+    name: name,
+    cooldown: {
+      base: parseFloat(document.getElementById("cooldownBase").value),
+      scaling: document.getElementById("cooldownScaling").value,
+      scale: parseFloat(document.getElementById("cooldownScale").value)
+    },
+    cost: {},
+    target: document.getElementById("target").value,
+    requiresTarget: document.getElementById("requiresTarget").value === "true"
+  };
+
+  const costMp = parseInt(document.getElementById("costMp").value);
+  const costHp = parseInt(document.getElementById("costHp").value);
+  const costSp = parseInt(document.getElementById("costSp").value);
+
+  if (costMp > 0) skill.cost.mp = costMp;
+  if (costHp > 0) skill.cost.hp = costHp;
+  if (costSp > 0) skill.cost.sp = costSp;
+
+  const effectGroups = document.querySelectorAll("#effectsContainer .effect-group");
+  skill.effects = Array.from(effectGroups).map(parseEffectGroup);
+
+  const lvlUpGroups = document.querySelectorAll("#levelUpContainer .effect-group");
+  skill.levelUpEffects = Array.from(lvlUpGroups).map(parseEffectGroup);
+
+  json[name.toLowerCase()] = skill;
+  document.getElementById("outputBox").textContent = JSON.stringify(json, null, 2);
+}
+</script></body>
+</html>
