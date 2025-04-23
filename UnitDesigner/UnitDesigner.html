@@ -70,9 +70,18 @@
 <div class="grid" id="statsArea"></div>
 
 <button onclick="generateUnit()">Generate Unit JSON</button>
+<button onclick="copyOutput()">Copy to Clipboard</button>
 <div id="output"></div>
 
 <script>
+  function copyOutput() {
+  const output = document.getElementById("output").textContent;
+  navigator.clipboard.writeText(output).then(() => {
+    alert("Copied to clipboard!");
+  }).catch(err => {
+    console.error("Failed to copy:", err);
+  });
+}
 const attributes = ["strength", "dexterity", "constitution", "intellect", "wisdom", "willpower"];
 const allStats = [
   "hp", "maxHp", "hpRegen",
