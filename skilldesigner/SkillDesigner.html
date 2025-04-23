@@ -48,7 +48,7 @@
 <div class="controls">
   <button onclick="generateSkill()">Generate Skill JSON</button>
 </div>
-
+<button onclick="copyOutput()">Copy to Clipboard</button>
 <pre id="output"></pre>
 
 <script>
@@ -62,7 +62,7 @@ const effectTargets = [
   "", "singleEnemy", "singleAlly", "randomEnemy", "randomAlly",
   "random", "allAllies", "allEnemies", "all", "adjacent"
 ];
-const effectTypes = ["damage", "interrupt", "siphon", "heal", "buff", "debuff", "condition"];
+const effectTypes = ["damage", "interrupt", "siphon", "heal", "buff", "debuff", "condition", "summon"];
 const conditionTypes = ["Burning", "Stunned", "Corruption"];
 const statSources = ["attribute", "stat"];
 const damageTypes = ["heat", "cold", "shock", "blight", "arcane", "void", "holy", "corrupt", "physical", "magic"];
@@ -78,19 +78,28 @@ function addScaling(containerId) {
   `;
   document.getElementById(containerId).appendChild(div);
 }
-
+function copyOutput() {
+  const output = document.getElementById("output").textContent;
+  navigator.clipboard.writeText(output).then(() => {
+    alert("Copied to clipboard!");
+  }).catch(err => {
+    console.error("Failed to copy:", err);
+  });
+}
 function addEffect() {
   const effectDiv = document.createElement("div");
-  effectDiv.className = "effect-block";
+  effectDiv.className = "effect-block"
+  
 
   const effectId = `effect_${document.querySelectorAll('.effect-block').length}`;
+  effectDiv.id = effectId;
   effectDiv.innerHTML = `
     <h4>Effect</h4>
     <label>Type:
       <select onchange="renderEffectFields(this, '${effectId}')">
         ${effectTypes.map(t => `<option>${t}</option>`).join("")}
       </select>
-    </label>
+    </label><br>
     <label>Target:
       <select>
         ${effectTargets.map(t => `<option value="${t}">${t || "None"}</option>`).join("")}
@@ -117,16 +126,18 @@ function renderEffectFields(select, id) {
       container.innerHTML += `
         <label>Damage Type:
           <select>${damageTypes.map(t => `<option>${t}</option>`).join("")}</select>
-        </label>`;
+        </label><br>`;
     }
     if (["siphon", "buff", "debuff"].includes(type)) {
       container.innerHTML += `
         <label>Stat Type:
           <select>${statSources.map(s => `<option>${s}</option>`).join("")}</select>
-        </label>
+        </label><br>
         <label>Stat:
           <select>${statOptions.map(s => `<option>${s}</option>`).join("")}</select>
-        </label>`;
+        </label><br>
+        <label>Duration: <input type="number">
+        </label><br>`;
     }
     container.innerHTML += `<label>Base: <input type="number"></label>`;
   }
@@ -137,9 +148,20 @@ function renderEffectFields(select, id) {
         <select onchange="this.nextElementSibling.style.display = (this.value === 'Stunned') ? 'block' : 'none'">
           ${conditionTypes.map(n => `<option>${n}</option>`).join("")}
         </select>
-      </label>
-      <label style="display:none">Duration: <input type="number"></label>
+      </label><br>
+      <label style="display:none">Duration: <input type="number"></label><br>
       <label>Stacks: <input type="number" value="1"></label>
+    `;
+  }
+  if (type === "summon") {
+    container.innerHTML = `
+      <label>Unit Name: <input type="string">
+      </label><br>
+      <label>isAlly <select id="isAlly">
+    <option value="true">true</option>
+    <option value="false">false</option>
+  </select></label><br>
+      <label>Tier: <input type="number" value="1"></label>
     `;
   }
 }
@@ -200,7 +222,7 @@ function generateSkill() {
     const fselects = fields.querySelectorAll("select");
     const finputs = fields.querySelectorAll("input");
 
-    if (["damage", "interrupt", "siphon", "buff", "debuff", "heal"].includes(type)) {
+    if (["damage", "interrupt", "siphon", "buff", "debuff", "heal", "summon"].includes(type)) {
       if (["siphon", "buff", "debuff"].includes(type)) {
         effect.statType = fselects[0].value;
         effect.stat = fselects[1].value;
@@ -208,6 +230,10 @@ function generateSkill() {
       } else if (type === "damage") {
         effect.damageType = fselects[0].value;
         effect.base = parseFloat(finputs[0].value);
+      } else if(type == "summon"){
+        effect.unit = finputs[0].value;
+        effect.tier = finputs[1].value;
+        effect.isAlly = fselects[0].value;
       } else {
         effect.base = parseFloat(finputs[0].value);
       }
