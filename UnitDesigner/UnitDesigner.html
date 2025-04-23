@@ -19,6 +19,14 @@
 
 <h2>Create Unit</h2>
 
+<label>Preset:
+  <select id="preset" onchange="applyPreset(this.value)">
+    <option value="">-- None --</option>
+    <option value="tank">Tank</option>
+    <option value="assassin">Assassin</option>
+    <option value="caster">Caster</option>
+  </select>
+</label>
 <!-- Basic Info -->
 <div>
   <h3>Basic Info</h3>
@@ -92,6 +100,129 @@ const allStats = [
   "lifestealMulti", "lifestealChance",
   "cooldownReduction", "armorPenetration", "magicPenetration"
 ];
+function applyPreset(type) {
+  const setVals = (vals, prefix = "") => {
+    for (const key in vals) {
+      const input = document.getElementById(prefix + key);
+      
+      if (input) {
+        input.value = vals[key];
+        updateStatBlock(key)
+      }
+    }
+  };
+
+  const presets = {
+  tank: {
+    attributes: { strength: 3, constitution: 5, dexterity: 2, intellect: 1, wisdom: 2, willpower: 2 },
+    apl: { strength: 1.8, constitution: 3.3, dexterity: 1.2, intellect: 0.7, wisdom: 1, willpower: 1 },
+    stats: {
+      maxHp: {
+        base: 100,
+        scaling: [{ target: "caster", stat: "constitution", scale: 10 }]
+      },
+      hpRegen: { base: 2 },
+      maxSp: {
+        base: 15,
+        scaling: [{ target: "caster", stat: "strength", scale: 2 }]
+      },
+      spRegen: { base: 1 },
+      maxMp: {
+        base: 10,
+        scaling: [{ target: "caster", stat: "willpower", scale: 1 }]
+      },
+      mpRegen: { base: 0.5 },
+    }
+  },
+  assassin: {
+    attributes: { strength: 2, constitution: 2, dexterity: 4, intellect: 1, wisdom: 1, willpower: 1 },
+    apl: { strength: 2.5, constitution: 1, dexterity: 3.5, intellect: 0.7, wisdom: 0.9, willpower: 1.5 },
+    stats: {
+      maxHp: {
+        base: 50,
+        scaling: [{ target: "caster", stat: "constitution", scale: 5 }]
+      },
+      hpRegen: { base: 1 },
+      maxSp: {
+        base: 25,
+        scaling: [{ target: "caster", stat: "dexterity", scale: 4 }]
+      },
+      spRegen: { base: 2 },
+      maxMp: {
+        base: 5,
+        scaling: [{ target: "caster", stat: "willpower", scale: 0.5 }]
+      },
+      mpRegen: { base: 0.25 },
+      critChance: { base: 1 },
+      critMulti: { base: 2 }
+    }
+  },
+  caster: {
+    attributes: { strength: 1, constitution: 1, dexterity: 2, intellect: 3, wisdom: 4, willpower: 5 },
+    apl: { strength: 0.2, constitution: 0.8, dexterity: 0.85, intellect: 3.4, wisdom: 2, willpower: 2.25 },
+    stats: {
+      maxHp: {
+        base: 40,
+        scaling: [{ target: "caster", stat: "constitution", scale: 4 }]
+      },
+      hpRegen: { base: 0.5 },
+      maxSp: {
+        base: 10,
+        scaling: [{ target: "caster", stat: "dexterity", scale: 1 }]
+      },
+      spRegen: { base: 1 },
+      maxMp: {
+        base: 80,
+        scaling: [{ target: "caster", stat: "willpower", scale: 5 }]
+      },
+      mpRegen: { base: 5 }
+    }
+  }
+};
+
+  if (type && presets[type]) {
+    setVals(presets[type].attributes);
+    setVals(presets[type].apl, "apl_");
+    for (const stat in presets[type].stats) {
+  const statData = presets[type].stats[stat];
+  const baseInput = document.getElementById(`base_${stat}`);
+  const scalingDiv = document.getElementById(`scaling_${stat}`);
+
+  // Handle base
+  if (baseInput && typeof statData === "object" && "base" in statData) {
+    baseInput.value = statData.base;
+  } else if (baseInput) {
+    baseInput.value = statData; // fallback for number-only presets
+  }
+
+  // Handle scaling
+  if (scalingDiv && statData.scaling) {
+    scalingDiv.innerHTML = ""; // Clear existing scalings
+    for (const s of statData.scaling) {
+      const div = document.createElement("div");
+      div.className = "scaling-entry";
+
+      const statSelectHTML = statOptions.map(
+        opt => `<option value="${opt}" ${opt === s.stat ? "selected" : ""}>${opt}</option>`
+      ).join("");
+
+      div.innerHTML = `
+        <select>
+          <option value="caster" ${s.target === "caster" ? "selected" : ""}>caster</option>
+          <option value="target" ${s.target === "target" ? "selected" : ""}>target</option>
+        </select>
+        <input type="number" value="${s.scale}" step="0.01">
+        <select>${statSelectHTML}</select>
+        <button type="button" onclick="this.parentElement.remove()">−</button>
+      `;
+      scalingDiv.appendChild(div);
+    }
+  }
+
+  updateStatBlock(stat);
+}
+  }
+}
 const statOptions = [...attributes, ...allStats, "skillLevel"];
 
 const statList = {};
@@ -102,11 +233,12 @@ allStats.forEach(stat => {
 
 const statsArea = document.getElementById("statsArea");
 for (const key in statList) {
+  if(key == "mp" || key == "hp" || key == "sp") continue;
   const container = document.createElement("div");
   container.innerHTML = `
     <div class="scaling-block" id="block_${key}">
       <strong>${statList[key]}</strong>
-      <label>base: <input id="base_${key}" type="number" value="0"></label>
+      <label>base: <input onchange="updateStatBlock('${key}')" id="base_${key}" type="number" value="${key == "cooldownReduction" || key=="armorPenetration" || key=="magicPenetration"?1:0}"></label>
       <div id="scaling_${key}"></div>
       <div class="controls">
         <button type="button" onclick="addScaling('${key}')">+ Add Scaling</button>
@@ -114,7 +246,19 @@ for (const key in statList) {
     </div>`;
   statsArea.appendChild(container);
 }
-
+function updateStatBlock(key){
+  let ele = document.getElementById("base_"+key);
+  let blockEle = document.getElementById("block_"+key);
+  if(ele && ele.value && ele.value!=0){
+    if(blockEle){
+      blockEle.style.background="#aca";
+    }
+  }else{
+    if(blockEle){
+      blockEle.style.background="#fff"
+    }
+  }
+}
 function addScaling(statKey) {
   const div = document.createElement("div");
   div.className = "scaling-entry";
@@ -141,6 +285,8 @@ function generateUnit() {
 
   const stats = {};
   for (const key in statList) {
+    if (key === "hp" || key === "mp" || key === "sp") continue; // skip generating blocks for these
+
     const obj = { display: statList[key] };
     if (val(`base_${key}`)) {
       obj.base = num(`base_${key}`);
@@ -162,6 +308,11 @@ function generateUnit() {
 
     stats[key] = obj;
   }
+
+  // Manually assign hp, mp, and sp to equal their respective max values
+  if (stats.maxHp) stats.hp = { value: stats.maxHp.base || 0 };
+  if (stats.maxMp) stats.mp = { value: stats.maxMp.base || 0 };
+  if (stats.maxSp) stats.sp = { value: stats.maxSp.base || 0 };
 
   const unit = {
     name: val("name"),
