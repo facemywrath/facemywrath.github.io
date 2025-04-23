@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Unit Builder</title>
+  <style>
+    body { font-family: sans-serif; padding: 2em; background: #f4f4f4; }
+    label { display: block; margin: 0.25em 0; }
+    input, select { width: 150px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1em; }
+    .scaling-block { border: 1px solid #ccc; padding: 0.5em; margin-top: 0.5em; background: #fff; }
+    .scaling-entry { margin-bottom: 0.25em; }
+    .scaling-entry select, .scaling-entry input { margin-right: 0.3em; }
+    .controls { display: flex; gap: 0.5em; margin-top: 0.3em; }
+    #output { white-space: pre-wrap; background: #fff; padding: 1em; border: 1px solid #ccc; margin-top: 1.5em; }
+  </style>
+</head>
+<body>
+
+<h2>Create Unit</h2>
+
+<!-- Basic Info -->
+<div>
+  <h3>Basic Info</h3>
+  <label>Name: <input id="name"></label>
+  <label>Race: <input id="race"></label>
+  <label>Damage Type:
+    <select id="damageType">
+      <option>Physical</option><option>Magic</option><option>Slashing</option><option>Piercing</option>
+      <option>Blunt</option><option>Force</option><option>Corrupt</option><option>Holy</option>
+      <option>Arcane</option><option>Elemental</option><option>Blood</option><option>Void</option>
+      <option>Blight</option><option>Spirit</option><option>Radiant</option><option>Ethereal</option>
+      <option>Sonic</option><option>Gravity</option><option>Psychic</option><option>Nature</option>
+      <option>Water</option><option>Heat</option><option>Shock</option><option>Cold</option>
+      <option>Poison</option>
+    </select>
+  </label>
+  <label>Planet: <input id="planet"></label>
+  <label>XP: <input id="xp" type="number" value="10"></label>
+</div>
+
+<!-- Attributes -->
+<h3>Attributes</h3>
+<div class="grid">
+  <label>Strength: <input id="strength" type="number" value="1"></label>
+  <label>Dexterity: <input id="dexterity" type="number" value="1"></label>
+  <label>Constitution: <input id="constitution" type="number" value="1"></label>
+  <label>Intellect: <input id="intellect" type="number" value="1"></label>
+  <label>Wisdom: <input id="wisdom" type="number" value="1"></label>
+  <label>Willpower: <input id="willpower" type="number" value="1"></label>
+</div>
+
+<!-- Attributes Per Level -->
+<h3>Attributes Per Level</h3>
+<div class="grid">
+  <label>Strength/lvl: <input id="apl_strength" type="number" value="1"></label>
+  <label>Dexterity/lvl: <input id="apl_dexterity" type="number" value="1"></label>
+  <label>Constitution/lvl: <input id="apl_constitution" type="number" value="1"></label>
+  <label>Intellect/lvl: <input id="apl_intellect" type="number" value="1"></label>
+  <label>Wisdom/lvl: <input id="apl_wisdom" type="number" value="1"></label>
+  <label>Willpower/lvl: <input id="apl_willpower" type="number" value="1"></label>
+</div>
+
+<!-- Skills -->
+<h3>Skills</h3>
+<label>Comma-separated Skill IDs: <input id="skills"></label>
+
+<!-- Stats -->
+<h3>Stats</h3>
+<div class="grid" id="statsArea"></div>
+
+<button onclick="generateUnit()">Generate Unit JSON</button>
+<div id="output"></div>
+
+<script>
+const attributes = ["strength", "dexterity", "constitution", "intellect", "wisdom", "willpower"];
+const allStats = [
+  "hp", "maxHp", "hpRegen",
+  "sp", "maxSp", "spRegen", "spEfficiency",
+  "mp", "maxMp", "mpRegen", "mpEfficiency",
+  "attackPower", "spellPower",
+  "critChance", "critMulti",
+  "lifestealMulti", "lifestealChance",
+  "cooldownReduction", "armorPenetration", "magicPenetration"
+];
+const statOptions = [...attributes, ...allStats, "skillLevel"];
+
+const statList = {};
+allStats.forEach(stat => {
+  let name = stat.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+  statList[stat] = name;
+});
+
+const statsArea = document.getElementById("statsArea");
+for (const key in statList) {
+  const container = document.createElement("div");
+  container.innerHTML = `
+    <div class="scaling-block" id="block_${key}">
+      <strong>${statList[key]}</strong>
+      <label>base: <input id="base_${key}" type="number" value="0"></label>
+      <div id="scaling_${key}"></div>
+      <div class="controls">
+        <button type="button" onclick="addScaling('${key}')">+ Add Scaling</button>
+      </div>
+    </div>`;
+  statsArea.appendChild(container);
+}
+
+function addScaling(statKey) {
+  const div = document.createElement("div");
+  div.className = "scaling-entry";
+
+  const statSelectHTML = statOptions.map(
+    opt => `<option value="${opt}">${opt}</option>`
+  ).join("");
+
+  div.innerHTML = `
+    <select>
+      <option value="caster">caster</option>
+      <option value="target">target</option>
+    </select>
+    <input type="number" value="0" step="0.01">
+    <select>${statSelectHTML}</select>
+    <button type="button" onclick="this.parentElement.remove()">−</button>
+  `;
+  document.getElementById(`scaling_${statKey}`).appendChild(div);
+}
+
+function generateUnit() {
+  const val = id => document.getElementById(id).value;
+  const num = id => parseFloat(val(id)) || 0;
+
+  const stats = {};
+  for (const key in statList) {
+    const obj = { display: statList[key] };
+    if (val(`base_${key}`)) {
+      obj.base = num(`base_${key}`);
+      obj.value = obj.base;
+    }
+
+    const scalings = [];
+    const scalingDivs = document.getElementById(`scaling_${key}`).children;
+    for (const div of scalingDivs) {
+      const [targetSel, scaleInput, statSelect] = div.querySelectorAll("select, input, select:nth-of-type(2)");
+      const scale = parseFloat(scaleInput.value);
+      const stat = statSelect.value;
+      const target = targetSel.value;
+      if (!isNaN(scale) && stat) {
+        scalings.push({ target, scale, stat });
+      }
+    }
+    if (scalings.length) obj.scaling = scalings;
+
+    stats[key] = obj;
+  }
+
+  const unit = {
+    name: val("name"),
+    race: val("race"),
+    damageType: val("damageType"),
+    planet: val("planet"),
+    xp: parseInt(val("xp")),
+    attributes: Object.fromEntries(attributes.map(attr => [attr, num(attr)])),
+    attributesPerLevel: Object.fromEntries(attributes.map(attr => [`${attr}`, num(`apl_${attr}`)])),
+    stats,
+    skills: {
+      combatData: { targets: {}, lastUsed: {} },
+      equipped: val("skills").split(",").filter(x => x.trim()).map(id => ({
+        id: id.trim(),
+        level: 1
+      }))
+    },
+    talents: []
+  };
+
+  document.getElementById("output").textContent = JSON.stringify(unit, null, 2);
+}
+</script>
+
+</body>
+</html>
