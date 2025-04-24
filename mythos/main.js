@@ -291,7 +291,8 @@ const classToPlanet = {
   "Ironveil": "Gravemount"
 };
 async function getLoreData() {
-
+  menuContent = document.getElementById("menu-content");
+  try{
   if (!loreDataCache) {
     const [loreRes,
       multiplierRes,
@@ -339,6 +340,9 @@ async function getLoreData() {
   }
 
   return loreDataCache;
+  }catch(e){
+    menuContent.textContent=e.stack
+  }
 }
 function updateMenuButton(btn, string) {
   const icon = getComputedStyle(btn).getPropertyValue('--icon').trim();
