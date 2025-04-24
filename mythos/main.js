@@ -20,7 +20,8 @@ let startX, startY, scrollLeft, scrollTop;
 let statusPopupInterval = null;
 let settings = {
   confirmLeaveCombat: true,
-  friendlyFire: false
+  friendlyFire: false,
+  autoTimer: 5
 }
 const conditionsData = {
   Stunned: {
@@ -402,10 +403,10 @@ function recalculateStat(unit, statName) {
     return;
   }
   if(isNaN(stat.value)){
-    console.error("yeah")
+    console.error("Stat set to 0 from NaN", statName, stat)
     stat.value = 0;
   }
-  console.log(stat);
+  
   let base = calculateEffectiveValue(stat, unit)
   if(base == NaN){
     console.error("base is nan", stat)
@@ -1089,7 +1090,7 @@ statGroups.forEach(group => {
         index = 0;
         for (let zoneName of zones) {
           const zoneData = loreDataCache.zones[zoneName];
-          console.log(unitsDefinedForZone(zoneData))
+          
           if (!unitsDefinedForZone(zoneData) || (zoneData.previousZone && (!player.zoneProgress[zoneData.previousZone] || player.zoneProgress[zoneData.previousZone].count < loreDataCache.zones[zoneData.previousZone].maxTier))) {
             index += 1;
             
@@ -1118,35 +1119,53 @@ statGroups.forEach(group => {
     case "lore":
       loadLoreLog();
       break;
-    case "settings":
-      main.innerHTML = "";
-      menuContent.innerHTML = `
-      <div class="settingsMenu" style="display: flex; flex-direction: column; align-items: center; gap: 2em; padding-top: 2em;">
+case "settings":
+  main.innerHTML = "";
+  menuContent.innerHTML = `
+  <div class="settingsMenu" style="display: flex; flex-direction: column; align-items: center; gap: 2em; padding-top: 2em;">
 
-      <div style="text-align: center;">
+    <div style="text-align: center;">
       <div style="margin-bottom: 0.5em;">Confirm before leaving combat</div>
       <label class="toggle-switch">
-      <input type="checkbox" id="forceConfirmToggleBtn">
-      <span class="slider"></span>
+        <input type="checkbox" id="forceConfirmToggleBtn">
+        <span class="slider"></span>
       </label>
-      </div>
+    </div>
 
-      <div style="text-align: center;">
+    <div style="text-align: center;">
       <div style="margin-bottom: 0.5em;">Enable Friendly Fire</div>
       <label class="toggle-switch">
-      <input type="checkbox" id="friendlyFireToggleBtn">
-      <span class="slider"></span>
+        <input type="checkbox" id="friendlyFireToggleBtn">
+        <span class="slider"></span>
       </label>
-      </div>
+    </div>
 
-      </div>
-      `;
+    <div style="text-align: center;">
+      <div style="margin-bottom: 0.5em;">AutoContinue Timer: <span id="autoTimerValue">${settings.autoTimer}</span></div>
+      <input type="range" id="autoTimerSlider" min="1" max="5" step="1" value="${settings.autoTimer}">
+    </div>
 
-      confirmToggle = document.getElementById("forceConfirmToggleBtn");
-      confirmToggle.checked = settings.confirmLeaveCombat;
-      confirmToggle.addEventListener("change", function () {
-        settings.confirmLeaveCombat = confirmToggle.checked;
-      });
+  </div>
+  `;
+
+  confirmToggle = document.getElementById("forceConfirmToggleBtn");
+  confirmToggle.checked = settings.confirmLeaveCombat;
+  confirmToggle.addEventListener("change", function () {
+    settings.confirmLeaveCombat = confirmToggle.checked;
+  });
+
+  friendlyFireToggle = document.getElementById("friendlyFireToggleBtn");
+  friendlyFireToggle.checked = settings.friendlyFire;
+  friendlyFireToggle.addEventListener("change", function () {
+    settings.friendlyFire = friendlyFireToggle.checked;
+  });
+
+  autoTimerSlider = document.getElementById("autoTimerSlider");
+  autoTimerValue = document.getElementById("autoTimerValue");
+  autoTimerSlider.addEventListener("input", function () {
+    settings.autoTimer = parseInt(autoTimerSlider.value);
+    autoTimerValue.textContent = settings.autoTimer;
+  });
 
       friendlyFireToggle = document.getElementById("friendlyFireToggleBtn");
       friendlyFireToggle.checked = settings.friendlyFire;
@@ -1158,7 +1177,7 @@ statGroups.forEach(group => {
 function unitsDefinedForZone(zone) {
   for (let u of zone.units) {
     if (!getUnitDataFromType(u.name)) {
-      console.log(u.name)
+      
       return false
     }
   }
@@ -1367,7 +1386,7 @@ function startCombat(force) {
         };
         let cd = calculateSkillCooldown(unit, skillId)
         unit.skills.combatData.lastUsed[skillId] = Date.now() + cd
-        console.log(`${unit.name} : ${skillId} : ${cd}`)
+        
       }
       skillIntervals[unit.id] = setInterval(() => {
         if (player.inCombat && findUnitById(unit.id)) {
@@ -1389,7 +1408,7 @@ function startCombat(force) {
       let enemyTarget = getEnemyTarget(u,
         s.id,
         skillsData[s.id].target)
-      console.log(enemyTarget.name)
+      
       u.skills.combatData.targets[s.id] = {
         target: enemyTarget.id,
         active: true
@@ -1402,18 +1421,18 @@ function startCombat(force) {
   
 }
 function updateCombatLog(text, caster) {
+  if(!player.inCombat) return;
   const log = document.getElementById("combat-log");
   log.innerHTML += `<span style="color:${caster?caster.isAlly?"#2f2":"#f22":"#fff"};">&gt; ${text}<br></span>`;
   log.scrollTop = log.scrollHeight; // auto-scroll
 }
 function getEnemyTarget(unit, skillId, targetType) {
   let baseTarget = undefined;
-  console.log(`targetType for ${unit.name} ${skillId}: ${targetType}`)
+  
   if (targetType == "singleEnemy" || targetType == "adjacent") {
     targetType = "randomEnemy";
     livingEnemies = combatUnits.filter(u => u.isAlive && u.isAlly != unit.isAlly);
-    console.log(`checkinv fr ${unit.name}`)
-    console.log(livingEnemies)
+    
     if (livingEnemies.length == 0) {
       checkIfCombatFinished();
       return null;
@@ -1430,7 +1449,7 @@ function getEnemyTarget(unit, skillId, targetType) {
       baseTarget = livingAllies[Math.floor(Math.random()*livingAllies.length)]
     }
   }
-  console.log(`baseTarget: ${baseTarget}`)
+  
   return getTarget(unit, baseTarget, targetType, skillId);
 }
 
@@ -1438,7 +1457,7 @@ function renderSkillTree() {
   const skillTree = loreDataCache.classes[player.class].skillTree;
   const learnedSkills = player.skills.learned;
   const affordableSkills = getAvailableSkills();
-  console.log(affordableSkills)
+  
   const menuContent = document.getElementById("menu-content");
   const mainArea = document.getElementById("main-area");
 
@@ -1523,7 +1542,8 @@ function renderSkillTree() {
     const currentLevel = learned ? learned.level: 0;
     const isUnlocked = currentLevel > 0;
     const isAvailable = !!getAvailableSkills()[skill.id];
-    console.log("isAva", isAvailable, skill.id, affordableSkills)
+
+    
     const node = document.createElement("div");
     node.setAttribute("data-skill-id", skill.id);
     node.className = "skill-node";
@@ -1538,7 +1558,7 @@ function renderSkillTree() {
 
     node.onclick = (e) => {
       e.stopPropagation();
-      showSkillDetails(skill, !!getAvailableSkills()[skill.id]);
+      showSkillDetails(skill, !!getAvailableSkills().find(s => s.id == skill.id));
     }
     treeContainer.appendChild(node);
 
@@ -1600,6 +1620,7 @@ function updateSkillDisplay(skillId) {
   const currentLevel = learned ? learned.level: 0;
   const isUnlocked = currentLevel > 0;
   const isAvailable = !!affordableSkills[skill.id];
+  
 
   // Reset classes
   node.className = "skill-node";
@@ -1616,13 +1637,18 @@ function showSkillDetails(skill, isAvailable = false) {
   const description = skillsData[skill.id]?.description || "No description available.";
   const isMaxed = level >= skill.maxLevel;
   const canLevel = isAvailable;
-  console.log(`isAvailable?`, isAvailable, skill.id)
+  if(!isAvailable && skill.id == "emberSpike")
+  console.log(new Error().stack)
+  
   const buttonLabel = level > 0 ? (isMaxed ? "Maxed Out": "Level Up"): "Unlock Skill";
-
+  let skillCost = skill.cost;
+  if(!learned){
+    skillCost+=Object.keys(player.skills.learned).length
+  }
   mainArea.innerHTML = `
   <span style="font-size: 26px;">Points: ${player.skillPoints}</span>
   <div style="padding: 1em">
-  <h3 style="color: #f0f0f0">${skillsData[skill.id].name}</h3><span style="color:#77a;"><strong>Level:</strong> ${level} / ${skill.maxLevel}</span> | <span style="color: #a7a;"><strong> Cost:</strong> ${skill.cost} Skill Point${skill.cost !== 1 ? 's': ''}</span>
+  <h3 style="color: #f0f0f0">${skillsData[skill.id].name}</h3><span style="color:#77a;"><strong>Level:</strong> ${level} / ${skill.maxLevel}</span> | <span style="color: #a7a;"><strong> Cost:</strong> ${skillCost} Skill Point${skillCost !== 1 ? 's': ''}</span>
   <br>
   <span style="margin-top: 0.5em">${description}</span>
   <br>
@@ -1640,7 +1666,7 @@ function showSkillDetails(skill, isAvailable = false) {
 
   if (canLevel) {
     const upgradeBtn = document.getElementById("skill-upgrade-btn");
-    upgradeBtn.addEventListener("click", () => levelUpSkill(skill.id, skill.cost));
+    upgradeBtn.addEventListener("click", () => levelUpSkill(skill.id, skillCost));
   }
 }
 function levelUpSkill(skillId, cost) {
@@ -1668,13 +1694,13 @@ function updateAllSkillDisplays() {
   skillTree.forEach(skill => updateSkillDisplay(skill.id));
 }
 function nextEncounter(force) {
-  console.log("--")
+  
   if (!player.zone) return;
 
   if (player.zone.count >= loreDataCache.zones[player.zone.name].maxTier) return;
   if (player.zone.count >= player.zoneProgress[player.zone.name].count) return;
   if (!force && player.inCombat && settings.confirmLeaveCombat) {
-    console.log("??")
+    
     setTimeout(() => showPopup(`
       <h2 style="color: #d88">Are you sure?</h2>
       <span>Opening another menu in combat will cancel the encounter. You'll have to restart this fight.</span>
@@ -1833,12 +1859,12 @@ function updateSkillsMenu() {
 
       unequipBtn.className = "unequip-btn";
       unequipBtn.onclick = () => {
-        console.log("ghnu")
+        
         if (player.inCombat) {
           log("Can't unequip during combat.");
           return;
         }
-        console.log(player.skills.equipped[skillId])
+        
         player.skills.equipped[player.skills.equipped.find(skill => skill.id == skillId)] = undefined;
         updateSkillsMenu();
       };
@@ -2069,7 +2095,7 @@ function buildUnitTable(member, isAlly, isPlayer) {
     skillsContainer.style.display = 'grid';
     skillsContainer.style.gridTemplateColumns = 'repeat(auto-fit, minmax(35%, 1fr))';
 
-    console.log(member.skills.equipped)
+    
     member.skills.equipped.map(skill => skill.id).forEach(skillId => {
       let skillFrame = updateSkillUnitDisplay(skillId, member)
       if (skillFrame)
@@ -2164,8 +2190,8 @@ function updateProgressBar(skillId, member) {
       return;
     }
     lastError = Date.now();
-    console.log(skillId)
-    console.log(skillsData)
+    console.error("updateProgressBar skill is null", skillId, skillsData);
+    
   }
 
   const combatData = member.skills.combatData;
@@ -2661,10 +2687,7 @@ function findSkillLevelScalingPaths(obj) {
 function calculateSkillCooldown(unit, skillId) {
   let skill = skillsData[skillId];
   if (!unit || !skill) {
-    console.error("failed to calculate cd")
-    console.log(unit);
-    console.log(skill)
-    console.log(skillId)
+    console.error("calculateSkillCooldown skill or unit not found",unit, skill, skillId);
     return 0;
   }
   let cdr = 1;
@@ -2726,7 +2749,7 @@ function showItemPopup(item) {
   document.body.appendChild(overlay);
 }
 function showDamageTypePopup(damageType) {
-  console.log(damageType);
+  
   if (targetting) {
     return;
   }
@@ -2976,7 +2999,7 @@ function applyEffect(effect, caster, target, skillId, originalTarget) {
     case "damage":
 
       let statMulti = 1 + (isPhysical(effect.damageType) ? caster.stats.attackPower.value: caster.stats.spellPower.value) * 0.01;
-      console.log("effect.scaling",skillId,effect.scaling)
+      
       let total = statMulti * (calculateEffectiveValue(effect, caster, unit, caster.skills.equipped.find(s=>s.id==skillId).level))
       let finalDamage = damageUnit(caster, unit, effect.damageType, total)
       if (unit.stats.hp.value === 0) {
@@ -3007,7 +3030,7 @@ function applyEffect(effect, caster, target, skillId, originalTarget) {
       unitData.buffs = [];
       unitData.conditions = [];
       combatUnits.push(unitData)
-      console.log(unitData);
+      
       if (unitData.isAlly || unitData.isPlayer) {
         crewContainer.appendChild(buildUnitTable(unitData, unitData.isAlly || isPlayer, isPlayer))
       } else {
@@ -3037,7 +3060,7 @@ function applyEffect(effect, caster, target, skillId, originalTarget) {
           };
           let cd = calculateSkillCooldown(unitData, skillId)
           unitData.skills.combatData.lastUsed[skillId] = Date.now() + cd
-          console.log(`${unitData.name} : ${skillId} : ${cd}`)
+          
         }
         skillIntervals[unitData.id] = setInterval(() => {
           if (player.inCombat && findUnitById(unitData.id)) {
@@ -3088,14 +3111,14 @@ function applyEffect(effect, caster, target, skillId, originalTarget) {
         skillId);
       break;
     case "buff":
-      console.log(unit.stats.hp.value, effect)
+      
       pushedEffect = JSON.parse(JSON.stringify(effect));
       pushedEffect.startTime = Date.now()
       pushedEffect.duration = calculateEffectiveValue(pushedEffect.duration, caster, unit, caster.skills.equipped.find(s => s.id == skillId).level);
       pushedEffect.value = calculateEffectiveValue(pushedEffect.value, caster, unit, caster.skills.equipped.find(s => s.id == skillId).level)
-      console.log(unit.stats.hp.value, pushedEffect)
+      
       unit.buffs.push(pushedEffect);
-      console.log(unit.stats.hp.value, pushedEffect)
+      
       setTimeout(() => {
         if (findUnitById(unit.id)) {
           const index = unit.buffs.findIndex(e => e.name === pushedEffect.name && e.startTime === pushedEffect.startTime);
@@ -3119,12 +3142,12 @@ function applyEffect(effect, caster, target, skillId, originalTarget) {
         unit,
         skillId);
          sign = (effect.type === "buff" ? pushedEffect.value < 0?"-":"+": "-");
-         console.log(unit.stats.hp.value, pushedEffect)
+         
          valueStr = effect.effect === "add"
         ? pushedEffect.value.toFixed(2): ((effect.type === "buff" ? Math.abs(pushedEffect.value - 1): Math.abs(1 - pushedEffect.value)) * 100).toFixed(2) + "%";
         desc = `${caster.name} inlicts ${effect.type} on ${unit.name}: ${sign}${valueStr} ${fromCamelCase(effect.stat)} for ${(pushedEffect.duration / 1000).toFixed(2)}s`;
       updateCombatLog(desc, caster)
-      console.log(unit.stats.hp.value, pushedEffect)
+      
       break;
     case "debuff":
       pushedEffect = JSON.parse(JSON.stringify(effect));
@@ -3169,7 +3192,7 @@ function applyEffect(effect, caster, target, skillId, originalTarget) {
     case "heal":
       if (!unit.isAlive) break;
       let base = effect.base + effect.scale * caster.attributes[effect.scaling];
-      console.log("healing " + base)
+      
       unit.stats.hp.value = Math.min(unit.stats.maxHp.value, unit.stats.hp.value + base);
     updateCombatBar(unit, "hp");
       break;
@@ -3199,7 +3222,7 @@ function applyEffect(effect, caster, target, skillId, originalTarget) {
       unit.conditions[condition].stacks += stacksToAdd;
       unit.conditions[condition].caster = caster
       updateStatusButton(unit)
-      console.log(`${unit.name} gains ${stacksToAdd} stack(s) of ${condition} (total: ${unit.conditions[condition].stacks})`);
+      
       statusStartEvent.emit(effect, caster, unit, skillId)
       break;
     }
@@ -3251,8 +3274,7 @@ function toggleEquipSkill(skill) {
       console.log("You can only equip up to 6 skills.");
       return;
     }
-    console.log("equupped");
-    console.log(equipped)
+    
     if (equipped.find(s => s.id == skill.id)) {
       log("That skill is already equipped.");
       return;
@@ -3272,7 +3294,7 @@ function isSkillOn(skillId, unit) {
 function toggleSkill(unitId, skillId) {
   
   const unit = findUnitById(unitId); // Write this helper if needed
-  console.log(unitId, combatUnits, unit);
+  
   if (!unit.skills.combatData.targets[skillId]) {
     unit.skills.combatData.targets[skillId] = {
       active: true,
@@ -3289,7 +3311,7 @@ function selectSkillTarget(unitId) {
   // Implement a UI for selecting target; for now, simulate a target selection:
   const skillId = skillToTarget;
   const targetUnitId = unitToTarget;
-  console.log(skillToTarget)
+  
 
   if (!unit.skills.combatData.targets || !unit.skills.combatData.targets[skillId]) unit.skills.combatData.targets[skillId] = {};
   unit.skills.combatData.targets[skillId].target = targetUnitId;
@@ -3328,7 +3350,7 @@ function startTargetting(skillId, casterId) {
   }
   skillToTarget = skillId;
   unitToCast = casterId;
-  console.log("start targetting");
+  
   let potentialTargets = getPotentialTargets(findUnitById(casterId), skillsData[skillId])
   document.querySelectorAll('.unit-box').forEach(box => {
     let unitId = parseInt(box.id.match(/\d+/)[0]);
@@ -3431,9 +3453,13 @@ function getAvailableSkills() {
     //    console.log(skill, learnedLevel)
     // Skip if max level already reached
     if (learnedLevel >= skill.maxLevel) continue;
-
+    let cost = skill.cost;
+    if(learnedLevel==0){
+      cost += Object.keys(player.skills.learned).length
+    }
     // Skip if not enough points
-    if (player.skillPoints < skill.cost) continue;
+
+    if (player.skillPoints < cost) continue;
 
     // Check if there is a previous skill requirement
     if (skill.previousSkill) {
@@ -3444,13 +3470,12 @@ function getAvailableSkills() {
     let skillToPush = {
       id: skill.id,
       nextLevel: nextLevel,
-      cost: skill.cost
+      cost: cost
     }
-    console.log("pushing skill", skillToPush)
     availableSkills.push(skillToPush);
   }
-  console.log("pushing skills", Object.fromEntries(availableSkills.map(s => [s.id, s])))
-  return Object.fromEntries(availableSkills.map(s => [s.id, s]));
+  let retSkills = Object.fromEntries(availableSkills.map(s => [s.id, s]))
+  return availableSkills;
 }
 
 function showUnitPopup(unitId) {
@@ -3463,8 +3488,7 @@ function showUnitPopup(unitId) {
   let html = `<div class="popup-unit-header">${unit.name}</div><div class="unit-attributes">`;
   // Attributes section
   let attrIndex = 0;
-  console.log("displaying info")
-  console.log(unit)
+  
   Object.keys(unit.attributes).forEach(attr => {
     const base = getEffectiveAttribute(unit, attr);
     html += `
@@ -3686,7 +3710,7 @@ function finishCombat(win) {
   `
   const button = document.querySelector('.countdown-button');
   if (forceContinue && win) {
-    countdownAutoClick(button, "Continue?", 5000, () => {
+    countdownAutoClick(button, "Continue?", 1000*settings.autoTimer, () => {
       forceContinue = true;
       nextEncounter();
       startCombat();
@@ -3696,7 +3720,7 @@ function finishCombat(win) {
       startCombat();
     }
   } else {
-    countdownAutoClick(button, "Repeat?", 5000, () => {
+    countdownAutoClick(button, "Repeat?", 1000*settings.autoTimer, () => {
       forceContinue = false;
       startCombat();
     });
@@ -3711,7 +3735,7 @@ function finishCombat(win) {
 }
 function levelUp() {
   player.xp -= player.maxXp;
-  player.maxXp += 20;
+  player.maxXp += 30;
   player.level += 1;
   let keys = Object.keys(player.attributes);
   for (let i = 0; i < 6; i++) {
@@ -3861,7 +3885,7 @@ function formatSkillLevelScalingsWithLabels(skillId, paths) {
   if(!paths){
     console.log("no paths")
   }
-  console.log(paths)
+
   for (const path of paths) {
     let current = skillsData;
     const skillData = skillsData[skillId];
@@ -3872,7 +3896,7 @@ function formatSkillLevelScalingsWithLabels(skillId, paths) {
     for (let i = 0; i < path.length; i++) {
       value = value[path[i]];
     }
-    console.log(value)
+    
     const scalingArray = value.scaling || [];
     const skillLevelScales = scalingArray
       .filter(s => s.stat === "skillLevel")
@@ -3888,11 +3912,20 @@ function formatSkillLevelScalingsWithLabels(skillId, paths) {
         // Count how many effects of this type come before this one
         const count = skillData.effects.slice(0, effectIndex + 1)
           .filter(e => e.type === type).length;
-        label = `${type.charAt(0).toUpperCase() + type.slice(1)} Effect (${count})`;
+        console.log("type is",type)
+        if(type == "condition"){
+          if(path.includes("stacks")){
+            label = `${effect.name.charAt(0).toUpperCase() + effect.name.slice(1)} stacks (${count})`;
+          }else{
+            label = `${effect.name.charAt(0).toUpperCase() + effect.name.slice(1)}  (${count})`;
+          }
+        }else{
+          label = `${type.charAt(0).toUpperCase() + type.slice(1)} Effect (${count})`;
+        }
       }
     }
 
-    results.push(`Scales ${label.capitalize()}  ${skillLevelScales}<br>`);
+    results.push(`<span style="color: #9c9;">--${label.capitalize()}  ${skillLevelScales}</span><br>`);
   }
 
   return results.join(" ");
@@ -4057,6 +4090,6 @@ const levelUpEvent = new EventType("levelUp");
 
 recalculateStatEvent.on((u, s, o, n) => {
   if(u.isAlly){
-    console.log(u,s,o,n);
+    
   }
 })

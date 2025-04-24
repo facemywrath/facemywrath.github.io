@@ -144,7 +144,7 @@
         {
           "id": "fireball",
           "level": 1,
-          "cost": 3,
+          "cost": 2,
           "maxLevel": 6,
           "previousSkill": "emberSpike",
           "previousSkillLevelRequired": 3
@@ -160,7 +160,7 @@
         {
           "id": "emberStream",
           "level": 1,
-          "cost": 3,
+          "cost": 2,
           "maxLevel": 5,
           "previousSkill": "emberSpike",
           "previousSkillLevelRequired": 3
@@ -168,7 +168,7 @@
         {
           "id": "searingShot",
           "level": 1,
-          "cost": 4,
+          "cost": 3,
           "maxLevel": 5,
           "previousSkill": "emberStream",
           "previousSkillLevelRequired": 1
@@ -176,7 +176,7 @@
         {
           "id": "boilingBlood",
           "level": 1,
-          "cost": 3,
+          "cost": 2,
           "maxLevel": 5,
           "previousSkill": "emberSpike",
           "previousSkillLevelRequired": 3
@@ -397,7 +397,7 @@
       ],
       "maxTier": 20,
       "unitCountWeights": [
-        30,
+        100,
         1
       ]
     },
