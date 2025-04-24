@@ -1,0 +1,2044 @@
+{
+  "races": {
+    "Human": {
+      "description": "Versatile and adaptive, Humans populate the galaxy thoroughly. A true testament to imperialism.",
+      "damageType": "physical",
+      "bonuses": [
+        "10% Bonus Exp gain",
+        "Slight Vulnerability to Elemental damage."
+      ]
+    },
+    "Undying": {
+      "display": "The Undying",
+      "description": "Reanimated by blight, the Undying are corpses of those who once were, with a semblance of humanity still retained.",
+      "damageType": "blight",
+      "bonuses": [
+        "Reduced Blight and Corrupt damage taken",
+        "Takes extra Radiant damage"
+      ]
+    },
+    "Other": {
+      "display": "The Others",
+      "description": "The Others are a mysterious and mischievous race that blend in with nature. They excel at illusion and manipulation.",
+      "damageType": "nature",
+      "bonuses": [
+        "Minor bonus to Dexterity",
+        "Increased resistance to Nature and Arcane",
+        "Bonus to Psychic damage"
+      ]
+    },
+    "Automaton": {
+      "description": "Forged from metal and magic, automatons are durable and emotionless.",
+      "damageType": "force",
+      "bonuses": [
+        "Greatly reduced Spirit damage taken",
+        "Slightly reduced Blunt and Force damage taken"
+      ]
+    },
+    "Seraphim": {
+      "description": "Winged beings of radiant power, often aligned with holy light.",
+      "damageType": "holy",
+      "bonuses": [
+        "Increased Holy damage dealt",
+        "Reduced Radiant damage taken"
+      ]
+    },
+    "Voidborn": {
+      "description": "Spawned in the depths of space, voidborn are immune to madness and corruption.",
+      "damageType": "void",
+      "bonuses": [
+        "Immune to Psychic damage",
+        "Takes extra Holy and Radiant damage"
+      ]
+    },
+    "Spiritkin": {
+      "description": "Spiritual hybrids that heal outside combat and walk between planes.",
+      "damageType": "spirit",
+      "bonuses": [
+        "Regenerate a small amount of health out of combat",
+        "Takes reduced Spirit damage"
+      ]
+    },
+    "Pyrrhan": {
+      "description": "Born of flame, Pyrrhans burn bright and burn fast, excelling in fire damage.",
+      "damageType": "heat",
+      "bonuses": [
+        "Increased Heat damage dealt",
+        "Reduced Heat damage taken"
+      ]
+    }
+  },
+  "classes": {
+    "Reaper": {
+      "description": "Masters of blood magic and critical strikes, Reapers use blight and health leeching to survive and overwhelm.",
+      "bonuses": [
+        "+2 Dexterity, +1 Strength",
+        "Basic attack: Hemorrhage",
+        "Converts healing into Blight damage."
+      ],
+      "attributes": [
+        1,
+        2,
+        0,
+        0,
+        0,
+        0
+      ],
+      "starterSkill": "soulRend",
+      "skillTree": [
+        {
+          "id": "soulRend",
+          "level": 1,
+          "cost": 1,
+          "maxLevel": 10
+        },
+        {
+          "id": "devourVitality",
+          "level": 3,
+          "cost": 2,
+          "maxLevel": 5,
+          "previousSkill": "soulRend",
+          "previousSkillLevelRequired": 3
+        }
+      ]
+    },
+    "Mystic": {
+      "description": "Nature-bound healers who regenerate health and poison enemies with natural magic.",
+      "bonuses": [
+        "+3 Wisdom",
+        "Regenerates health over time",
+        "Basic attack: Vine Lash"
+      ],
+      "attributes": [
+        0,
+        0,
+        0,
+        0,
+        3,
+        0
+      ]
+    },
+    "Pyromancer": {
+      "description": "Fire casters who use fire to burn stuff. Hot.",
+      "bonuses": [
+        "+2 Intellect, +1 Willpower",
+        "Inflicts burning over time",
+        "Starter Skill: Ember Spike"
+      ],
+      "starterSkill": "emberSpike",
+      "attributes": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        1
+      ],
+      "skillTree": [
+        {
+          "id": "emberSpike",
+          "level": 2,
+          "cost": 2,
+          "maxLevel": 10
+        },
+        {
+          "id": "fireball",
+          "level": 1,
+          "cost": 3,
+          "maxLevel": 6,
+          "previousSkill": "emberSpike",
+          "previousSkillLevelRequired": 3
+        },
+        {
+          "id": "emberFall",
+          "level": 1,
+          "cost": 3,
+          "maxLevel": 5,
+          "previousSkill": "fireball",
+          "previousSkillLevelRequired": 3
+        },
+        {
+          "id": "emberStream",
+          "level": 1,
+          "cost": 3,
+          "maxLevel": 5,
+          "previousSkill": "emberSpike",
+          "previousSkillLevelRequired": 3
+        },
+        {
+          "id": "searingShot",
+          "level": 1,
+          "cost": 4,
+          "maxLevel": 5,
+          "previousSkill": "emberStream",
+          "previousSkillLevelRequired": 1
+        },
+        {
+          "id": "boilingBlood",
+          "level": 1,
+          "cost": 3,
+          "maxLevel": 5,
+          "previousSkill": "emberSpike",
+          "previousSkillLevelRequired": 3
+        }
+      ]
+    },
+    "Chronomancer": {
+      "description": "Wielders of time, Chronomancers slow, stun, and manipulate cooldowns to cripple foes.",
+      "bonuses": [
+        "+2 Intellect, +1 Wisdom",
+        "Reduces cooldown timers slightly",
+        "Basic attack: Time Spike"
+      ],
+      "attributes": [
+        0,
+        0,
+        0,
+        2,
+        1,
+        0
+      ]
+    },
+    "Voidcaller": {
+      "description": "Summoners who call upon void-touched entities to fight in their place.",
+      "bonuses": [
+        "+1 Constitution, +1 Intellect, +1 Wisdom",
+        "Summon creatures with their own basic attacks",
+        "Basic attack: Abyssal Bolt"
+      ],
+      "attributes": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    "Foresworn": {
+      "description": "Dark warriors bound to cursed weapons, excelling at brutal melee and anti-magic.",
+      "bonuses": [
+        "+2 Strength, +1 Constitution",
+        "Takes reduced Arcane damage",
+        "Basic attack: Cursed Slash"
+      ],
+      "attributes": [
+        2,
+        0,
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    "Ironveil": {
+      "description": "Stalwart defenders that use shields and counterattacks, thriving under pressure.",
+      "bonuses": [
+        "+2 Constitution, +1 Strength",
+        "Basic attack: Shield Bash",
+        "Reduces incoming damage while not attacking"
+      ],
+      "attributes": [
+        1,
+        0,
+        2,
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "planets": {
+    "Dreadthorn": {
+      "description": "A rotting forest world teeming with corruption, zealotry, and the undead.",
+      "zones": [
+        "Dread Swamp",
+        "Cryptroot Vale",
+        "Chapel of Withering Faith",
+        "Marrow Rise",
+        "Gravepetal Thicket",
+        "Reliquary of Blessed Decay",
+        "Fuzzy Forest"
+      ],
+      "damageTypes": [
+        "blight",
+        "blood",
+        "corruption",
+        "nature"
+      ]
+    },
+    "Cinderrift": {
+      "description": "A world without rotation, half in eternal darkness and the other eternal light.",
+      "zones": [
+        "Scorched Hollow",
+        "Crossover",
+        "The White Expanse",
+        "Molten Thorns",
+        "Thicket Sprawl",
+        "Frostmarch Crypts"
+      ],
+      "damageTypes": [
+        "heat",
+        "nature",
+        "cold",
+        "arcane"
+      ]
+    },
+    "Ferrania": {
+      "description": "A dense jungle planet where all life holds a grudge.",
+      "damageTypes": [
+        "nature",
+        "poison",
+        "arcane",
+        "shock",
+        "elemental"
+      ]
+    },
+    "Fractalis": {
+      "description": "A fractured, crystalline planet where time slips and magic pulses.",
+      "zones": [
+        "Clockwork Caverns",
+        "Refraction Fields",
+        "Temporal Apex",
+        "Torsion Halls",
+        "Lightfract Nexus",
+        "Epoch Spiral"
+      ],
+      "damageTypes": [
+        "psychic",
+        "gravity",
+        "force",
+        "blight"
+      ]
+    },
+    "Hollowreach": {
+      "description": "A void-ridden world filled with echoing silence and elite horrors.",
+      "zones": [
+        "Desolation Tunnels",
+        "Whispershade Vale",
+        "Astral Maw",
+        "Ironwake Depths",
+        "Nightveil Hollow",
+        "Singularity Core"
+      ],
+      "damageTypes": [
+        "void",
+        "arcane",
+        "psychic",
+        "sonic",
+        "ethereal"
+      ]
+    },
+    "Halcyon Bastion": {
+      "description": "A once-holy fortress in the sky now fractured by radiant madness.",
+      "zones": [
+        "Sanctum Gate",
+        "Blade of Grace",
+        "Cathedral of Fidelity",
+        "Sentinel Rise",
+        "Chamber of Judged Steel",
+        "Celestial Inquisition"
+      ],
+      "damageTypes": [
+        "slashing",
+        "blunt",
+        "piercing",
+        "radiant",
+        "holy"
+      ]
+    },
+    "Gravemount": {
+      "description": "A battlefield planet covered in metal, traps, and relentless armies.",
+      "zones": [
+        "Warfront Trenches",
+        "Craterforge Expanse",
+        "Shieldspire Bastion",
+        "Siegewake Plateau",
+        "Forgecore",
+        "Ironhold Apex"
+      ],
+      "damageTypes": [
+        "piercing",
+        "force",
+        "fire",
+        "blood",
+        "corrupt"
+      ]
+    }
+  },
+  "zones": {
+    "Dread Swamp": {
+      "description": "Weak regenerators and blood-fed fauna wander these twisted woods.",
+      "units": [
+        {
+          "name": "Blightspawn Creeper",
+          "weight": 10,
+          "levels": {
+            "min": 1,
+            "max": 20
+          }
+        },
+        {
+          "name": "Tornblood Beast",
+          "weight": 5,
+          "levels": {
+            "min": 2,
+            "max": 20
+          }
+        },
+        {
+          "name": "Rootrot Caller",
+          "weight": 5,
+          "levels": {
+            "min": 2,
+            "max": 20
+          }
+        }
+      ],
+      "maxTier": 20,
+      "unitCountWeights": [
+        30,
+        1
+      ]
+    },
+    "Marrow Rise": {
+      "description": "Dread Swamp Zone 2 — Carnivorous plants and parasitic creatures thrive in sickly wetlands.",
+      "units": [
+        {
+          "name": "leechroot",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "mirecrawler",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "rotpetal",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "thornstag",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "feralspore",
+          "weight": 6,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "previousZone": "Dread Swamp",
+      "unitCountWeights": [
+        105,
+        5,
+        2
+      ]
+    },
+    "Cryptroot Vale": {
+      "description": "Undead swarm beneath cursed soil with lifedrain attacks.",
+      "units": [
+        {
+          "name": "bonecreeper",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "cryptshambler",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "dirtwither",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        }
+      ],
+      "maxTier": 20,
+      "unitCountWeights": [
+        30,
+        1
+      ]
+    },
+    "Gravepetal Thicket": {
+      "description": "Cryptroot Vale Zone 2 — Withered flora and crawling corpses poison the air with every breath.",
+      "units": [
+        {
+          "name": "gravecrawler",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "hollowthorn",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "cryptbloom",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "cryptshambler",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "dirtwither",
+          "weight": 6,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "previousZone": "Cryptroot Vale",
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Chapel of Withering Faith": {
+      "description": "Zealots channel holy light into deadly healing magic.",
+      "units": [
+        {
+          "name": "blightpreacher",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "penitentflare",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "radiantbound",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        }
+      ],
+      "maxTier": 20,
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Reliquary of Blessed Decay": {
+      "description": "Chapel of Withering Faith Zone 2 — Purifiers wield light to cauterize sin and decay alike.",
+      "units": [
+        {
+          "name": "holyexecutor",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "relicburn",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "zealborne",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "faithleech",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "blightpreacher",
+          "weight": 6,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "previousZone": "Chapel of Withering Faith",
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Scorched Hollow": {
+      "description": "Blighted beasts burn with fire and toxic trails.",
+      "units": [
+        {
+          "name": "Scorch Maw",
+          "weight": 10,
+          "levels": {
+            "min": 2,
+            "max": 20
+          }
+        },
+        {
+         "name": "Blaze Crawler",
+         "weight": 7,
+         "levels": {
+             "min": 1,
+             "max": 20
+         }
+        },
+        {
+          "name": "Ashen Fang",
+          "weight": 8,
+          "levels": {
+            "min": 2,
+            "max": 20
+          }
+        }
+      ],
+      "maxTier": 20,
+      "unitCountWeights": [
+        105,
+        5,
+        1
+      ]
+    },
+    "Molten Thorns": {
+      "description": "Scorched Hollow Zone 2 — Thorned serpents spew magma and corruption across the charred ground.",
+      "units": [
+        {
+          "name": "maggthorn",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "pyrecoil",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "slagwurm",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "blazecrawler",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "ashenfang",
+          "weight": 6,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "previousZone": "Scorched Hollow",
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Crossover": {
+      "description": "The land between, a dense jungle of ruins.",
+      "units": [
+        {
+          "name": "sharptooth",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "treant",
+          "weight": 2,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "grovegnoll",
+          "weight": 13,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        }
+      ],
+      "maxTier": 20,
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Thicket Sprawl": {
+      "description": "Crossover Zone 2 — The jungles grow denser.",
+      "units": [
+        {
+          "name": "ancientTreant",
+          "weight": 1,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "forestWasp",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "woodElf",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "grovegnoll",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "sharptooth",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "previousZone": "Crossover",
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "The White Expanse": {
+      "description": "Dense blizzards and frozen lakes attract the most extreme creatures.",
+      "units": [
+        {
+          "name": "noctishade",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "brightOne",
+          "weight": 1,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "icySpecter",
+          "weight": 15,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        }
+      ],
+      "maxTier": 20,
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Frostmarch Crypts": {
+      "description": "The White Expanse Zone 2 — You find rest among a deep and ancient tomb.",
+      "units": [
+        {
+          "name": "unfrozenUndead",
+          "weight": 15,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "broodQueen",
+          "weight": 4,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "wizardSkull",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "noctishade",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "icySpecter",
+          "weight": 6,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "previousZone": "The White Expanse",
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Clockwork Caverns": {
+      "description": "Enemies with extreme haste and unstable time effects.",
+      "units": [
+        {
+          "name": "gearghost",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "tickstitch",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "hasteforge",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        }
+      ],
+      "maxTier": 20,
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Torsion Halls": {
+      "description": "Clockwork Caverns Zone 2 — Bent space and warped machinery accelerate battle to a blur.",
+      "units": [
+        {
+          "name": "timestepper",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "fluxdriver",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "coilphantom",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "gearghost",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "hasteforge",
+          "weight": 6,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "previousZone": "Clockwork Caverns",
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Refraction Fields": {
+      "description": "Illusions and time-reversals challenge your reflexes.",
+      "units": [
+        {
+          "name": "mirrorfiend",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "glimpseghost",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "phaseblade",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        }
+      ],
+      "maxTier": 20,
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Lightfract Nexus": {
+      "description": "Refraction Fields Zone 2 — Beings of fractured thought and mirrored magic strike from every angle.",
+      "units": [
+        {
+          "name": "echoform",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "prismspawn",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "splintermind",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "mirrorfiend",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "glimpseghost",
+          "weight": 6,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "previousZone": "Refraction Fields",
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Temporal Apex": {
+      "description": "Time collapses around you as cooldowns shift and enemies evolve.",
+      "units": [
+        {
+          "name": "evolux",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "chronobeast",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "timelurker",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        }
+      ],
+      "maxTier": 20,
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Epoch Spiral": {
+      "description": "Temporal Apex Zone 2 — Reality splinters as evolving forms and broken time converge.",
+      "units": [
+        {
+          "name": "entropyspawn",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "cyclefiend",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "spiralshard",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "chronobeast",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "timelurker",
+          "weight": 6,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "previousZone": "Temporal Apex",
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Desolation Tunnels": {
+      "description": "Slow, elite monsters with massive health pools.",
+      "units": [
+        {
+          "name": "hollowcrush",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "stagnantmass",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "cragscourge",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        }
+      ],
+      "maxTier": 20,
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Ironwake Depths": {
+      "description": "Desolation Tunnels Zone 2 — Forgotten giants stir with seismic force and unholy resilience.",
+      "units": [
+        {
+          "name": "deepbreaker",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "faultbehemoth",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "seismoghul",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "hollowcrush",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "cragscourge",
+          "weight": 6,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "previousZone": "Desolation Tunnels",
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Whispershade Vale": {
+      "description": "Debuff-heavy horrors twist your mind and suppress your powers.",
+      "units": [
+        {
+          "name": "whisperwretch",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "shadebinder",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "mindtwist",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        }
+      ],
+      "maxTier": 20,
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Nightveil Hollow": {
+      "description": "Whispershade Vale Zone 2 — Disembodied whispers shred your focus and unravel sanity.",
+      "units": [
+        {
+          "name": "veilhowler",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "dreamleech",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "nullseer",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "whisperwretch",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "shadebinder",
+          "weight": 6,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "previousZone": "Whispershade Vale",
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Astral Maw": {
+      "description": "A void vortex housing singular, devastating bosses.",
+      "units": [
+        {
+          "name": "voidmaw",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "gravityspawn",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "starscourge",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        }
+      ],
+      "maxTier": 20,
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Singularity Core": {
+      "description": "Astral Maw Zone 2 — A collapsing domain where reality frays and only nightmares remain.",
+      "units": [
+        {
+          "name": "coreterror",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "eventhorizon",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "shardmind",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "gravityspawn",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "starscourge",
+          "weight": 6,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "previousZone": "Astral Maw",
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Sanctum Gate": {
+      "description": "Radiant archers and judged warriors strike with holy fury.",
+      "units": [
+        {
+          "name": "judgelight",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "radiantbow",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "divinehunter",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        }
+      ],
+      "maxTier": 20,
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Sentinel Rise": {
+      "description": "Sanctum Gate Zone 2 — Watchers wield divine arrows that pierce even the incorporeal.",
+      "units": [
+        {
+          "name": "soulpiercer",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "seraphwatch",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "haloarcher",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "radiantbow",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "divinehunter",
+          "weight": 6,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "previousZone": "Sanctum Gate",
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Blade of Grace": {
+      "description": "Counter-focused duels that punish AoE or weak defenses.",
+      "units": [
+        {
+          "name": "graceblade",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "duelwraith",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "reflexchampion",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        }
+      ],
+      "maxTier": 20,
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Chamber of Judged Steel": {
+      "description": "Blade of Grace Zone 2 — Duelists punish excess and strike in precise, divine retaliation.",
+      "units": [
+        {
+          "name": "precisionzealot",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "judgetempest",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "disciplinedblade",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "graceblade",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "duelwraith",
+          "weight": 6,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "previousZone": "Blade of Grace",
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Cathedral of Fidelity": {
+      "description": "Spellcasters purge corruption and punish sins in radiant fire.",
+      "units": [
+        {
+          "name": "oathflame",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "confessor",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "purifier",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        }
+      ],
+      "maxTier": 20,
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Celestial Inquisition": {
+      "description": "Cathedral of Fidelity Zone 2 — Blazing heralds incinerate soul and flesh with purging fire.",
+      "units": [
+        {
+          "name": "flamevicar",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "haloenforcer",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "suninquisitor",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "purifier",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "confessor",
+          "weight": 6,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "previousZone": "Cathedral of Oaths",
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Warfront Trenches": {
+      "description": "Endless war churns these muddy trenches where discipline and fortified strength are the only path to survival.",
+      "units": [
+        {
+          "name": "mudveteran",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "steelhowler",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "trenchfiend",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        }
+      ],
+      "maxTier": 20,
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Siegewake Plateau": {
+      "description": "Warfront Trenches Zone 2 — Artillery beasts and shield-breakers test your durability with crushing might.",
+      "units": [
+        {
+          "name": "blastcrawler",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "fortcarver",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "ravagebore",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "steelhowler",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "trenchfiend",
+          "weight": 6,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "previousZone": "Warfront Trenches",
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Craterforge Expanse": {
+      "description": "Metal-clad berserkers and heat-hardened horrors brawl in scorched killing fields.",
+      "units": [
+        {
+          "name": "ironstrike",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "blastmane",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "slagjaw",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        }
+      ],
+      "maxTier": 20,
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Forgecore": {
+      "description": "Craterforge Expanse Zone 2 — Frenzied juggernauts unleash devastating attacks amid smoldering slagstorms.",
+      "units": [
+        {
+          "name": "coremauler",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "shardbeast",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "heatwrought",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "blastmane",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "slagjaw",
+          "weight": 6,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "previousZone": "Craterforge Expanse",
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Shieldspire Bastion": {
+      "description": "Unbreakable constructs and formation fighters demand flawless defense to outlast the onslaught.",
+      "units": [
+        {
+          "name": "guardweld",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "sentriclaw",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        },
+        {
+          "name": "aegisspawn",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 20
+          }
+        }
+      ],
+      "maxTier": 20,
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Ironhold Apex": {
+      "description": "Shieldspire Bastion Zone 2 — Adaptive sentinels scale in power unless broken through by unmatched defense.",
+      "units": [
+        {
+          "name": "wallrender",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "ironpride",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "shieldmorph",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "sentriclaw",
+          "weight": 7,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "aegisspawn",
+          "weight": 6,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "previousZone": "Shieldspire Bastion",
+      "unitCountWeights": [
+        105,
+        10,
+        5,
+        3,
+        1
+      ]
+    },
+    "Fuzzy Forest": {
+      "description": "— Super fuzzy animal friends",
+      "units": [
+        {
+          "name": "Big Puppy",
+          "weight": 3,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "Living Teddy",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "Furry Boi",
+          "weight": 15,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        },
+        {
+          "name": "Fluffle",
+          "weight": 50,
+          "levels": {
+            "min": 0,
+            "max": 40
+          }
+        }
+      ],
+      "maxTier": 40,
+      "unitCountWeights": [
+        1,
+        10,
+        25,
+        50,
+        70
+      ]
+    }
+  }
+}

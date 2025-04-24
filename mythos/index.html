@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Idle Combat RPG</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="loading-screen">Loading Mythos...</div>
+
+  <!-- Top Bar -->
+  <div id="top-bar">
+    <div id="planet-name">Dreadthorn</div>
+    <div id="zone-info">
+      <div id="zone-name">Fleshgrove Hollow</div>
+    </div>
+    <div id="encounter-bar">
+      <button onclick="lastEncounter()" class="enc-btn" id="last-encounter-btn"><<</button>
+      <div id="enemy-count">0 / 0</div>
+      <button onclick="nextEncounter()" class="enc-btn" id="next-encounter-btn">>></button>
+    </div>
+  </div>
+
+  <!-- Main Combat Area -->
+  <div id="main-area" class="journey-view">
+
+    <!-- Enemy Display -->
+    <div class="combatant enemy">
+      <div class="name" id="enemy-name">No Enemy <i>(None)</i></div>
+      <div class="bar hp-bar">
+        <div class="fill" id="enemy-hp-fill">
+          <span class="bar-text" id="enemy-hp-text">HP (0 / 0)</span>
+        </div>
+      </div>
+      <div class="row-bars">
+        <div class="bar mp-bar">
+          <div class="fill" id="enemy-mp-fill">
+            <span class="bar-text" id="enemy-mp-text">MP (0 / 0)</span>
+          </div>
+        </div>
+        <div class="bar sp-bar">
+          <div class="fill" id="enemy-sp-fill">
+            <span class="bar-text" id="enemy-sp-text">SP (0 / 0)</span>
+          </div>
+        </div>
+      </div>
+      <div class="bar attack-timer">
+        <div class="fill" id="enemy-attack-fill">
+          <span class="bar-text" id="enemy-attack-text">Attack: 0.0s</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Player Display -->
+    <div class="combatant player">
+      <div class="name">Reaper <i>(Player)</i></div>
+      <div class="bar hp-bar">
+        <div class="fill" id="player-hp-fill">
+          <span class="bar-text" id="player-hp-text">HP (0 / 0)</span>
+        </div>
+      </div>
+      <div class="row-bars">
+        <div class="bar mp-bar">
+          <div class="fill" id="player-mp-fill">
+            <span class="bar-text" id="player-mp-text">MP (0 / 0)</span>
+          </div>
+        </div>
+        <div class="bar sp-bar">
+          <div class="fill" id="player-sp-fill">
+            <span class="bar-text" id="player-sp-text">SP (0 / 0)</span>
+          </div>
+        </div>
+      </div>
+      <div class="bar attack-timer">
+        <div class="fill" id="player-attack-fill">
+          <span class="bar-text" id="player-attack-text">Attack: 0.0s</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Combat Log -->
+    <div id="combat-log"></div>
+  </div>
+
+
+  <!-- Bottom Menu -->
+  <div id="bottom-menu">
+
+  <div id="menu-buttons">
+  <button class="icon-btn" id="journey-btn" data-menu="journey" style="--icon: url('images/journey_btn.png')">Journey</button>
+  <button class="icon-btn" id="skills-btn" data-menu="skills" style="--icon: url('images/skills_btn.png')">Skills</button>
+  <button class="icon-btn" id="character-btn" data-menu="character" style="--icon: url('images/character_btn.png')">Character</button>
+  <button class="icon-btn hidden" id="planets-btn" data-menu="planets" disabled style="--icon: url('images/planets_btn.png')">Locked</button>
+  <button class="icon-btn" id="lore-btn" data-menu="lore" style="--icon: url('images/lore_btn.png')">Lore</button>
+  <button class="icon-btn" id="settings-btn" data-menu="settings" style="--icon: url('images/settings_btn.png')">Settings</button>
+</div>
+    <div class="hidden" id="menu-content"></div>
+  </div>
+
+  <script src="main.js"></script>
+
+<!-- Global Popup -->
+<div id="global-popup" class="popup hidden"></div>
+
+</body>
+</html>

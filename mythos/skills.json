@@ -1,0 +1,981 @@
+{  
+  "emberSpike": {
+    "name": "Ember Spike",
+    "cooldown": {
+      "base": 3,
+      "scaling": [{
+        "target": "caster",
+        "stat": "wisdom",
+        "scale": -0.01
+      },
+      {
+        "target": "caster",
+        "stat": "skillLevel",
+        "scale": -0.25
+      }]
+    },
+    "cost": { "mp": 4 },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "effects": [
+      { 
+        "type": "damage",
+        "target": "singleEnemy", 
+        "base": 6, 
+        "damageType": "heat",
+        "scaling": [{
+         "target": "caster",
+         "stat": "intellect", 
+         "scale": 0.1
+        },
+        {
+          "target": "caster",
+          "stat": "skillLevel",
+          "scale": 1
+        }]
+      },
+      { "type": "condition",
+      "name": "Burning",
+      "stacks": 1
+      }
+    ]
+  },
+  "fireball": {
+    "name": "Fireball",
+    "cooldown": {
+      "base": 4,
+      "scaling": [{
+        "target": "caster",
+        "stat": "wisdom",
+        "scale": -0.01
+      },
+      {
+        "target": "caster",
+        "stat": "skillLevel",
+        "scale": -0.25
+      }]
+    },
+    "cost": { "mp": 25 },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "effects": [
+      { 
+        "type": "damage", 
+        "target": "singleEnemy", 
+        "base": 20, 
+        "damageType": "heat", 
+        "scaling": [{
+          "target": "caster",
+          "stat":"intellect",
+          "scale":0.2
+        },
+        {
+          "target": "caster",
+          "stat": "skillLevel",
+          "scale": 3
+        }]
+      },
+      { 
+        "type": "condition",
+        "name": "Burning",
+        "stacks": 3
+      }
+    ],
+    "levelUpEffects": [
+      { "type": "add", "stat": "cooldown", "value": -0.05}
+      ]
+  },
+  "emberFall": {
+    "name": "Ember Fall",
+    "cost": {
+      "mp": 25
+    },
+    "target": "allEnemies",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 10,
+      "scaling": [
+        {
+          "target": "caster",
+          "scale": -0.5,
+          "stat": "skillLevel"
+        },
+        {
+          "target": "caster",
+          "scale": -0.02,
+          "stat": "willpower"
+        }
+      ]
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "heat",
+        "base": 2,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.15,
+            "stat": "intellect"
+          },
+          {
+            "target": "caster",
+            "scale": 2,
+            "stat": "skillLevel"
+          }
+        ]
+      }
+    ]
+  },
+  "emberStream": {
+    "name": "Ember Stream",
+    "cost": {
+      "mp": 3
+    },
+    "target": "randomEnemy",
+    "requiresTarget": true,
+    "cooldown": {
+      "base": 1.5,
+      "scaling": [
+        {
+          "target": "caster",
+          "scale": -0.01,
+          "stat": "wisdom"
+        },
+        {
+          "target": "caster",
+          "scale": -0.1,
+          "stat": "skillLevel"
+        }
+      ]
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "heat",
+        "base": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.2,
+            "stat": "intellect"
+          },
+          {
+            "target": "caster",
+            "scale": 0.5,
+            "stat": "skillLevel"
+          }
+        ]
+      },
+      {
+        "type": "condition",
+        "name": "Burning",
+        "stacks": {
+          "base": 1
+        }
+      }
+    ]
+  },
+    "searingShot": {
+    "name": "Searing Shot",
+    "cooldown": {
+      "base": 4,
+      "scaling": "willpower",
+      "scale": -0.01
+    },
+    "cost": {
+      "mp": 5
+    },
+    "target": "randomEnemy",
+    "requiresTarget": false,
+    "effects": [
+      {
+        "type": "damage",
+        "base": 10,
+        "damageType": "heat",
+        "scaling": "willpower",
+        "scale": 1
+      },     
+      {
+        "type": "damage",
+        "base": 10,
+        "damageType": "piercing",
+        "scaling": "strength",
+        "scale": 0.25
+      }
+      
+    ],
+    "levelUpEffects": []
+  },
+  "boilingBlood": {
+    "name": "Boiling Blood",
+    "cooldown": {
+      "base": 15,
+      "scaling": "wisdom",
+      "scale": -0.05
+    },
+    "cost": {
+      "mp": 20,
+      "hp": 10
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "effects": [
+      {
+        "type": "buff",
+        "target": "self",
+        "statType": "stat",
+        "effect": "multi",
+        "value": 0.5,
+        "duration": 5000,
+        "stat": "cooldownReduction"
+      }
+    ],
+    "levelUpEffects": []
+  },
+    "sporeBurst": {
+    "name": "Spore Burst",
+    "cooldown": {
+      "base": 10,
+      "scaling": [{
+        "target": "caster",
+        "stat": "constitution",
+        "scale": -0.05
+      }]
+    },
+    "cost": {
+      "mp": 20,
+      "hp": 10
+    },
+    "target": "randomEnemy",
+    "requiresTarget": false,
+    "effects": [
+      {
+        "type": "damage",
+        "base": 20,
+        "damageType": "blight",
+        "scaling": [{
+          "target": "caster",
+          "stat": "willpower",
+          "scale": 1
+        }]
+      }
+    ],
+    "levelUpEffects": []
+  },
+    "infectiousGrowth": {
+    "name": "Infectious Growth",
+    "cooldown": {
+      "base": 20,
+      "scaling": [{
+        "target": "caster",
+        "stat": "constitution",
+        "scale": -0.05
+      }]
+    },
+    "cost": {
+      "mp": 19,
+      "sp": 10
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "effects": [
+      {
+        "type": "buff",
+        "statType": "stat",
+        "effect": "add",
+        "value": 5,
+        "duration": 5000,
+        "stat": "hpRegen"
+      }
+    ],
+    "levelUpEffects": []
+  },
+  "rendAndFeed": {
+    "name": "Rend And Feed",
+    "id": "rendAndFeed",
+    "cooldown": {
+      "base": 5,
+      "scaling": "strength",
+      "scale": -0.05
+    },
+    "cost": {
+      "sp": 10
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "effects": [
+      {
+        "type": "damage",
+        "base": 15,
+        "damageType": "slashing",
+        "scaling": "strength",
+        "scale": 1
+      },
+      {
+        "type": "heal",
+        "base": 5,
+        "scaling": "willpower",
+        "scale": 0.5,
+        "target": "self"
+      }
+    ],
+    "levelUpEffects": [
+      {
+        "type": "add",
+        "stat": "attackPower",
+        "value": 1
+      }
+    ]
+  },
+  "thornlash": {
+    "name": "Thornlash",
+    "id": "thornlash",
+    "cooldown": {
+      "base": 6,
+      "scaling": "dexterity",
+      "scale": -0.03
+    },
+    "cost": {
+      "sp": 8
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "effects": [
+      {
+        "type": "damage",
+        "base": 10,
+        "damageType": "nature",
+        "scaling": "dexterity",
+        "scale": 0.9
+      }
+    ],
+    "levelUpEffects": [
+      {
+        "type": "add",
+        "stat": "critChance",
+        "value": 0.01
+      }
+    ]
+  },
+  "frenziedHowl": {
+    "name": "Frenzied Howl",
+    "id": "frenziedHowl",
+    "cooldown": {
+      "base": 10,
+      "scaling": "willpower",
+      "scale": -0.02
+    },
+    "cost": {
+      "mp": 12
+    },
+    "target": "allAllies",
+    "requiresTarget": false,
+    "effects": [
+      {
+        "type": "buff",
+        "statType": "stat",
+        "stat": "attackSpeed",
+        "effect": "multi",
+        "value": 1.2,
+        "duration": 6000,
+        "target": "allAllies"
+      }
+    ],
+    "levelUpEffects": [
+      {
+        "type": "add",
+        "stat": "cooldownReduction",
+        "value": 0.01
+      }
+    ]
+  },
+  "twistingRoots": {
+    "name": "Twisting Roots",
+    "cooldown": {
+      "base": 8,
+      "scaling": "willpower",
+      "scale": -0.03
+    },
+    "cost": {
+      "mp": 10
+    },
+    "target": "randomEnemy",
+    "requiresTarget": false,
+    "effects": [
+      {
+        "type": "debuff",
+        "statType": "stat",
+        "stat": "cooldownReduction",
+        "effect": "multi",
+        "value": 1.4,
+        "duration": 5000,
+        "target": "randomEnemy"
+      }
+    ],
+    "levelUpEffects": []
+  },
+  "decayTouch": {
+    "name": "Decay Touch",
+    "cooldown": {
+      "base": 2,
+      "scaling": "intellect",
+      "scale": -0.02
+    },
+    "cost": {
+      "hp": 1
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "effects": [
+      {
+        "type": "damage",
+        "base": 1,
+        "damageType": "blight",
+        "scaling": "intellect",
+        "scale": 0.9,
+        "target": "singleEnemy"
+      },
+      {
+        "type": "debuff",
+        "statType": "stat",
+        "stat": "hpRegen",
+        "effect": "add",
+        "value": -1,
+        "duration": 5000,
+        "target": "singleEnemy"
+      }
+    ],
+    "levelUpEffects": []
+  },
+  "fungalArmor": {
+    "name": "Fungal Armor",
+    "cooldown": {
+      "base": 4,
+      "scaling": "constitution",
+      "scale": -0.03
+    },
+    "cost": {
+      "sp": 15
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "effects": [
+      {
+        "type": "buff",
+        "statType": "stat",
+        "stat": "hpRegen",
+        "effect": "add",
+        "value": 1,
+        "duration": 15000,
+        "target": "self"
+      }
+    ],
+    "levelUpEffects": []
+  },
+  "soulRend": {
+    "name": "Soul Rend",
+    "description": "Deal stacking damage to the foe's soul.",
+    "cooldown": {
+      "base": 5,
+      "scaling": "dexterity",
+      "scale": -0.07
+    },
+    "cost": {
+      "hp": 1,
+      "sp": 10
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "effects": [
+      {
+        "type": "condition",
+        "name": "Corruption",
+        "stacks": 1
+      },
+      {
+        "type": "damage",
+        "base": 5,
+        "damageType": "blight",
+        "scaling": "strength",
+        "scale": 1
+      }
+    ],
+    "levelUpEffects": []
+  },
+  "devourVitality": {
+    "name": "Devour Vitality",
+    "description": "Siphon strength from the enemy temporarily.",
+    "cooldown": {
+      "base": 15,
+      "scaling": "constitution",
+      "scale": -0.05
+    },
+    "cost": {
+      "mp": 15,
+      "sp": 20
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "effects": [
+      {
+        "type": "condition",
+        "name": "Corruption",
+        "stacks": 1
+      },
+      {
+        "type": "buff",
+        "target": "self",
+        "statType": "attribute",
+        "stat": "constitution",
+        "effect": "multi",
+        "value": 2,
+        "duration": 7500
+      },
+      {
+        "type": "debuff",
+        "target": "singleEnemy",
+        "statType": "attribute",
+        "stat": "constitution",
+        "effect": "multi",
+        "value": 0.5,
+        "duration": 7500
+      }
+    ],
+    "levelUpEffects": []
+  },
+  "cuddle": {
+    "name": "Cuddle",
+    "cooldown": {
+      "base": 1,
+      "scaling": "dexterity",
+      "scale": -0.01
+    },
+    "cost": {
+      "mp": 1,
+      "sp": 1
+    },
+    "target": "randomEnemy",
+    "requiresTarget": false,
+    "effects": [
+      {
+        "type": "damage",
+        "base": 1,
+        "damageType": "physical",
+        "scaling": "strength",
+        "scale": 0.3
+      },
+      {
+        "type": "condition",
+        "name": "Stunned",
+        "stacks": 1,
+        "duration": 500
+      }
+    ],
+    "levelUpEffects": []
+  },
+  "nuzzles": {
+    "name": "Nuzzles",
+    "cooldown": {
+      "base": 2.5,
+      "scaling": "dexterity",
+      "scale": -0.01
+    },
+    "cost": {
+      "mp": 1,
+      "sp": 1
+    },
+    "target": "randomEnemy",
+    "requiresTarget": false,
+    "effects": [
+      {
+        "type": "damage",
+        "base": 1,
+        "damageType": "physical",
+        "scaling": "willpower",
+        "scale": 0.3
+      }
+    ],
+    "levelUpEffects": []
+  },
+  "hug": {
+    "name": "Hug",
+    "cooldown": {
+      "base": 10,
+      "scaling": "dexterity",
+      "scale": -0.01
+    },
+    "cost": {
+      "mp": 1,
+      "sp": 5
+    },
+    "target": "randomEnemy",
+    "requiresTarget": false,
+    "effects": [
+      {
+        "type": "damage",
+        "base": 5,
+        "damageType": "physical",
+        "scaling": "constitution",
+        "scale": 1
+      },
+      {
+        "type": "condition",
+        "name": "Stunned",
+        "stacks": 1,
+        "duration": 2000
+      }
+    ],
+    "levelUpEffects": []
+  },
+  "bark": {
+    "name": "Bark",
+    "cooldown": {
+      "base": 8,
+      "scaling": "dexterity",
+      "scale": -0.01
+    },
+    "cost": {
+      "mp": 1,
+      "sp": 2
+    },
+    "target": "allEnemies",
+    "requiresTarget": false,
+    "effects": [
+      {
+        "type": "debuff",
+        "statType": "attribute",
+        "stat": "willpower",
+        "effect": "multi",
+        "value": "0.8",
+        "duration": 2000
+      },
+      {
+        "type": "interrupt",
+        "base": 2000
+      }
+    ],
+    "levelUpEffects": []
+  },
+  "flameBreath": {
+    "name": "Flame Breath",
+    "cost": {
+      "mp": 1,
+      "sp": 5
+    },
+    "target": "allEnemies",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 8,
+      "scaling": [
+        {
+          "target": "caster",
+          "scale": -0.05,
+          "stat": "constitution"
+        }
+      ]
+    },
+    "effects": [{
+        "type": "damage",
+        "base": 1,
+        "damageType": "heat",
+        "scaling": [{
+          "target": "caster",
+          "stat": "willpower",
+          "scale": 0.5
+        }]
+    }]
+  },
+  "hotBite": {
+    "name": "Hot Bite",
+    "cost": {
+      "mp": 1,
+      "sp": 5
+    },
+    "target": "randomEnemy",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 7,
+      "scaling": [
+        {
+          "target": "caster",
+          "scale": -0.05,
+          "stat": "strength"
+        }
+      ]
+    },
+    "effects": [{
+        "type": "damage",
+        "base": 1,
+        "damageType": "physical",
+        "scaling": [{
+          "target": "caster",
+          "stat": "constitution",
+          "scale": 0.25
+        },
+        {
+          "target": "caster",
+          "stat": "strength",
+          "scale": 0.25
+        }]
+    },
+    {
+      "type": "condition",
+      "name": "Burning",
+      "stacks": {
+        "base": 1
+      }
+    }]
+  },
+  "heatwaveRoar": {
+    "name": "Heatwave Roar",
+    "cost": {
+      "mp": 5
+    },
+    "target": "allAllies",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 5,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "buff",
+        "target": "allAllies",
+        "statType": "stat",
+        "stat": "cooldownReduction",
+        "duration": {
+          "base": 5000,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 150,
+              "stat": "willpower"
+            }
+          ]
+        },
+        "effect": "multi",
+        "value": {
+          "base": 0.9,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": -0.01,
+              "stat": "willpower"
+            }
+          ]
+        }
+      },
+      {
+        "type": "debuff",
+        "target": "allEnemies",
+        "statType": "stat",
+        "stat": "cooldownReduction",
+        "duration": {
+          "base": 5000,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 150,
+              "stat": "willpower"
+            }
+          ]
+        },
+        "effect": "multi",
+        "value": {
+          "base": 1.1,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 0.01,
+              "stat": "willpower"
+            }
+          ]
+        }
+      }
+    ]
+},
+  "skitter": {
+    "name": "Skitter",
+    "cost": {
+      "sp": 5
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 5,
+      "scaling": [
+        {
+          "target": "caster",
+          "scale": -0.01,
+          "stat": "dexterity"
+        }
+      ]
+    },
+    "effects": [
+      {
+        "type": "buff",
+        "statType": "stat",
+        "stat": "evasionChance",
+        "duration": {
+          "base": 3000,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 1,
+              "stat": "dexterity"
+            }
+          ]
+        },
+        "effectDisplay": "caster",
+        "value": {
+          "base": 1,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 0.2,
+              "stat": "dexterity"
+            }
+          ]
+        },
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 1,
+            "stat": "dexterity"
+          },
+          {
+            "target": "caster",
+            "scale": 0.2,
+            "stat": "dexterity"
+          }
+        ]
+      }
+    ]
+  },
+  "adrenaline": {
+    "name": "Adrenaline",
+    "cost": {
+      "hp": 5
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 15,
+      "scaling": [
+        {
+          "target": "caster",
+          "scale": -0.1,
+          "stat": "dexterity"
+        }
+      ]
+    },
+    "effects": [
+      {
+        "type": "buff",
+        "statType": "stat",
+        "stat": "spRegen",
+        "duration": {
+          "base": 3000,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 100,
+              "stat": "constitution"
+            }
+          ]
+        },
+        "effect": "add",
+        "value": {
+          "base": 3,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 0.1,
+              "stat": "dexterity"
+            },
+            {
+              "target": "caster",
+              "scale": 1,
+              "stat": "skillLevel"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "tailWhip": {
+    "name": "Tail Whip",
+    "cost": {
+      "sp": 8
+    },
+    "target": "randomEnemy",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 3,
+      "scaling": [
+        {
+          "target": "caster",
+          "scale": -0.05,
+          "stat": "dexterity"
+        }
+      ]
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "physical",
+        "base": 3,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 1,
+            "stat": "strength"
+          },
+          {
+            "target": "caster",
+            "scale": 0.2,
+            "stat": "dexterity"
+          },
+          {
+            "target": "caster",
+            "scale": 3,
+            "stat": "skillLevel"
+          }
+        ]
+      }
+    ]
+  },
+  "clawSlash": {
+    "name": "Claw Slash",
+    "cost": {
+      "sp": 15
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "cooldown": {
+      "base": 10,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "slashing",
+        "base": 3,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.2,
+            "stat": "strength"
+          },
+          {
+            "target": "caster",
+            "scale": 1,
+            "stat": "skillLevel"
+          }
+        ]
+      }
+    ]
+  }
+
+}
