@@ -129,19 +129,59 @@
 }
 function openScalingTable() {
   document.getElementById('scalingOverlay').style.display = 'block';
+  
   updateScalingTable();
 }function closeScalingTable(event) { if (event.target.id === 'scalingOverlay') { document.getElementById('scalingOverlay').style.display = 'none'; } }
 
 function setScalingTier(tier) { document.getElementById('manualTier').value = tier; updateScalingTable(); }
 
-function updateScalingTable() { const tier = parseInt(document.getElementById('manualTier').value) || 1; let output = "<table><tr><th>Attribute</th><th>Total</th></tr>"; attributes.forEach(attr => { 
-  const base = parseFloat(document.getElementById(attr).value) || 0; 
-const apl = parseFloat(document.getElementById('apl_' + attr).value) || 0; 
-const total = base + apl * tier;
-output += `<tr><td>${attr.charAt(0).toUpperCase() + attr.slice(1)}</td><td>${total.toFixed(2)}</td></tr>`; 
-  
-}); 
-output += "</table>"; document.getElementById('attributeTotals').innerHTML = output;
+function updateScalingTable() {
+  const tier = parseInt(document.getElementById('manualTier').value) || 1;
+
+  // First: Attributes
+  let output = "<h4>Attributes</h4><table><tr><th>Attribute</th><th>Total</th></tr>";
+  const attrTotals = {}; // Save for use in scaling calculations
+  attributes.forEach(attr => {
+    const base = parseFloat(document.getElementById(attr).value) || 0;
+    const apl = parseFloat(document.getElementById('apl_' + attr).value) || 0;
+    const total = base + apl * tier;
+    attrTotals[attr] = total; // Store for later
+    output += `<tr><td>${attr.charAt(0).toUpperCase() + attr.slice(1)}</td><td>${total.toFixed(2)}</td></tr>`;
+  });
+  output += "</table>";
+
+  // Then: Stats
+  output += "<h4>Stats</h4><table><tr><th>Stat</th><th>Base</th><th>Scaling Bonus</th><th>Total</th></tr>";
+
+  allStats.forEach(stat => {
+    if (["hp", "mp", "sp"].includes(stat)) return;
+
+    const baseInput = document.getElementById('base_' + stat);
+    const base = baseInput ? parseFloat(baseInput.value) || 0 : 0;
+
+    // Find scalings:
+    let scalingBonus = 0;
+    const scalingDivs = document.querySelectorAll(`#scaling_${stat} .scaling-entry`);
+    scalingDivs.forEach(div => {
+      const selects = div.querySelectorAll('select');
+      const input = div.querySelector('input');
+      const target = selects[0]?.value;
+      const scale = parseFloat(input?.value) || 0;
+      const scalingStat = selects[1]?.value;
+
+      // Only apply if scaling stat exists and is a known attribute
+      if (target && scalingStat && attributes.includes(scalingStat)) {
+        const attrVal = attrTotals[scalingStat] || 0;
+        scalingBonus += scale * attrVal;
+      }
+    });
+
+    const total = base + scalingBonus;
+    output += `<tr><td>${statList[stat]}</td><td>${base.toFixed(2)}</td><td>${scalingBonus.toFixed(2)}</td><td>${total.toFixed(2)}</td></tr>`;
+  });
+
+  output += "</table>";
+  document.getElementById('attributeTotals').innerHTML = output;
 }
 
 function interpolateColor(value, min, max) { const percent = Math.min(Math.max((value - min) / (max - min), 0), 1); 
@@ -246,7 +286,7 @@ function refreshAllColors() { attributes.forEach(attr => { updateAttrColor(attr)
 </div>
 <button type="button" onclick="openScalingTable()" style="margin-top:10px; font-size:1em; padding:6px 12px;">Show Scaling Table</button>
 
-<div id="scalingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5); z-index:1000;" onclick="closeScalingTable(event)">
+<div id="scalingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; overflow: auto; background-color:rgba(0,0,0,0.5); z-index:1000;" onclick="closeScalingTable(event)">
   <div id="scalingPopup" style="background:white; width:400px; margin:100px auto; padding:1em; position:relative;" onclick="event.stopPropagation()">
     <h3>Attribute Scaling Table</h3>
     <div>
@@ -464,18 +504,7 @@ function setScalingTier(tier) {
   updateScalingTable();
 }
 
-function updateScalingTable() {
-  const tier = parseInt(document.getElementById('manualTier').value) || 1;
-  let output = "<table><tr><th>Attribute</th><th>Total</th></tr>";
-  attributes.forEach(attr => {
-    const base = parseFloat(document.getElementById(attr).value) || 0;
-    const apl = parseFloat(document.getElementById('apl_' + attr).value) || 0;
-    const total = base + apl * tier;
-    output += `<tr><td>${attr.charAt(0).toUpperCase() + attr.slice(1)}</td><td>${total.toFixed(2)}</td></tr>`;
-  });
-  output += "</table>";
-  document.getElementById('attributeTotals').innerHTML = output;
-}
+
 
 window.addEventListener("load", () => {
   const xpInput = document.getElementById("xp");
