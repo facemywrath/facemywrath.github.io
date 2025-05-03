@@ -1,88 +1,355 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Unit Builder</title>
   <style>
-    body { font-family: sans-serif; padding: 2em; background: #f4f4f4; }
-    label { display: block; margin: 0.25em 0; }
-    input, select { width: 150px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1em; }
-    .scaling-block { border: 1px solid #ccc; padding: 0.5em; margin-top: 0.5em; background: #fff; }
-    .scaling-entry { margin-bottom: 0.25em; }
-    .scaling-entry select, .scaling-entry input { margin-right: 0.3em; }
-    .controls { display: flex; gap: 0.5em; margin-top: 0.3em; }
-    #output { white-space: pre-wrap; background: #fff; padding: 1em; border: 1px solid #ccc; margin-top: 1.5em; }
-  </style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 2em;
+    background: #eaeaea;
+    color: #222;
+  }
+  label {
+    display: block;
+    margin: 0.25em 0;
+  }
+  input, select {
+    width: 160px;
+    padding: 4px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1em;
+  }
+  .scaling-block {
+    border: 1px solid #bbb;
+    padding: 0.7em;
+    margin-top: 0.5em;
+    background: #fff;
+    border-radius: 5px;
+  }
+  .scaling-entry {
+    margin-bottom: 0.25em;
+  }
+  .scaling-entry select, .scaling-entry input {
+    margin-right: 0.3em;
+  }
+  .controls {
+    display: flex;
+    gap: 0.5em;
+    margin-top: 0.3em;
+    flex-wrap: wrap;
+  }
+  #output {
+    white-space: pre-wrap;
+    background: #fff;
+    padding: 1em;
+    border: 1px solid #bbb;
+    margin-top: 1.5em;
+    border-radius: 5px;
+  }
+  .diff-buttons {
+    display: flex;
+    gap: 0.2em;
+    margin-top: 0.2em;
+    flex-wrap: wrap;
+  }
+  .diff-buttons button {
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid black;
+    background-color: #337ab7;
+    color: white;
+    cursor: pointer;
+  }
+  .diff-buttons button:nth-child(1) { background-color: #4d4; color: black; } /* red */
+  .diff-buttons button:nth-child(2) { background-color: #90be6d; color: black; }
+  .diff-buttons button:nth-child(3) { background-color: #f9c74f; color: black; }
+  .diff-buttons button:nth-child(4) { background-color: #f0ad4e; color: black; }
+  .diff-buttons button:nth-child(5) { background-color: #d9534f; color: black; } /* green */
+  button {
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: none;
+    background-color: #337ab7;
+    color: white;
+    cursor: pointer;
+  }
+  button:hover {
+    background-color: #286090;
+  }
+  /* Popup styling */
+  #scalingOverlay {
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background-color:rgba(0,0,0,0.5);
+    z-index:1000;
+  }
+  #scalingPopup {
+    background:white;
+    width: 500px;
+    max-width: 90%;
+    margin: 100px auto;
+    padding: 1em;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    position: relative;
+  }
+  #attributeTotals table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  #attributeTotals th, #attributeTotals td {
+    border: 1px solid #ccc;
+    padding: 5px 8px;
+    text-align: left;
+  }
+  #attributeTotals tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+</style>
 </head>
-<body>
+<body><h2>Create Unit</h2><label>Preset: <select id="preset" onchange="applyPreset(this.value)"> <option value="">-- None --</option> <option value="tank">Tank</option> <option value="assassin">Assassin</option> <option value="caster">Caster</option> <option value="casterTank">Caster Tank</option> <option value="regenTank">Regen Tank</option> </select> </label>
 
-<h2>Create Unit</h2>
+<h3>Basic Info</h3>
+<label>Name: <input id="name"></label>
+<label>Race: <input id="race"></label>
+<label>Damage Type:
+  <select id="damageType">
+    <script>
+      const damageTypes = ["heat", "cold", "shock", "blight", "arcane", "void", "holy", "corrupt", "physical", "magic", "poison", "slashing", "piercing", "force", "nature", "psychic", "blood", "blunt", "elemental", "water", "gravity", "ethereal", "spirit", "sonic", "radiant"];
+      document.write(damageTypes.map(dt => `<option value='${dt}'>${dt.charAt(0).toUpperCase() + dt.slice(1)}</option>`).join(""));
+    function applyXP(val) {
+  document.getElementById("xp").value = val;
+}
+function openScalingTable() {
+  document.getElementById('scalingOverlay').style.display = 'block';
+  updateScalingTable();
+}function closeScalingTable(event) { if (event.target.id === 'scalingOverlay') { document.getElementById('scalingOverlay').style.display = 'none'; } }
 
-<label>Preset:
-  <select id="preset" onchange="applyPreset(this.value)">
-    <option value="">-- None --</option>
-    <option value="tank">Tank</option>
-    <option value="assassin">Assassin</option>
-    <option value="caster">Caster</option>
+function setScalingTier(tier) { document.getElementById('manualTier').value = tier; updateScalingTable(); }
+
+function updateScalingTable() { const tier = parseInt(document.getElementById('manualTier').value) || 1; let output = "<table><tr><th>Attribute</th><th>Total</th></tr>"; attributes.forEach(attr => { 
+  const base = parseFloat(document.getElementById(attr).value) || 0; 
+const apl = parseFloat(document.getElementById('apl_' + attr).value) || 0; 
+const total = base + apl * tier;
+output += `<tr><td>${attr.charAt(0).toUpperCase() + attr.slice(1)}</td><td>${total.toFixed(2)}</td></tr>`; 
+  
+}); 
+output += "</table>"; document.getElementById('attributeTotals').innerHTML = output;
+}
+
+function interpolateColor(value, min, max) { const percent = Math.min(Math.max((value - min) / (max - min), 0), 1); 
+const end = [217, 83, 79]; // #4d4 green 
+const start = [77,221,77];  // #d9534f red 
+const r = Math.round(start[0] + percent * (end[0] - start[0])); 
+const g = Math.round(start[1] + percent * (end[1] - start[1])); 
+const b = Math.round(start[2] + percent * (end[2] - start[2])); 
+return `rgb(${r},${g},${b})`; 
+  
+}
+
+function updateAttrColor(attr) { 
+  const val = parseFloat(document.getElementById(attr).value) || 1;
+  const ret = interpolateColor(val, 1, 5)
+  console.log(attr, ret, val)
+  document.getElementById('block_attr_' + attr).style.background = ret; 
+  
+}
+
+function updateAPLColor(attr) { const val = parseFloat(document.getElementById('apl_' + attr).value) || 0.5; document.getElementById('block_apl_' + attr).style.background = interpolateColor(val, 0.5, 2.5); }
+
+function updateXPColor() { 
+  const xp = parseFloat(document.getElementById('xp').value) || 5; const block = document.getElementById('xpBlock'); 
+if(block) block.style.background = interpolateColor(xp, 5, 30);
+}
+
+// Hook stat color update into existing updateStatBlock 
+function updateStatBlock(key) { let ele = document.getElementById("base_"+key); let blockEle = document.getElementById("block_"+key);
+const val = parseFloat(ele.value) || 0; 
+if(ele){ 
+  let min = 0, max = 1;
+  if (difficultyPresets.statValues[key]) { 
+    min = Math.min(...difficultyPresets.statValues[key]); 
+    max = Math.max(...difficultyPresets.statValues[key]); } 
+    if(val != 0 || (val == 0 && min == 0)){
+    blockEle.style.background = interpolateColor(val, min, max); 
+    }else{
+      blockEle.style.background="#fff";
+    }
+  
+} else {
+
+  blockEle.style.background="#fff"; } }
+
+// Update all colors when preset or difficulty applied 
+function refreshAllColors() { attributes.forEach(attr => { updateAttrColor(attr); updateAPLColor(attr); }); allStats.forEach(stat => { if(stat !== "hp" && stat !== "mp" && stat !== "sp") updateStatBlock(stat); }); updateXPColor(); }
+
+// Update colors when XP changes 
+
+</script>
   </select>
 </label>
-<!-- Basic Info -->
-<div>
-  <h3>Basic Info</h3>
-  <label>Name: <input id="name"></label>
-  <label>Race: <input id="race"></label>
-  <label>Damage Type:
-    <select id="damageType">
-      <option>Physical</option><option>Magic</option><option>Slashing</option><option>Piercing</option>
-      <option>Blunt</option><option>Force</option><option>Corrupt</option><option>Holy</option>
-      <option>Arcane</option><option>Elemental</option><option>Blood</option><option>Void</option>
-      <option>Blight</option><option>Spirit</option><option>Radiant</option><option>Ethereal</option>
-      <option>Sonic</option><option>Gravity</option><option>Psychic</option><option>Nature</option>
-      <option>Water</option><option>Heat</option><option>Shock</option><option>Cold</option>
-      <option>Poison</option>
-    </select>
-  </label>
-  <label>Planet: <input id="planet"></label>
-  <label>XP: <input id="xp" type="number" value="10"></label>
-</div>
+<label>Planet: 
+  <select id="planet">
+    <option value="Cinderrift">Cinderrift</option>
+    <option value="Ferrania">Ferrania</option>
+    <option value="Gravemount">Gravemount</option>
+    <option value="Fractalis">Fractalis</option>
+    <option value="Hollowreach">Hollowreach</option>
+    <option value="Dreadthorn">Dreadthorn</option>
+    <option value="Halcyon Bastion">Halcyon Bastion</option>
+  </select>
+</label>
+<label>XP: <input id="xp" type="number" value="10"></label>
+<div class='diff-buttons'>
+  <button type='button' onclick="applyXP(5)">5</button>
+  <button type='button' onclick="applyXP(10)">10</button>
+  <button type='button' onclick="applyXP(15)">15</button>
+  <button type='button' onclick="applyXP(20)">20</button>
+  <button type='button' onclick="applyXP(30)">30</button>
+</div><label>Skill IDs (comma separated): <input id="skillIds" style="width: 400px;"></label>
 
-<!-- Attributes -->
 <h3>Attributes</h3>
 <div class="grid">
-  <label>Strength: <input id="strength" type="number" value="1"></label>
-  <label>Dexterity: <input id="dexterity" type="number" value="1"></label>
-  <label>Constitution: <input id="constitution" type="number" value="1"></label>
-  <label>Intellect: <input id="intellect" type="number" value="1"></label>
-  <label>Wisdom: <input id="wisdom" type="number" value="1"></label>
-  <label>Willpower: <input id="willpower" type="number" value="1"></label>
+  <script>
+    const attributes = ["strength", "dexterity", "constitution", "intellect", "wisdom", "willpower"];
+    attributes.forEach(attr => {
+      document.write(`<div class='scaling-block' id='block_attr_${attr}'>`);
+      document.write(`<label>${attr.charAt(0).toUpperCase() + attr.slice(1)}: <input id="${attr}" type="number" value="1" onchange="updateAttrColor('${attr}')"></label>`);
+      document.write(`<div class='diff-buttons'>`);
+      [1,2,3,4,5].forEach(i => {
+        document.write(`<button type="button" onclick="applyDifficulty('attr','${attr}',${i})">${i}</button>`);
+      });
+      document.write(`</div></div>`);
+    });
+  </script>
 </div>
-
-<!-- Attributes Per Level -->
 <h3>Attributes Per Level</h3>
 <div class="grid">
-  <label>Strength/lvl: <input id="apl_strength" type="number" value="1"></label>
-  <label>Dexterity/lvl: <input id="apl_dexterity" type="number" value="1"></label>
-  <label>Constitution/lvl: <input id="apl_constitution" type="number" value="1"></label>
-  <label>Intellect/lvl: <input id="apl_intellect" type="number" value="1"></label>
-  <label>Wisdom/lvl: <input id="apl_wisdom" type="number" value="1"></label>
-  <label>Willpower/lvl: <input id="apl_willpower" type="number" value="1"></label>
+  <script>
+    attributes.forEach(attr => {
+      document.write(`<div class='scaling-block' id='block_apl_${attr}'>`);
+      document.write(`<label>${attr.charAt(0).toUpperCase() + attr.slice(1)}/lvl: <input id="apl_${attr}" type="number" value="1" onchange="updateAPLColor('${attr}')"></label>`);
+      document.write(`<div class='diff-buttons'>`);
+      [0.5,1,1.5,2,2.5].forEach((val,i) => {
+        document.write(`<button type="button" onclick="applyDifficulty('apl','${attr}',${i+1})">${val}</button>`);
+      });
+      document.write(`</div></div>`);
+    });
+  </script>
 </div>
+<button type="button" onclick="openScalingTable()" style="margin-top:10px; font-size:1em; padding:6px 12px;">Show Scaling Table</button>
 
-<!-- Skills -->
-<h3>Skills</h3>
-<label>Comma-separated Skill IDs: <input id="skills"></label>
+<div id="scalingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5); z-index:1000;" onclick="closeScalingTable(event)">
+  <div id="scalingPopup" style="background:white; width:400px; margin:100px auto; padding:1em; position:relative;" onclick="event.stopPropagation()">
+    <h3>Attribute Scaling Table</h3>
+    <div>
+      <button onclick="setScalingTier(1)">1</button>
+      <button onclick="setScalingTier(15)">15</button>
+      <button onclick="setScalingTier(30)">30</button>
+      <button onclick="setScalingTier(45)">45</button>
+      <button onclick="setScalingTier(60)">60</button>
+      Manual Tier: <input type="number" id="manualTier" value="1" style="width:50px;" onchange="updateScalingTable()">
+    </div>
+    <div id="attributeTotals" style="margin-top:1em;"></div>
+    <button onclick="document.getElementById('scalingOverlay').style.display='none'">Close</button>
+  </div>
+</div><h3>Stats</h3>
+<div class="grid" id="statsArea"></div><script>
+  const difficultyPresets = {
+    attr: [1,2,3,4,5],
+    apl: [0.5,1,1.5,2,2.5],
+    statValues: {
+      maxHp: [10,25,50,75,100],
+      hpRegen: [0,1,2,4,7],
+      maxSp: [10,25,50,75,100],
+      spRegen: [1,3,7,10,15],
+      maxMp: [10,25,50,75,100],
+      mpRegen: [1,3,7,10,15],
+      spEfficiency: [1,0.9,0.8,0.7,0.5],
+      mpEfficiency: [1,0.9,0.8,0.7,0.5],
+      cooldownReduction: [1,0.9,0.8,0.7,0.5],
+      critChance: [0,0.01,0.05,0.15,0.4],
+      critMulti: [1.5,2,3,5,10],
+      lifestealMulti: [0,0.01,0.1,0.3,0.5],
+      lifestealChance: [0,0.01,0.05,0.15,0.4],
+      armorPenetration: [1,0.9,0.8,0.7,0.5],
+      magicPenetration: [1,0.9,0.8,0.7,0.5]
+    }
+  };
 
-<!-- Stats -->
-<h3>Stats</h3>
-<div class="grid" id="statsArea"></div>
+  const allStats = ["hp", "maxHp", "hpRegen", "sp", "maxSp", "spRegen", "spEfficiency",
+    "mp", "maxMp", "mpRegen", "mpEfficiency",
+    "critChance", "critMulti",
+    "lifestealMulti", "lifestealChance",
+    "cooldownReduction", "armorPenetration", "magicPenetration"];
 
-<button onclick="generateUnit()">Generate Unit JSON</button>
-<button onclick="copyOutput()">Copy to Clipboard</button>
-<div id="output"></div>
+  const statOptions = [...attributes, ...allStats, "skillLevel"];
+  const statList = {};
+  allStats.forEach(stat => {
+    let name = stat.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+    statList[stat] = name;
+  });
 
-<script>
-  function copyOutput() {
+  const statsArea = document.getElementById("statsArea");
+  for (const key in statList) {
+    if (key == "mp" || key == "hp" || key == "sp") continue;
+    const container = document.createElement("div");
+    container.innerHTML = `
+      <div class="scaling-block" id="block_${key}">
+        <strong>${statList[key]}</strong>
+        <label>base: <input onchange="updateStatBlock('${key}')" id="base_${key}" type="number" value="0"></label>
+        <div class="diff-buttons">
+          ${difficultyPresets.statValues[key] ? difficultyPresets.statValues[key].map((val,i) => `<button type='button' onclick="applyDifficulty('stat','${key}',${i+1})">${val}</button>`).join('') : ""}
+        </div>
+        <div id="scaling_${key}"></div>
+        <div class="controls">
+          <button type="button" onclick="addScaling('${key}')">+ Add Scaling</button>
+        </div>
+      </div>`;
+    statsArea.appendChild(container);
+  }
+
+  function applyDifficulty(type, key, level) {
+    if (type === "attr") {
+      document.getElementById(key).value = difficultyPresets.attr[level-1];
+      updateAttrColor(key);
+    } else if (type === "apl") {
+      document.getElementById("apl_" + key).value = difficultyPresets.apl[level-1];
+      updateAPLColor(key)
+    } else if (type === "stat") {
+      const val = difficultyPresets.statValues[key] ? difficultyPresets.statValues[key][level-1] : 0;
+      document.getElementById("base_" + key).value = val;
+      updateStatBlock(key);
+    }
+  }
+
+
+
+  function addScaling(statKey) {
+    const div = document.createElement("div");
+    div.className = "scaling-entry";
+    const statSelectHTML = statOptions.map(
+      opt => `<option value="${opt}">${opt}</option>`
+    ).join("");
+    div.innerHTML = `
+      <select><option value="caster">caster</option><option value="target">target</option></select>
+      <input type="number" value="0" step="0.01">
+      <select>${statSelectHTML}</select>
+      <button type="button" onclick="this.parentElement.remove()">−</button>
+    `;
+    document.getElementById(`scaling_${statKey}`).appendChild(div);
+  }
+</script><button onclick="generateUnit()">Generate Unit JSON</button> <button onclick="copyOutput()">Copy to Clipboard</button>
+
+<div id="output"></div><script>
+function copyOutput() {
   const output = document.getElementById("output").textContent;
   navigator.clipboard.writeText(output).then(() => {
     alert("Copied to clipboard!");
@@ -90,209 +357,71 @@
     console.error("Failed to copy:", err);
   });
 }
-const attributes = ["strength", "dexterity", "constitution", "intellect", "wisdom", "willpower"];
-const allStats = [
-  "hp", "maxHp", "hpRegen",
-  "sp", "maxSp", "spRegen", "spEfficiency",
-  "mp", "maxMp", "mpRegen", "mpEfficiency",
-  "attackPower", "spellPower",
-  "critChance", "critMulti",
-  "lifestealMulti", "lifestealChance",
-  "cooldownReduction", "armorPenetration", "magicPenetration"
-];
+
 function applyPreset(type) {
-  const setVals = (vals, prefix = "") => {
-    for (const key in vals) {
-      const input = document.getElementById(prefix + key);
-      
-      if (input) {
-        input.value = vals[key];
-        updateStatBlock(key)
-      }
+  const presetData = {
+    tank: {
+      strength: 5, constitution: 5, dexterity: 2, intellect: 1, wisdom: 1, willpower: 3,
+      apl: { strength: 0.5, constitution: 0.5, dexterity: 0.2, intellect: 0.1, wisdom: 0.1, willpower: 0.3 },
+      xp: 10,
+      stats: { maxHp: 50, hpRegen: 2, maxSp: 50, spRegen: 7, maxMp: 10, mpRegen: 1 }
+    },
+    assassin: {
+      strength: 3, constitution: 2, dexterity: 5, intellect: 2, wisdom: 1, willpower: 1,
+      apl: { strength: 0.3, constitution: 0.2, dexterity: 0.5, intellect: 0.2, wisdom: 0.1, willpower: 0.1 },
+      xp: 15,
+      stats: { maxHp: 25, hpRegen: 1, maxSp: 25, spRegen: 7, maxMp: 10, mpRegen: 1 }
+    },
+    caster: {
+      strength: 1, constitution: 2, dexterity: 1, intellect: 5, wisdom: 5, willpower: 5,
+      apl: { strength: 0.1, constitution: 0.2, dexterity: 0.1, intellect: 0.5, wisdom: 0.5, willpower: 0.5 },
+      xp: 20,
+      stats: { maxHp: 20, hpRegen: 1, maxSp: 10, spRegen: 3, maxMp: 50, mpRegen: 7 }
+    },
+    casterTank: {
+      strength: 3, constitution: 5, dexterity: 2, intellect: 4, wisdom: 3, willpower: 4,
+      apl: { strength: 0.3, constitution: 0.5, dexterity: 0.2, intellect: 0.4, wisdom: 0.3, willpower: 0.4 },
+      xp: 20,
+      stats: { maxHp: 50, hpRegen: 2, maxSp: 25, spRegen: 7, maxMp: 50, mpRegen: 7 }
+    },
+    regenTank: {
+      strength: 4, constitution: 5, dexterity: 2, intellect: 1, wisdom: 3, willpower: 3,
+      apl: { strength: 0.4, constitution: 0.5, dexterity: 0.2, intellect: 0.1, wisdom: 0.3, willpower: 0.3 },
+      xp: 15,
+      stats: { maxHp: 75, hpRegen: 4, maxSp: 50, spRegen: 10, maxMp: 10, mpRegen: 3 }
     }
   };
+  if (!presetData[type]) return;
+  const preset = presetData[type];
 
-  const presets = {
-  tank: {
-    attributes: { strength: 3, constitution: 5, dexterity: 2, intellect: 1, wisdom: 2, willpower: 2 },
-    apl: { strength: 1.8, constitution: 3.3, dexterity: 1.2, intellect: 0.7, wisdom: 1, willpower: 1 },
-    stats: {
-      maxHp: {
-        base: 100,
-        scaling: [{ target: "caster", stat: "constitution", scale: 10 }]
-      },
-      hpRegen: { base: 2 },
-      maxSp: {
-        base: 15,
-        scaling: [{ target: "caster", stat: "strength", scale: 2 }]
-      },
-      spRegen: { base: 1 },
-      maxMp: {
-        base: 10,
-        scaling: [{ target: "caster", stat: "willpower", scale: 1 }]
-      },
-      mpRegen: { base: 0.5 },
-    }
-  },
-  assassin: {
-    attributes: { strength: 2, constitution: 2, dexterity: 4, intellect: 1, wisdom: 1, willpower: 1 },
-    apl: { strength: 2.5, constitution: 1, dexterity: 3.5, intellect: 0.7, wisdom: 0.9, willpower: 1.5 },
-    stats: {
-      maxHp: {
-        base: 50,
-        scaling: [{ target: "caster", stat: "constitution", scale: 5 }]
-      },
-      hpRegen: { base: 1 },
-      maxSp: {
-        base: 25,
-        scaling: [{ target: "caster", stat: "dexterity", scale: 4 }]
-      },
-      spRegen: { base: 2 },
-      maxMp: {
-        base: 5,
-        scaling: [{ target: "caster", stat: "willpower", scale: 0.5 }]
-      },
-      mpRegen: { base: 0.25 },
-      critChance: { base: 1 },
-      critMulti: { base: 2 }
-    }
-  },
-  caster: {
-    attributes: { strength: 1, constitution: 1, dexterity: 2, intellect: 3, wisdom: 4, willpower: 5 },
-    apl: { strength: 0.2, constitution: 0.8, dexterity: 0.85, intellect: 3.4, wisdom: 2, willpower: 2.25 },
-    stats: {
-      maxHp: {
-        base: 40,
-        scaling: [{ target: "caster", stat: "constitution", scale: 4 }]
-      },
-      hpRegen: { base: 0.5 },
-      maxSp: {
-        base: 10,
-        scaling: [{ target: "caster", stat: "dexterity", scale: 1 }]
-      },
-      spRegen: { base: 1 },
-      maxMp: {
-        base: 80,
-        scaling: [{ target: "caster", stat: "willpower", scale: 5 }]
-      },
-      mpRegen: { base: 5 }
+  attributes.forEach(attr => {
+    document.getElementById(attr).value = preset[attr] || 1;
+    document.getElementById('apl_' + attr).value = preset.apl[attr] || 0.5;
+  });
+
+  document.getElementById('xp').value = preset.xp;
+
+  for (const stat in preset.stats) {
+    const val = preset.stats[stat];
+    if (document.getElementById('base_' + stat)) {
+      document.getElementById('base_' + stat).value = val;
+      updateStatBlock(stat);
     }
   }
-};
-
-  if (type && presets[type]) {
-    setVals(presets[type].attributes);
-    setVals(presets[type].apl, "apl_");
-    for (const stat in presets[type].stats) {
-  const statData = presets[type].stats[stat];
-  const baseInput = document.getElementById(`base_${stat}`);
-  const scalingDiv = document.getElementById(`scaling_${stat}`);
-
-  // Handle base
-  if (baseInput && typeof statData === "object" && "base" in statData) {
-    baseInput.value = statData.base;
-  } else if (baseInput) {
-    baseInput.value = statData; // fallback for number-only presets
-  }
-
-  // Handle scaling
-  if (scalingDiv && statData.scaling) {
-    scalingDiv.innerHTML = ""; // Clear existing scalings
-    for (const s of statData.scaling) {
-      const div = document.createElement("div");
-      div.className = "scaling-entry";
-
-      const statSelectHTML = statOptions.map(
-        opt => `<option value="${opt}" ${opt === s.stat ? "selected" : ""}>${opt}</option>`
-      ).join("");
-
-      div.innerHTML = `
-        <select>
-          <option value="caster" ${s.target === "caster" ? "selected" : ""}>caster</option>
-          <option value="target" ${s.target === "target" ? "selected" : ""}>target</option>
-        </select>
-        <input type="number" value="${s.scale}" step="0.01">
-        <select>${statSelectHTML}</select>
-        <button type="button" onclick="this.parentElement.remove()">−</button>
-      `;
-      scalingDiv.appendChild(div);
-    }
-  }
-
-  updateStatBlock(stat);
-}
-  }
-}
-const statOptions = [...attributes, ...allStats, "skillLevel"];
-
-const statList = {};
-allStats.forEach(stat => {
-  let name = stat.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
-  statList[stat] = name;
-});
-
-const statsArea = document.getElementById("statsArea");
-for (const key in statList) {
-  if(key == "mp" || key == "hp" || key == "sp") continue;
-  const container = document.createElement("div");
-  container.innerHTML = `
-    <div class="scaling-block" id="block_${key}">
-      <strong>${statList[key]}</strong>
-      <label>base: <input onchange="updateStatBlock('${key}')" id="base_${key}" type="number" value="${key == "cooldownReduction" || key=="armorPenetration" || key=="magicPenetration"?1:0}"></label>
-      <div id="scaling_${key}"></div>
-      <div class="controls">
-        <button type="button" onclick="addScaling('${key}')">+ Add Scaling</button>
-      </div>
-    </div>`;
-  statsArea.appendChild(container);
-}
-function updateStatBlock(key){
-  let ele = document.getElementById("base_"+key);
-  let blockEle = document.getElementById("block_"+key);
-  if(ele && ele.value && ele.value!=0){
-    if(blockEle){
-      blockEle.style.background="#aca";
-    }
-  }else{
-    if(blockEle){
-      blockEle.style.background="#fff"
-    }
-  }
-}
-function addScaling(statKey) {
-  const div = document.createElement("div");
-  div.className = "scaling-entry";
-
-  const statSelectHTML = statOptions.map(
-    opt => `<option value="${opt}">${opt}</option>`
-  ).join("");
-
-  div.innerHTML = `
-    <select>
-      <option value="caster">caster</option>
-      <option value="target">target</option>
-    </select>
-    <input type="number" value="0" step="0.01">
-    <select>${statSelectHTML}</select>
-    <button type="button" onclick="this.parentElement.remove()">−</button>
-  `;
-  document.getElementById(`scaling_${statKey}`).appendChild(div);
 }
 
 function generateUnit() {
   const val = id => document.getElementById(id).value;
   const num = id => parseFloat(val(id)) || 0;
-
+  const skillIds = val("skillIds").split(',').map(s => s.trim()).filter(s => s);
   const stats = {};
   for (const key in statList) {
-    if (key === "hp" || key === "mp" || key === "sp") continue; // skip generating blocks for these
-
+    if (key === "hp" || key === "mp" || key === "sp") continue;
     const obj = { display: statList[key] };
     if (val(`base_${key}`)) {
       obj.base = num(`base_${key}`);
       obj.value = obj.base;
     }
-
     const scalings = [];
     const scalingDivs = document.getElementById(`scaling_${key}`).children;
     for (const div of scalingDivs) {
@@ -305,37 +434,53 @@ function generateUnit() {
       }
     }
     if (scalings.length) obj.scaling = scalings;
-
     stats[key] = obj;
   }
-
-  // Manually assign hp, mp, and sp to equal their respective max values
   if (stats.maxHp) stats.hp = { value: stats.maxHp.base || 0 };
   if (stats.maxMp) stats.mp = { value: stats.maxMp.base || 0 };
   if (stats.maxSp) stats.sp = { value: stats.maxSp.base || 0 };
-
   const unit = {
-    name: val("name"),
-    race: val("race"),
-    damageType: val("damageType"),
-    planet: val("planet"),
-    xp: parseInt(val("xp")),
+    name: val("name"), race: val("race"), damageType: val("damageType"), planet: val("planet"), xp: parseInt(val("xp")),
     attributes: Object.fromEntries(attributes.map(attr => [attr, num(attr)])),
-    attributesPerLevel: Object.fromEntries(attributes.map(attr => [`${attr}`, num(`apl_${attr}`)])),
-    stats,
-    skills: {
-      combatData: { targets: {}, lastUsed: {} },
-      equipped: val("skills").split(",").filter(x => x.trim()).map(id => ({
-        id: id.trim(),
-        level: 1
-      }))
-    },
-    talents: []
+    attributesPerLevel: Object.fromEntries(attributes.map(attr => [attr, num(`apl_${attr}`)])),
+    stats, skills: { combatData: { targets: {}, lastUsed: {} }, equipped: skillIds }, talents: []
   };
-
   document.getElementById("output").textContent = JSON.stringify(unit, null, 2);
 }
-</script>
 
-</body>
+function openScalingTable() {
+  document.getElementById('scalingOverlay').style.display = 'block';
+  updateScalingTable();
+}
+
+function closeScalingTable(event) {
+  if (event.target.id === 'scalingOverlay') {
+    document.getElementById('scalingOverlay').style.display = 'none';
+  }
+}
+
+function setScalingTier(tier) {
+  document.getElementById('manualTier').value = tier;
+  updateScalingTable();
+}
+
+function updateScalingTable() {
+  const tier = parseInt(document.getElementById('manualTier').value) || 1;
+  let output = "<table><tr><th>Attribute</th><th>Total</th></tr>";
+  attributes.forEach(attr => {
+    const base = parseFloat(document.getElementById(attr).value) || 0;
+    const apl = parseFloat(document.getElementById('apl_' + attr).value) || 0;
+    const total = base + apl * tier;
+    output += `<tr><td>${attr.charAt(0).toUpperCase() + attr.slice(1)}</td><td>${total.toFixed(2)}</td></tr>`;
+  });
+  output += "</table>";
+  document.getElementById('attributeTotals').innerHTML = output;
+}
+
+window.addEventListener("load", () => {
+  const xpInput = document.getElementById("xp");
+  if (xpInput) xpInput.setAttribute("onchange", "updateXPColor()");
+  refreshAllColors();
+});
+</script></body>
 </html>
