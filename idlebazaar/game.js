@@ -1,7 +1,7 @@
 const currencies = {
   coins: {
     name: "Coins",
-    amount: 0,
+    amount: 500000000,
     highest: 0 , 
     lifetime: 0,
     multi: 1,
@@ -15,7 +15,7 @@ const currencies = {
   },
   fame: { 
     name: "Fame",
-    amount: 0,
+    amount: 200,
     highest: 0, 
     lifetime: 0, 
     multi: [1],
@@ -194,7 +194,7 @@ const fameUpgrades = [
       });
       selloutEvent.on(() =>{
         let newLevel = fameUpgrades.find(u => u.id == "stall_boost").level
-      stalls.forEach(stall => {
+      stalls.filter(stall => stall.index < 5).forEach(stall => {
         if (stall.level < newLevel){ 
           stall.level = newLevel;
           stall.unlocked = true;
