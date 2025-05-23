@@ -144,9 +144,13 @@ const fameUpgrades = [
     description: "Gain +5% more fame.",
     cost: 5,
     level: 0,
-    maxLevel: 50000,
+    maxLevel: 0,
     apply: () => {
+      if(currencies.fame.multi.length < 2){
       currencies.fame.multi.push(1.05)
+      }else{
+        currencies.fame.multi[1] *= 1.05
+      }
       fameUpgrades.find(u => u.id == "fame_boost_1").cost +=1
       console.log(currencies.fame.getMulti())
     }
@@ -155,12 +159,12 @@ const fameUpgrades = [
     id: "starting_coins_boost",
     name: "Starting Coins Boost",
     description: "Increase starting coins by 10^level.",
-    cost: 10,
+    cost: 5,
     level: 0,
-    maxLevel: 10,
+    maxLevel: 8,
     apply: () => {
       let upg = fameUpgrades.find(u => u.id == "starting_coins_boost");
-      upg.cost *= 2;
+      upg.cost *= 3;
       if(upg.eventListener && upg.eventType){
         new EventType(upg.eventType).removeListener(upg.eventListener)
       }
@@ -178,11 +182,13 @@ const fameUpgrades = [
     id: "stall_boost",
     name: "Stall Boost",
     description: "Increase the starting level of the first 5 stalls.",
-    cost: 100,
+    cost: 50,
     level: 0,
-    maxLevel: 10,
+    maxLevel: 0,
     apply: () => {
-      let upgLevel = fameUpgrades.find(u => u.id == "stall_boost").level
+      let upg = fameUpgrades.find(u => u.id == "stall_boost");
+      let upgLevel = upg.level
+      upg.cost++;
       stalls.filter(stall => stall.index < 5).forEach(stall => {
         if (stall.level < upgLevel) {
           stall.level = upgLevel;
@@ -366,9 +372,9 @@ function renderFameUpgrades() {
     const div = document.createElement("div");
     div.className = "upgrade";
     div.innerHTML = `
-      <strong>${upg.description}</strong> (${upg.level}/${upg.maxLevel})<br>
-      <button ${upg.level == upg.maxLevel ? "disabled" : ""} id="fame-upgrade-${upg.id}">
-        ${upg.level < upg.maxLevel ? `Buy for ${upg.cost} Fame`:"Maxed"}
+      <strong>${upg.description}</strong> (${upg.level}${upg.maxLevel?"/"+upg.maxLevel:""})<br>
+      <button ${upg.maxLevel && upg.level == upg.maxLevel ? "disabled" : ""} id="fame-upgrade-${upg.id}">
+        ${!upg.maxLevel || upg.level < upg.maxLevel ? "Buy for "+upg.cost+" Fame":"Maxed"}
       </button>
     `;
     container.appendChild(div);
@@ -434,13 +440,9 @@ stalls.forEach((stall) => {
       currencies.coins.lifetime += inc;
       updateDisplay();
     }
-  }, stall.interval);
+  }, tickSpeed);
 });
-if(loadGameOnStart){
-loadGame();
-}
-renderStalls();
-setInterval(saveGame, 10000); // Save every 10 seconds
+
 function setTickspeed(value){
   if(updateInterval){
     clearInterval(updateInterval);
@@ -463,7 +465,8 @@ function resetGame() {
       resetTimer.lastClick = Date.now()
   }
 }
-let updateInterval = setInterval(updateDisplay, tickSpeed);
+
+
 
   const eventListeners = {};
 
@@ -502,3 +505,9 @@ let updateInterval = setInterval(updateDisplay, tickSpeed);
   }
   
 const selloutEvent = new EventType("sellout")
+if(loadGameOnStart){
+loadGame();
+}
+let updateInterval = setInterval(updateDisplay, tickSpeed);
+renderStalls();
+setInterval(saveGame, 10000); // Save every 10 seconds
