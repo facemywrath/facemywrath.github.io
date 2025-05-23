@@ -24,13 +24,13 @@ const currencies = {
     }
   },
   ads: { 
-    name: "ads",
+    name: "Ads",
     amount: 0,
     highest: 0, 
     lifetime: 0, 
     multi: [1],
     calculateGain: function(){
-      return Math.floor(Math.pow(currencies.fame.amount / 50000, 0.1))*getMulti("ads");
+      return Math.floor(Math.pow(currencies.fame.amount / 50000, 0.5))*getMulti("ads");
     }
   }
 };
@@ -227,6 +227,19 @@ const fameUpgrades = [
     }
   }
 ];
+const adUpgrades = [  
+  {
+    id: "double_income",
+    name: "Double Income",
+    description: "Doubles all income.",
+    cost: 10,
+    level: 0,
+    maxLevel: 1,
+    apply: () => {
+      currencies.coins.multi.push(2)
+    }
+  }
+  ];
 const originalStalls = JSON.parse(JSON.stringify(stalls));
 function saveGame() {
   const saveData = {
@@ -283,6 +296,10 @@ function formatCurrency(value) {
 function getNextSellOutRequirement() {
   const fame = currencies.fame.calculateGain() + 1;
   return Math.ceil(Math.pow(fame, 1/ 0.8) * 1000000);
+}
+function getNextAdsRequirement() {
+  const ads = currencies.ads.calculateGain() + 1;
+  return Math.ceil(Math.pow(ads, 1/0.5)*50000)
 }
 
 
@@ -408,6 +425,33 @@ function renderFameUpgrades() {
     
   });
 }
+function renderAdUpgrades() {
+  const container = document.getElementById("ads-upgrades");
+  container.innerHTML = "";
+
+  adUpgrades.forEach(upg => {
+    const div = document.createElement("div");
+    div.className = "upgrade";
+    div.innerHTML = `
+      <strong>${upg.description}</strong> (${upg.level}${upg.maxLevel?"/"+upg.maxLevel:""})<br>
+      <button ${upg.maxLevel && upg.level == upg.maxLevel ? "disabled" : ""} id="ad-upgrade-${upg.id}">
+        ${!upg.maxLevel || upg.level < upg.maxLevel ? "Buy for "+formatCurrency(upg.cost)+" Ads":"Maxed"}
+      </button>
+    `;
+    container.appendChild(div);
+
+    
+      document.getElementById(`ad-upgrade-${upg.id}`).addEventListener("click", () => {
+        if (currencies.ads.amount >= upg.cost) {
+          currencies.ads.amount -= upg.cost;
+          upg.level = upg.level+1 || 1;
+          upg.apply();
+          updateDisplay();
+        }
+      });
+    
+  });
+}
 function updateDisplay() {
   // Track highest values
   for (let key in currencies) {
@@ -419,16 +463,21 @@ function updateDisplay() {
   renderResources();
   renderStalls();
   renderFameUpgrades();
+  renderAdUpgrades();
 
-  const gain = currencies.fame.calculateGain();
-  const next = getNextSellOutRequirement();
-
+  const fameGain = currencies.fame.calculateGain();
+  const nextFame = getNextSellOutRequirement();
+  const adsGain = currencies.ads.calculateGain();
+  const nextAds = getNextAdsRequirement();
   showWindow("sellout-window", currencies.coins.highest >= 250000);
   showWindow("stalls-window", stalls.some(s => s.unlocked));
+  showWindow("ads-window", fameUpgrades.some(u => u.id == "unlock_ads" && u.level == 1))
 
-  const btn = document.getElementById("sellout-btn");
-  btn.textContent = `Sell Out (+${formatCurrency(gain)} Fame)  - Next at ${formatCurrency(next)} Coins`;
-  btn.disabled = gain <= 0;
+  const selloutBtn = document.getElementById("sellout-btn");
+  selloutBtn.textContent = `Sell Out (+${formatCurrency(fameGain)} Fame)  - Next at ${formatCurrency(nextFame)} Coins`;
+  selloutBtn.disabled = fameGain <= 0;
+  const adsBtn = document.getElementById("ads-btn");
+  adsBtn.textContent = `Buy Ads (+${formatCurrency(adsGain)} Ads)  - Next at ${formatCurrency(nextAds)} Fame`
 }
 
 document.getElementById("sellout-btn").addEventListener("click", () => {
@@ -445,6 +494,24 @@ document.getElementById("sellout-btn").addEventListener("click", () => {
       Object.assign(stall, JSON.parse(JSON.stringify(original)));
     });
     selloutEvent.emit()
+    updateDisplay();
+  }
+});
+document.getElementById("ads-btn").addEventListener("click", () => {
+  const gain = currencies.ads.calculateGain();
+  if (gain > 0) {
+    currencies.ads.amount += gain;
+    currencies.ads.lifetime += gain
+    currencies.coins.amount = 0;
+    currencies.fame.amount = 0;
+    
+
+    // Reset stalls using original copy
+    stalls.forEach((stall, index) => {
+      const original = originalStalls[index];
+      Object.assign(stall, JSON.parse(JSON.stringify(original)));
+    });
+    buyAdsEvent.emit()
     updateDisplay();
   }
 });
@@ -529,6 +596,7 @@ setInterval(() => {
   }
   
 const selloutEvent = new EventType("sellout")
+const buyAdsEvent = new EventType("buyAds")
 if(loadGameOnStart){
 loadGame();
 }
