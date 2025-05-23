@@ -1,7 +1,7 @@
 const currencies = {
   coins: {
     name: "Coins",
-    amount: 500000000,
+    amount: 0,
     highest: 0 , 
     lifetime: 0,
     multi: 1,
@@ -15,7 +15,7 @@ const currencies = {
   },
   fame: { 
     name: "Fame",
-    amount: 200,
+    amount: 0,
     highest: 0, 
     lifetime: 0, 
     multi: [1],
