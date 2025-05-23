@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Idle Bazaar</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="main-container">
+    <div id="hotbar-window" class="window">
+      <h2>Hotbar</h2>
+      <button id="reset-btn" onclick="resetGame()">Reset</button>
+    </div>
+    <div id="resources-window" class="window">
+      <h2>Resources</h2>
+      <div id="resource-list"></div>
+    </div>
+
+
+    <div id="stalls-window" class="window hidden">
+      <h2 id="stall-production-display">Market Stalls - Coins/sec: </h2>
+      <div id="stalls"></div>
+    </div>
+    <div id="sellout-window" class="window hidden">
+      <h2>Sell Out</h2>
+      <p><button id="prestige-btn">Sell Out</button></p>
+      <div id="sellout-upgrades"></div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
