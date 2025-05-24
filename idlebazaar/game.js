@@ -1,7 +1,7 @@
 const currencies = {
   coins: {
     name: "Coins",
-    amount: 0,
+    amount: 5000000,
     highest: 0 , 
     lifetime: 0,
     multi: [1],
@@ -15,12 +15,19 @@ const currencies = {
   },
   fame: { 
     name: "Fame",
-    amount: 0,
-    highest: 0, 
+    amount: 5000000000,
+    highst: 0,
     lifetime: 0, 
     multi: [1],
     calculateGain: function(){
       return Math.floor(Math.pow(currencies.coins.amount / 1000000, 0.85))*getMulti("fame");
+    },
+    calculateNext: function(){
+      const baseFame = Math.floor(Math.pow(currencies.coins.amount / 1000000, 0.85));
+  const nextBaseFame = baseFame + 1;
+  const baseCoinsNeeded = Math.pow(nextBaseFame, 1 / 0.85) * 1000000;
+  return Math.ceil(baseCoinsNeeded);
+      
     }
   },
   ads: { 
@@ -29,9 +36,20 @@ const currencies = {
     highest: 0, 
     lifetime: 0, 
     multi: [1],
-    calculateGain: function(){
-      return Math.floor(currencies.fame.amount / 50000)*getMulti("ads");
-    }
+    calculateGain: function() {
+  const fame = currencies.fame.amount;
+  const base = 50000; // Adjust base requirement as needed
+  const gain = Math.floor(Math.pow(fame / base, 0.8)) * getMulti("ads");
+  return Math.max(0, gain);
+},
+calculateNext: function() {
+  const fame = currencies.fame.amount;
+  const base = 50000;
+  const baseAds = Math.floor(Math.pow(fame / base, 0.8));
+  const nextBaseAds = baseAds + 1;
+  const requiredFame = Math.pow(nextBaseAds, 1 / 0.8) * base;
+  return Math.ceil(requiredFame);
+}
   }
 };
 let tickSpeed = 1000;
@@ -150,18 +168,18 @@ let fameUpgrades = [
   {
     id: "coin_boost",
     name: "Coin Boost",
-    description: "Gain 10% more Coins.",
+    description: "Gain 15% more Coins.",
     cost: 1,
     level: 0,
     maxLevel: 0,
     apply: () => {
       if(currencies.coins.multi.length < 3){
-        currencies.coins.multi.push(1.10)
+        currencies.coins.multi.push(1.2)
       }else{
-        currencies.coins.multi[2] *= 1.10
+        currencies.coins.multi[2] *= 1.2
       }
       let upg = fameUpgrades.find(u => u.id == "coin_boost");
-      upg.cost = Math.pow((upg.level*0.75)+1, 1.1+(0.05*upg.level))
+      upg.cost = Math.pow((upg.level*0.75)+1, 1.1+(0.05*Math.pow(upg.level, 1.01)))
     }
   },
   {
@@ -178,7 +196,7 @@ let fameUpgrades = [
         currencies.fame.multi[1] *= 1.05
       }
       let upg = fameUpgrades.find(u => u.id == "fame_boost");
-      upg.cost = Math.pow((upg.level*0.5)+1, 2+(0.02*upg.level))
+      upg.cost = Math.pow((upg.level*0.5)+1, 2+(0.02*Math.pow(upg.level, 1.05)))
     }
   },
   {
@@ -191,7 +209,7 @@ let fameUpgrades = [
     apply: () => {
       let upg = fameUpgrades.find(u => u.id == "stall_boost");
       let upgLevel = upg.level
-      upg.cost = Math.pow(upg.level, 2.5+(0.02*upg.level)) + 50;
+      upg.cost = Math.pow(upg.level, 2.5+(0.02*Math.pow(upg.level, 1.1))) + 50;
       stalls.filter(stall => stall.index < 5).forEach(stall => {
         if (stall.level < upgLevel) {
           stall.level = upgLevel;
@@ -232,7 +250,7 @@ const adUpgrades = [
     id: "double_cps",
     name: "Double CPS",
     description: "Doubles CPS.",
-    cost: 1,
+    cost: 2,
     level: 0,
     maxLevel: 1,
     apply: () => {
@@ -243,7 +261,7 @@ const adUpgrades = [
     id: "double_fame",
     name: "Double Fame",
     description: "Doubles Fame gain.",
-    cost: 2,
+    cost: 5,
     level: 0,
     maxLevel: 1,
     apply: () => {
@@ -261,6 +279,19 @@ const adUpgrades = [
       currencies.ads.multi.push(1.2)
       let upg = adUpgrades.find(u => u.id == "ad_boost");
       upg.cost *= 2;
+    }
+  },
+  {
+    id: "tickspeed_boost",
+    name: "Tickspeed Boost",
+    description: "Decrease tickspeed by 25%",
+    cost: 1,
+    level: 0,
+    maxLevel: 5,
+    apply: () => {
+      setTickspeed(tickSpeed*(1/1.25))
+      let upg = adUpgrades.find(u => u.id == "tickspeed_boost");
+      upg.cost *= 5;
     }
   }
   ];
@@ -318,14 +349,8 @@ function formatCurrency(value) {
   return scaled.toFixed(2) + suffix;
 }
 
-function getNextSellOutRequirement() {
-  const fame = currencies.fame.calculateGain() + 1;
-  return Math.ceil(Math.pow(fame, 1/ 0.85) * 1000000);
-}
-function getNextAdsRequirement() {
-  const ads = currencies.ads.calculateGain() + 1;
-  return Math.ceil(ads * 50000)
-}
+
+
 
 
 
@@ -343,7 +368,7 @@ function renderResources() {
 
   let hasVisible = false;
   for (let key in currencies) {
-    if (currencies[key].highest > 0) {
+    if (currencies[key].lifetime > 0) {
       hasVisible = true;
       const div = document.createElement("div");
       div.textContent = `${currencies[key].name}: ${formatCurrency(currencies[key].amount)}`;
@@ -491,9 +516,9 @@ function updateDisplay() {
   renderAdUpgrades();
 
   const fameGain = currencies.fame.calculateGain();
-  const nextFame = getNextSellOutRequirement();
+  const nextFame = currencies.fame.calculateNext();
   const adsGain = currencies.ads.calculateGain();
-  const nextAds = getNextAdsRequirement();
+  const nextAds = currencies.ads.calculateNext();
   showWindow("sellout-window", currencies.coins.highest >= 250000);
   showWindow("stalls-window", stalls.some(s => s.unlocked));
   showWindow("ads-window", currencies.ads.lifetime > 0 || (fameUpgrades.some(u => u.id == "unlock_ads" && u.level == 1)))
@@ -504,7 +529,7 @@ function updateDisplay() {
   const adsBtn = document.getElementById("ads-btn");
   adsBtn.textContent = `Buy Ads (+${formatCurrency(adsGain)} Ads)  - Next at ${formatCurrency(nextAds)} Fame`
   const fpsText = document.getElementById("fps");
-  fpsText.textContent = currencies.ads.amount > 0?" - Total FPS: "+formatCurrency(currencies.ads.amount*getMulti("fame")):""
+  fpsText.textContent = currencies.ads.amount > 0?" - Total FPS: "+formatCurrency(currencies.ads.amount):""
 }
 
 document.getElementById("sellout-btn").addEventListener("click", () => {
@@ -552,23 +577,15 @@ document.getElementById("ads-btn").addEventListener("click", () => {
   }
 });
 
-stalls.forEach((stall) => {
-  setInterval(() => {
-    if (stall.unlocked) {
-      inc = calculateStallIncome(stall)
-      currencies.coins.amount += inc;
-      currencies.coins.lifetime += inc;
-      updateDisplay();
-    }
-  }, tickSpeed);
-});
+
 
 function setTickspeed(value){
   if(updateInterval){
     clearInterval(updateInterval);
   }
   tickSpeed = value;
-  updateInterval = setInterval(updateDisplay, value)
+  updateInterval = setInterval(runGame, value)
+  console.log(tickSpeed)
 }
 function resetGame() {
     if(resetTimer.lastClick+resetTimer.timeout  >= Date.now()){
@@ -585,14 +602,6 @@ function resetGame() {
       resetTimer.lastClick = Date.now()
   }
 }
-setInterval(() => {
-  if (currencies.ads.amount > 0) {
-    const fameGain = currencies.ads.amount;
-    currencies.fame.amount += fameGain;
-    currencies.fame.lifetime += fameGain;
-    updateDisplay();
-  }
-}, tickSpeed);
 
 
   const eventListeners = {};
@@ -636,6 +645,21 @@ const buyAdsEvent = new EventType("buyAds")
 if(loadGameOnStart){
 loadGame();
 }
-let updateInterval = setInterval(updateDisplay, tickSpeed);
+function runGame(){
+  stalls.forEach((stall) => {
+    if (stall.unlocked) {
+      inc = calculateStallIncome(stall)
+      currencies.coins.amount += inc;
+      currencies.coins.lifetime += inc;
+    }
+});
+if (currencies.ads.amount > 0) {
+    const fameGain = currencies.ads.amount;
+    currencies.fame.amount += fameGain;
+    currencies.fame.lifetime += fameGain;
+  }
+updateDisplay();
+}
+let updateInterval =setInterval(runGame, tickSpeed);
 renderStalls();
 setInterval(saveGame, 10000); // Save every 10 seconds
