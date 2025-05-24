@@ -20,7 +20,7 @@ const currencies = {
     lifetime: 0, 
     multi: [1],
     calculateGain: function(){
-      return Math.floor(Math.pow(currencies.coins.amount / 1000000, 0.8))*getMulti("fame");
+      return Math.floor(Math.pow(currencies.coins.amount / 1000000, 0.85))*getMulti("fame");
     }
   },
   ads: { 
@@ -30,7 +30,7 @@ const currencies = {
     lifetime: 0, 
     multi: [1],
     calculateGain: function(){
-      return Math.floor(Math.pow(currencies.fame.amount / 50000, 0.5))*getMulti("ads");
+      return Math.floor(currencies.fame.amount / 50000)*getMulti("ads");
     }
   }
 };
@@ -40,7 +40,7 @@ let resetTimer = {
   clickCount: 0,
   timeout: 1000
 }
-const loadGameOnStart=true;
+const loadGameOnStart=false;
 function getMulti(currency){
       return currencies[currency].multi.reduce((total, num) => total * num, 1)
     }
@@ -135,11 +135,11 @@ function calculateStallIncome(stall){
   let inc = (stall.baseIncome * stall.level * stall.count)/(stall.interval/1000)*getMulti("coins");
   return inc
 }
-const fameUpgrades = [
+let fameUpgrades = [
   {
-    id: "double_income",
-    name: "Double Income",
-    description: "Doubles all income.",
+    id: "double_cps",
+    name: "Double CPS",
+    description: "Doubles CPS.",
     cost: 5,
     level: 0,
     maxLevel: 1,
@@ -161,7 +161,7 @@ const fameUpgrades = [
         currencies.coins.multi[2] *= 1.10
       }
       let upg = fameUpgrades.find(u => u.id == "coin_boost");
-      upg.cost = Math.pow((upg.level*0.5)+1, 1+(0.02*upg.level))
+      upg.cost = Math.pow((upg.level*0.75)+1, 1.1+(0.05*upg.level))
     }
   },
   {
@@ -229,17 +229,42 @@ const fameUpgrades = [
 ];
 const adUpgrades = [  
   {
-    id: "double_income",
-    name: "Double Income",
-    description: "Doubles all income.",
-    cost: 10,
+    id: "double_cps",
+    name: "Double CPS",
+    description: "Doubles CPS.",
+    cost: 1,
     level: 0,
     maxLevel: 1,
     apply: () => {
       currencies.coins.multi.push(2)
     }
+  },
+  {
+    id: "double_fame",
+    name: "Double Fame",
+    description: "Doubles Fame gain.",
+    cost: 2,
+    level: 0,
+    maxLevel: 1,
+    apply: () => {
+      currencies.fame.multi.push(2)
+    }
+  },
+  {
+    id: "ad_boost",
+    name: "Ad Boost",
+    description: "Gain 20% more Ads.",
+    cost: 10,
+    level: 0,
+    maxLevel: 5,
+    apply: () => {
+      currencies.ads.multi.push(1.2)
+      let upg = adUpgrades.find(u => u.id == "ad_boost");
+      upg.cost *= 2;
+    }
   }
   ];
+const originalFameUpgrades = JSON.parse(JSON.stringify(fameUpgrades))
 const originalStalls = JSON.parse(JSON.stringify(stalls));
 function saveGame() {
   const saveData = {
@@ -295,11 +320,11 @@ function formatCurrency(value) {
 
 function getNextSellOutRequirement() {
   const fame = currencies.fame.calculateGain() + 1;
-  return Math.ceil(Math.pow(fame, 1/ 0.8) * 1000000);
+  return Math.ceil(Math.pow(fame, 1/ 0.85) * 1000000);
 }
 function getNextAdsRequirement() {
   const ads = currencies.ads.calculateGain() + 1;
-  return Math.ceil(Math.pow(ads, 1/0.5)*50000)
+  return Math.ceil(ads * 50000)
 }
 
 
@@ -471,13 +496,15 @@ function updateDisplay() {
   const nextAds = getNextAdsRequirement();
   showWindow("sellout-window", currencies.coins.highest >= 250000);
   showWindow("stalls-window", stalls.some(s => s.unlocked));
-  showWindow("ads-window", fameUpgrades.some(u => u.id == "unlock_ads" && u.level == 1))
+  showWindow("ads-window", currencies.ads.lifetime > 0 || (fameUpgrades.some(u => u.id == "unlock_ads" && u.level == 1)))
 
   const selloutBtn = document.getElementById("sellout-btn");
   selloutBtn.textContent = `Sell Out (+${formatCurrency(fameGain)} Fame)  - Next at ${formatCurrency(nextFame)} Coins`;
   selloutBtn.disabled = fameGain <= 0;
   const adsBtn = document.getElementById("ads-btn");
   adsBtn.textContent = `Buy Ads (+${formatCurrency(adsGain)} Ads)  - Next at ${formatCurrency(nextAds)} Fame`
+  const fpsText = document.getElementById("fps");
+  fpsText.textContent = currencies.ads.amount > 0?" - Total FPS: "+formatCurrency(currencies.ads.amount*getMulti("fame")):""
 }
 
 document.getElementById("sellout-btn").addEventListener("click", () => {
@@ -504,6 +531,15 @@ document.getElementById("ads-btn").addEventListener("click", () => {
     currencies.ads.lifetime += gain
     currencies.coins.amount = 0;
     currencies.fame.amount = 0;
+    fameUpgrades.forEach(upg => {
+      origUpg = originalFameUpgrades.find(u => u.id == upg.id);
+      if(upg.id != "unlock_ads"){
+      upg.level = 0;
+      upg.cost = origUpg.cost
+      }
+    })
+    currencies.coins.multi = [1];
+    currencies.fame.multi = [1];
     
 
     // Reset stalls using original copy
@@ -551,7 +587,7 @@ function resetGame() {
 }
 setInterval(() => {
   if (currencies.ads.amount > 0) {
-    const fameGain = currencies.ads.amount * getMulti("fame");
+    const fameGain = currencies.ads.amount;
     currencies.fame.amount += fameGain;
     currencies.fame.lifetime += fameGain;
     updateDisplay();
