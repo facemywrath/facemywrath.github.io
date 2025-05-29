@@ -3,254 +3,429 @@
     "Human": {
       "description": "Versatile and adaptive, Humans populate the galaxy thoroughly. A true testament to imperialism.",
       "damageType": "physical",
-      "bonuses": [
-        "10% Bonus Exp gain",
-        "Slight Vulnerability to Elemental damage."
-      ]
+      "bonuses": []
     },
     "Undying": {
       "display": "The Undying",
       "description": "Reanimated by blight, the Undying are corpses of those who once were, with a semblance of humanity still retained.",
       "damageType": "blight",
-      "bonuses": [
-        "Reduced Blight and Corrupt damage taken",
-        "Takes extra Radiant damage"
-      ]
+      "bonuses": []
     },
     "Other": {
       "display": "The Others",
       "description": "The Others are a mysterious and mischievous race that blend in with nature. They excel at illusion and manipulation.",
       "damageType": "nature",
-      "bonuses": [
-        "Minor bonus to Dexterity",
-        "Increased resistance to Nature and Arcane",
-        "Bonus to Psychic damage"
-      ]
+      "bonuses": []
     },
     "Automaton": {
       "description": "Forged from metal and magic, automatons are durable and emotionless.",
       "damageType": "force",
-      "bonuses": [
-        "Greatly reduced Spirit damage taken",
-        "Slightly reduced Blunt and Force damage taken"
-      ]
+      "bonuses": []
     },
     "Seraphim": {
       "description": "Winged beings of radiant power, often aligned with holy light.",
       "damageType": "holy",
-      "bonuses": [
-        "Increased Holy damage dealt",
-        "Reduced Radiant damage taken"
-      ]
+      "bonuses": []
     },
     "Voidborn": {
       "description": "Spawned in the depths of space, voidborn are immune to madness and corruption.",
       "damageType": "void",
-      "bonuses": [
-        "Immune to Psychic damage",
-        "Takes extra Holy and Radiant damage"
-      ]
+      "bonuses": []
     },
     "Spiritkin": {
       "description": "Spiritual hybrids that heal outside combat and walk between planes.",
       "damageType": "spirit",
-      "bonuses": [
-        "Regenerate a small amount of health out of combat",
-        "Takes reduced Spirit damage"
-      ]
+      "bonuses": []
     },
     "Pyrrhan": {
       "description": "Born of flame, Pyrrhans burn bright and burn fast, excelling in fire damage.",
       "damageType": "heat",
-      "bonuses": [
-        "Increased Heat damage dealt",
-        "Reduced Heat damage taken"
-      ]
+      "bonuses": []
     }
   },
   "classes": {
     "Reaper": {
-      "description": "Masters of blood magic and critical strikes, Reapers use blight and health leeching to survive and overwhelm.",
+      "description": "Harbinger of the dead, the Reaper collects souls and uses them and blood magic to decimate foes.",
       "bonuses": [
-        "+2 Dexterity, +1 Strength",
-        "Basic attack: Hemorrhage",
-        "Converts healing into Blight damage."
+        "Converts healing into Blight damage",
+        "Collects the souls of the Damned."
       ],
+      "bgcolor": "#831",
       "attributes": [
-        1,
         2,
+        5,
+        1,
         0,
         0,
-        0,
-        0
+        1
       ],
       "starterSkill": "soulRend",
       "skillTree": [
         {
           "id": "soulRend",
-          "level": 1,
+          "level": 2,
           "cost": 1,
-          "maxLevel": 10
-        },
-        {
-          "id": "devourVitality",
-          "level": 3,
-          "cost": 2,
-          "maxLevel": 5,
-          "previousSkill": "soulRend",
-          "previousSkillLevelRequired": 3
+          "maxLevel": 50
         }
       ]
     },
     "Mystic": {
       "description": "Nature-bound healers who regenerate health and poison enemies with natural magic.",
       "bonuses": [
-        "+3 Wisdom",
-        "Regenerates health over time",
-        "Basic attack: Vine Lash"
+        "Heals themselves and allies",
+        "Electrocute and entangle enemies"
       ],
+      "starterSkill": "thornWhip",
+      "skillTree": [
+        {
+          "id": "thornWhip",
+          "level": 2,
+          "cost": 1,
+          "maxLevel": 50
+        }
+      ],
+      "bgcolor": "#183",
       "attributes": [
         0,
         0,
         0,
         0,
-        3,
+        9,
         0
       ]
     },
     "Pyromancer": {
       "description": "Fire casters who use fire to burn stuff. Hot.",
       "bonuses": [
-        "+2 Intellect, +1 Willpower",
-        "Inflicts burning over time",
-        "Starter Skill: Ember Spike"
+        "Burst and stacking DOT damage"
       ],
+      "bgcolor": "#a22",
       "starterSkill": "emberSpike",
       "attributes": [
         0,
         0,
-        0,
+        1,
+        4,
         2,
-        0,
-        1
+        2
       ],
       "skillTree": [
         {
           "id": "emberSpike",
           "level": 2,
+          "cost": 1,
+          "maxLevel": 30
+        },
+        {
+          "id": "pyrowillboost1",
+          "level": 1,
+          "type": "talent",
+          "cost": 1,
+          "unlockCost": 1,
+          "maxLevel": 10,
+          "previousSkill": "emberSpike",
+          "previousSkillLevelRequired": 1
+        },
+        {
+          "id": "pyrowillboost2",
+          "recursive": true,
+          "level": 1,
+          "type": "talent",
           "cost": 2,
-          "maxLevel": 10
+          "unlockCost": 4,
+          "maxLevel": 20,
+          "previousSkill": "pyrowillboost1",
+          "previousSkillLevelRequired": 10
         },
         {
           "id": "fireball",
           "level": 1,
           "cost": 2,
-          "maxLevel": 6,
-          "previousSkill": "emberSpike",
-          "previousSkillLevelRequired": 3
+          "unlockCost": 2,
+          "maxLevel": 30,
+          "previousSkill": "pyrowillboost1",
+          "previousSkillLevelRequired": 2
         },
         {
-          "id": "emberFall",
+          "id": "flamewall",
           "level": 1,
           "cost": 3,
-          "maxLevel": 5,
+          "unlockCost": 4,
+          "maxLevel": 50,
           "previousSkill": "fireball",
-          "previousSkillLevelRequired": 3
+          "previousSkillLevelRequired": 4
+        },
+        {
+          "id": "globalWarming",
+          "level": 1,
+          "cost": 2,
+          "unlockCost": 3,
+          "maxLevel": 15,
+          "previousSkill": "flamewall",
+          "previousSkillLevelRequired": 5
+        },
+        {
+          "id": "emberstorm",
+          "level": 1,
+          "cost": 3,
+          "unlockCost": 5,
+          "maxLevel": 50,
+          "previousSkill": "emberStream",
+          "previousSkillLevelRequired": 5
+        },
+        {
+          "id": "blazingMaelstrom",
+          "level": 1,
+          "cost": 4,
+          "unlockCost": 6,
+          "maxLevel": 30,
+          "previousSkill": "emberstorm",
+          "previousSkillLevelRequired": 7
+        },
+        {
+          "id": "pyroblast",
+          "level": 1,
+          "cost": 4,
+          "unlockCost": 6,
+          "maxLevel": 15,
+          "previousSkill": "searingShot",
+          "previousSkillLevelRequired": 7
+        },
+        {
+          "id": "pyrointboost1",
+          "type": "talent",
+          "level": 1,
+          "cost": 1,
+          "unlockCost": 1,
+          "maxLevel": 10,
+          "previousSkill": "emberSpike",
+          "previousSkillLevelRequired": 1
+        },
+        {
+          "id": "pyrointboost2",
+          "type": "talent",
+          "recursive": true,
+          "level": 1,
+          "cost": 2,
+          "unlockCost": 4,
+          "maxLevel": 20,
+          "previousSkill": "pyrointboost1",
+          "previousSkillLevelRequired": 10
         },
         {
           "id": "emberStream",
           "level": 1,
           "cost": 2,
-          "maxLevel": 5,
-          "previousSkill": "emberSpike",
-          "previousSkillLevelRequired": 3
+          "unlockCost": 2,
+          "maxLevel": 50,
+          "previousSkill": "pyrointboost1",
+          "previousSkillLevelRequired": 2
         },
         {
           "id": "searingShot",
           "level": 1,
           "cost": 3,
-          "maxLevel": 5,
+          "unlockCost": 3,
+          "maxLevel": 30,
           "previousSkill": "emberStream",
+          "previousSkillLevelRequired": 3
+        },
+        {
+          "id": "moltenBullet",
+          "level": 1,
+          "cost": 3,
+          "unlockCost": 6,
+          "maxLevel": 99,
+          "previousSkill": "searingShot",
+          "previousSkillLevelRequired": 3
+        },      
+        {
+          "id": "pyrowisboost1",
+          "type": "talent",
+          "level": 1,
+          "cost": 1,
+          "unlockCost": 1,
+          "maxLevel": 10,
+          "previousSkill": "emberSpike",
           "previousSkillLevelRequired": 1
+        },
+        {
+          "id": "pyrowisboost2",
+          "type": "talent",
+          "recursive": true,
+          "level": 1,
+          "cost": 2,
+          "unlockCost": 4,
+          "maxLevel": 20,
+          "previousSkill": "pyrowisboost1",
+          "previousSkillLevelRequired": 10
         },
         {
           "id": "boilingBlood",
           "level": 1,
           "cost": 2,
+          "unlockCost": 2,
+          "maxLevel": 50,
+          "previousSkill": "pyrowisboost1",
+          "previousSkillLevelRequired": 2
+        },
+        {
+          "id": "consumeHeat",
+          "level": 5,
+          "cost": 5,
+          "unlockCost": 10,
           "maxLevel": 5,
-          "previousSkill": "emberSpike",
+          "previousSkill": "boilingBlood",
+          "previousSkillLevelRequired": 15
+        },
+        {
+          "id": "recksplode",
+          "level": 5,
+          "cost": 4,
+          "unlockCost": 10,
+          "maxLevel": 1,
+          "previousSkill": "consumeHeat",
           "previousSkillLevelRequired": 3
+        },
+        {
+          "id": "heatShield",
+          "level": 1,
+          "cost": 1,
+          "unlockCost": 1,
+          "maxLevel": 50,
+          "previousSkill": "boilingBlood",
+          "previousSkillLevelRequired": 1
+        },
+        {
+          "id": "moltenShell",
+          "level": 1,
+          "cost": 2,
+          "unlockCost": 3,
+          "maxLevel": 30,
+          "previousSkill": "heatShield",
+          "previousSkillLevelRequired": 3
+        },
+        {
+          "id": "pyromaniac",
+          "type": "talent",
+          "level": 1,
+          "cost": 1,
+          "unlockCost": 10,
+          "maxLevel": 1,
+          "previousSkill": "fireball",
+          "previousSkillLevelRequired": 5
+        },
+        {
+          "id": "moltenCore",
+          "type": "talent",
+          "recursive": true,
+          "level": 1,
+          "cost": 1,
+          "unlockCost": 10,
+          "maxLevel": 1,
+          "previousSkill": "moltenShell",
+          "previousSkillLevelRequired": 30
+        },
+        {
+          "id": "branding",
+          "type": "talent",
+          "recursive": true,
+          "level": 1,
+          "cost": 5,
+          "unlockCost": 10,
+          "maxLevel": 5,
+          "previousSkill": "boilingBlood",
+          "previousSkillLevelRequired": 20
+        },
+        {
+          "id": "pyrocritboost1",
+          "type": "talent",
+          "recursive": true,
+          "level": 1,
+          "cost": 3,
+          "unlockCost": 3,
+          "maxLevel": 1,
+          "previousSkill": "searingShot",
+          "previousSkillLevelRequired": 10
+        },
+        {
+          "id": "phoenixUp",
+          "type": "talent",
+          "level": 1,
+          "cost": 1,
+          "unlockCost": 10,
+          "maxLevel": 1,
+          "previousSkill": "recksplode",
+          "previousSkillLevelRequired": 1
         }
       ]
     },
     "Chronomancer": {
       "description": "Wielders of time, Chronomancers slow, stun, and manipulate cooldowns to cripple foes.",
       "bonuses": [
-        "+2 Intellect, +1 Wisdom",
-        "Reduces cooldown timers slightly",
-        "Basic attack: Time Spike"
+        "Interrupt and stun enemies",
+        "Age their bodies with temporal magic"
       ],
+      "bgcolor": "#a71",
+      "starterSkill": "whiplash",
       "attributes": [
         0,
         0,
-        0,
-        2,
         1,
-        0
+        4,
+        3,
+        1
       ]
     },
     "Voidcaller": {
       "description": "Summoners who call upon void-touched entities to fight in their place.",
       "bonuses": [
-        "+1 Constitution, +1 Intellect, +1 Wisdom",
-        "Summon creatures with their own basic attacks",
-        "Basic attack: Abyssal Bolt"
       ],
+      "bgcolor": "#808",
+      "starterSkill": "energyWhip",
       "attributes": [
         0,
         0,
-        1,
-        1,
-        1,
-        0
+        2,
+        3,
+        3,
+        1
       ]
     },
     "Foresworn": {
       "description": "Dark warriors bound to cursed weapons, excelling at brutal melee and anti-magic.",
-      "bonuses": [
-        "+2 Strength, +1 Constitution",
-        "Takes reduced Arcane damage",
-        "Basic attack: Cursed Slash"
-      ],
+      "bonuses": [],
+      "bgcolor": "#711",
+      "starterSkill": "sliceNDice",
       "attributes": [
+        4,
+        2,
         2,
         0,
         1,
-        0,
-        0,
         0
       ]
     },
     "Ironveil": {
       "description": "Stalwart defenders that use shields and counterattacks, thriving under pressure.",
-      "bonuses": [
-        "+2 Constitution, +1 Strength",
-        "Basic attack: Shield Bash",
-        "Reduces incoming damage while not attacking"
-      ],
+      "bonuses": [],
+      "bgcolor": "#777",
+      "starterSkill": "shieldBash",
       "attributes": [
-        1,
-        0,
         2,
         0,
+        5,
+        1,
         0,
-        0
+        1
       ]
     }
   },
   "planets": {
     "Dreadthorn": {
       "description": "A rotting forest world teeming with corruption, zealotry, and the undead.",
+      "startingPlanet": true,
+      "startingClass": "Reaper",
       "zones": [
         "Dread Swamp",
         "Cryptroot Vale",
@@ -269,13 +444,18 @@
     },
     "Cinderrift": {
       "description": "A world without rotation, half in eternal darkness and the other eternal light.",
+      "startingClass": "Pyromancer",
+      "startingPlanet": true,
       "zones": [
         "Scorched Hollow",
         "Crossover",
         "The White Expanse",
         "Molten Thorns",
         "Thicket Sprawl",
-        "Frostmarch Crypts"
+        "Frostbound Cavern",
+        "Infernis Roost",
+        "Verdant Grove",
+        "The Deepest Depths"
       ],
       "damageTypes": [
         "heat",
@@ -286,6 +466,9 @@
     },
     "Ferrania": {
       "description": "A dense jungle planet where all life holds a grudge.",
+      "zones": ["The Density"],
+      "startingClass": "Mystic",
+      "startingPlanet": true,
       "damageTypes": [
         "nature",
         "poison",
@@ -296,6 +479,8 @@
     },
     "Fractalis": {
       "description": "A fractured, crystalline planet where time slips and magic pulses.",
+      "startingPlanet": true,
+      "startingClass": "Chronomancer",
       "zones": [
         "Clockwork Caverns",
         "Refraction Fields",
@@ -313,6 +498,8 @@
     },
     "Hollowreach": {
       "description": "A void-ridden world filled with echoing silence and elite horrors.",
+      "startingClass": "Voidcaller",
+      "startingPlanet": true,
       "zones": [
         "Desolation Tunnels",
         "Whispershade Vale",
@@ -331,6 +518,8 @@
     },
     "Halcyon Bastion": {
       "description": "A once-holy fortress in the sky now fractured by radiant madness.",
+      "startingClass": "Foresworn",
+      "startingPlanet": true,
       "zones": [
         "Sanctum Gate",
         "Blade of Grace",
@@ -349,6 +538,8 @@
     },
     "Gravemount": {
       "description": "A battlefield planet covered in metal, traps, and relentless armies.",
+      "startingClass": "Ironveil",
+      "startingPlanet": true,
       "zones": [
         "Warfront Trenches",
         "Craterforge Expanse",
@@ -375,7 +566,7 @@
           "weight": 10,
           "levels": {
             "min": 1,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -383,7 +574,7 @@
           "weight": 5,
           "levels": {
             "min": 2,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -391,25 +582,33 @@
           "weight": 5,
           "levels": {
             "min": 2,
-            "max": 20
+            "max": 15
           }
         }
       ],
-      "maxTier": 20,
+      "maxTier": 15,
       "unitCountWeights": [
-        100,
-        1
+        {
+          "range": [
+            0,
+            30
+          ],
+          "weights": [
+            100,
+            1
+          ]
+        }
       ]
     },
     "Marrow Rise": {
-      "description": "Dread Swamp Zone 2 — Carnivorous plants and parasitic creatures thrive in sickly wetlands.",
+      "description": "Dread Swamp Zone 2 \u3014 Carnivorous plants and parasitic creatures thrive in sickly wetlands.",
       "units": [
         {
           "name": "leechroot",
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -417,7 +616,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -425,7 +624,7 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -433,7 +632,7 @@
           "weight": 7,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -441,16 +640,24 @@
           "weight": 6,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "previousZone": "Dread Swamp",
       "unitCountWeights": [
-        105,
-        5,
-        2
+        {
+          "range": [
+            0,
+            60
+          ],
+          "weights": [
+            105,
+            5,
+            2
+          ]
+        }
       ]
     },
     "Cryptroot Vale": {
@@ -461,7 +668,7 @@
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -469,7 +676,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -477,25 +684,33 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         }
       ],
-      "maxTier": 20,
+      "maxTier": 15,
       "unitCountWeights": [
-        30,
-        1
+        {
+          "range": [
+            0,
+            30
+          ],
+          "weights": [
+            30,
+            1
+          ]
+        }
       ]
     },
     "Gravepetal Thicket": {
-      "description": "Cryptroot Vale Zone 2 — Withered flora and crawling corpses poison the air with every breath.",
+      "description": "Cryptroot Vale Zone 2 \u3014 Withered flora and crawling corpses poison the air with every breath.",
       "units": [
         {
           "name": "gravecrawler",
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -503,7 +718,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -511,7 +726,7 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -519,7 +734,7 @@
           "weight": 7,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -527,18 +742,26 @@
           "weight": 6,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "previousZone": "Cryptroot Vale",
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            60
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Chapel of Withering Faith": {
@@ -549,7 +772,7 @@
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -557,7 +780,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -565,28 +788,36 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         }
       ],
-      "maxTier": 20,
+      "maxTier": 15,
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            30
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Reliquary of Blessed Decay": {
-      "description": "Chapel of Withering Faith Zone 2 — Purifiers wield light to cauterize sin and decay alike.",
+      "description": "Chapel of Withering Faith Zone 2 \u3014 Purifiers wield light to cauterize sin and decay alike.",
       "units": [
         {
           "name": "holyexecutor",
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -594,7 +825,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -602,7 +833,7 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -610,7 +841,7 @@
           "weight": 7,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -618,289 +849,546 @@
           "weight": 6,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "previousZone": "Chapel of Withering Faith",
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            60
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Scorched Hollow": {
       "description": "Blighted beasts burn with fire and toxic trails.",
+      "fullDiscoveryXp": 500,
       "units": [
+        {
+          "name": "Blaze Crawler",
+          "weight": 7,
+          "levels": {
+            "min": 1,
+            "max": 30
+          }
+        },
         {
           "name": "Scorch Maw",
           "weight": 10,
           "levels": {
-            "min": 2,
-            "max": 20
+            "min": 11,
+            "max": 30
           }
-        },
-        {
-         "name": "Blaze Crawler",
-         "weight": 7,
-         "levels": {
-             "min": 1,
-             "max": 20
-         }
         },
         {
           "name": "Ashen Fang",
-          "weight": 8,
+          "weight": 10,
           "levels": {
-            "min": 2,
-            "max": 20
+            "min": 21,
+            "max": 30
           }
         }
       ],
-      "maxTier": 20,
+      "reward": {
+        "xp": 1500
+      },
+      "maxTier": 30,
       "unitCountWeights": [
-        105,
-        5,
-        1
+        {
+          "range": [15,29],
+          "weights":[0,1]
+        },
+        {
+          "range": [
+            30,
+            30
+          ],
+          "weights": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "range": [
+            0,
+            14
+          ],
+          "weights": [
+            1
+          ]
+        }
       ]
     },
     "Molten Thorns": {
-      "description": "Scorched Hollow Zone 2 — Thorned serpents spew magma and corruption across the charred ground.",
+      "description": "Scorched Hollow Zone 2 \u3014 Thorned serpents spew magma and corruption across the charred ground.",
+      "fullDiscoveryXp": 2000,
+      "reward": {
+        "xp": 3000
+      },
       "units": [
         {
-          "name": "maggthorn",
+          "name": "Maghthorn",
           "weight": 10,
           "levels": {
-            "min": 0,
-            "max": 40
+            "min": 21,
+            "max": 29
           }
         },
         {
-          "name": "pyrecoil",
+          "name": "Pyrite",
           "weight": 9,
           "levels": {
-            "min": 0,
-            "max": 40
+            "min": 11,
+            "max": 29
           }
         },
         {
-          "name": "slagwurm",
+          "name": "Slagwurm",
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 29
           }
         },
         {
-          "name": "blazecrawler",
+          "name": "Scorch Maw",
           "weight": 7,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 21
           }
         },
         {
-          "name": "ashenfang",
+          "name": "Ashen Fang",
           "weight": 6,
           "levels": {
-            "min": 0,
-            "max": 40
+            "min": 5,
+            "max": 21
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "previousZone": "Scorched Hollow",
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            14
+          ],
+          "weights": [
+            1
+          ]
+        },       
+        {
+          "range": [
+            15,
+            25
+          ],
+          "weights": [
+            0,1
+          ]
+        },
+        {
+          "range": [
+            26,
+            30
+          ],
+          "weights": [
+            0,1,50
+          ]
+        }
+      ]
+    },
+    "Infernis Roost": {
+      "description": "Scorched Hollow Zone 3 \u3014 Home to the dragon lord and his army of younglings.",
+      "fullDiscoveryXp": 4000,
+      "reward": {
+        "xp": 5000
+      },
+      "units": [
+        {
+          "name": "Hatchling",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 14
+          }
+        },
+        {
+          "name": "Dragonlord",
+          "weight": 100000,
+          "levels": {
+            "min": 15,
+            "max": 15
+          }
+        }
+      ],
+      "maxTier": 15,
+      "previousZone": "Molten Thorns",
+      "unitCountWeights": [
+        {
+          "range": [
+            0,
+            14
+          ],
+          "weights": [
+            0,10,20,40,80
+          ]
+        },       
+        {
+          "range": [
+            15,
+            15
+          ],
+          "weights": [
+            1
+          ]
+        }
       ]
     },
     "Crossover": {
       "description": "The land between, a dense jungle of ruins.",
+      "reward": {
+        "xp": 1500
+      },
+      "fullDiscoveryXp": 500,
       "units": [
         {
-          "name": "sharptooth",
+          "name": "Sharptooth",
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 30
           }
         },
         {
-          "name": "treant",
+          "name": "Treant",
           "weight": 2,
           "levels": {
-            "min": 0,
-            "max": 20
+            "min": 2,
+            "max": 30
           }
         },
         {
-          "name": "grovegnoll",
+          "name": "Grove Druid",
           "weight": 13,
           "levels": {
-            "min": 0,
-            "max": 20
+            "min": 21,
+            "max": 30
           }
         }
       ],
-      "maxTier": 20,
+      "maxTier": 30,
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            20
+          ],
+          "weights": [
+            1
+          ]
+        },
+        {
+          "range": [
+            20,
+            29
+          ],
+          "weights": [
+            0,1
+          ]
+        },
+        {
+          "range": [
+            30,
+            30
+          ],
+          "weights": [
+            0,0,1
+          ]
+        }
       ]
     },
     "Thicket Sprawl": {
-      "description": "Crossover Zone 2 — The jungles grow denser.",
+      "description": "Crossover Zone 2 \u3014 The jungles grow denser.",
+      "fullDiscoveryXp": 2000,
+      "reward": {
+        "xp": 3000
+      },
       "units": [
         {
-          "name": "ancientTreant",
+          "name": "Ancient Treant",
           "weight": 1,
           "levels": {
-            "min": 0,
-            "max": 40
+            "min": 9,
+            "max": 30
           }
         },
         {
-          "name": "forestWasp",
+          "name": "Forest Wasp",
+          "weight": 9,
+          "levels": {
+            "min": 20,
+            "max": 59
+          }
+        },
+        {
+          "name": "Wolf Familiar",
+          "weight": 10,
+          "levels": {
+            "min": 0,
+            "max": 30
+          }
+        },
+        {
+          "name": "Grove Druid",
+          "weight": 12,
+          "levels": {
+            "min": 0,
+            "max": 30
+          }
+        },
+        {
+          "name": "Sharptooth",
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 40
-          }
-        },
-        {
-          "name": "woodElf",
-          "weight": 7,
-          "levels": {
-            "min": 0,
-            "max": 40
-          }
-        },
-        {
-          "name": "grovegnoll",
-          "weight": 7,
-          "levels": {
-            "min": 0,
-            "max": 40
-          }
-        },
-        {
-          "name": "sharptooth",
-          "weight": 9,
-          "levels": {
-            "min": 0,
-            "max": 40
+            "max": 30
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "previousZone": "Crossover",
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            15
+          ],
+          "weights": [
+            1,
+            5
+          ]
+        },
+        {
+          "range": [
+            16,30],
+            "weights": [0,5,1]
+        }
+      ]
+    },
+    "Verdant Grove": {
+      "description": "Crossover Zone 3 \u3014 The home of the Grove Queen and her inner circle.",
+      "fullDiscoveryXp": 2000,
+      "reward": {
+        "xp": 5000
+      },
+      "units": [
+        {
+          "name": "Grove Queen",
+          "weight": 1,
+          "levels": {
+            "min": 15,
+            "max": 15
+          }
+        },
+        {
+          "name": "Grove Druid",
+          "weight": 12,
+          "levels": {
+            "min": 0,
+            "max": 14
+          }
+        },
+        {
+          "name": "Bear Familiar",
+          "weight": 9,
+          "levels": {
+            "min": 0,
+            "max": 14
+          }
+        }
+      ],
+      "maxTier": 15,
+      "previousZone": "Thicket Sprawl",
+      "unitCountWeights": [
+        {
+          "range": [
+            0,
+            14
+          ],
+          "weights": [
+            1,
+            5,
+            1
+          ]
+        },
+        {
+          "range": [
+            15,15],
+            "weights": [1]
+        }
       ]
     },
     "The White Expanse": {
       "description": "Dense blizzards and frozen lakes attract the most extreme creatures.",
       "units": [
         {
-          "name": "noctishade",
-          "weight": 10,
+          "name": "Noctishade",
+          "weight": 20,
           "levels": {
-            "min": 0,
-            "max": 20
+            "min": 15,
+            "max": 29
           }
         },
         {
-          "name": "brightOne",
+          "name": "Yetin",
           "weight": 1,
           "levels": {
-            "min": 0,
-            "max": 20
+            "min": 5,
+            "max": 30
           }
         },
         {
-          "name": "icySpecter",
-          "weight": 15,
+          "name": "Icy Wisp",
+          "weight": 30,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 29
           }
         }
       ],
-      "maxTier": 20,
+      "maxTier": 30,
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            30
+          ],
+          "weights": [
+            1
+          ]
+        }
       ]
     },
-    "Frostmarch Crypts": {
-      "description": "The White Expanse Zone 2 — You find rest among a deep and ancient tomb.",
+    "Frostbound Cavern": {
+      "description": "The White Expanse Zone 2 \u3014 You find rest among a deep cave system, home of the Yetins.",
       "units": [
         {
-          "name": "unfrozenUndead",
+          "name": "Delveling",
           "weight": 15,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
-          "name": "broodQueen",
+          "name": "Yetin Barbarian",
           "weight": 4,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
-          "name": "wizardSkull",
+          "name": "Yetin Mystic",
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
-          "name": "noctishade",
+          "name": "Yetin",
           "weight": 7,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
-          "name": "icySpecter",
+          "name": "Icy Wisp",
           "weight": 6,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "previousZone": "The White Expanse",
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            60
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
+      ]
+    },
+    "The Deepest Depths": {
+      "description": "The White Expanse Zone 3 \u3014 You have found the end of the cavern. A massive and endless pit lies before you.",
+      "units": [
+        {
+          "name": "Yetin",
+          "weight": 15,
+          "levels": {
+            "min": 0,
+            "max": 30
+          }
+        },
+        {
+          "name": "Yetin Mystic",
+          "weight": 4,
+          "levels": {
+            "min": 0,
+            "max": 30
+          }
+        },
+        {
+          "name": "Gargantua",
+          "weight": 8,
+          "levels": {
+            "min": 0,
+            "max": 30
+          }
+        }
+      ],
+      "maxTier": 30,
+      "previousZone": "Frostbound Cavern",
+      "unitCountWeights": [
+        {
+          "range": [
+            0,
+            60
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Clockwork Caverns": {
@@ -911,7 +1399,7 @@
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -919,7 +1407,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -927,28 +1415,36 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         }
       ],
-      "maxTier": 20,
+      "maxTier": 15,
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            30
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Torsion Halls": {
-      "description": "Clockwork Caverns Zone 2 — Bent space and warped machinery accelerate battle to a blur.",
+      "description": "Clockwork Caverns Zone 2 \u3014 Bent space and warped machinery accelerate battle to a blur.",
       "units": [
         {
           "name": "timestepper",
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -956,7 +1452,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -964,7 +1460,7 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -972,7 +1468,7 @@
           "weight": 7,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -980,18 +1476,26 @@
           "weight": 6,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "previousZone": "Clockwork Caverns",
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            60
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Refraction Fields": {
@@ -1002,7 +1506,7 @@
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1010,7 +1514,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1018,28 +1522,36 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         }
       ],
-      "maxTier": 20,
+      "maxTier": 15,
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            30
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Lightfract Nexus": {
-      "description": "Refraction Fields Zone 2 — Beings of fractured thought and mirrored magic strike from every angle.",
+      "description": "Refraction Fields Zone 2 \u3014 Beings of fractured thought and mirrored magic strike from every angle.",
       "units": [
         {
           "name": "echoform",
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1047,7 +1559,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1055,7 +1567,7 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1063,7 +1575,7 @@
           "weight": 7,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1071,18 +1583,26 @@
           "weight": 6,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "previousZone": "Refraction Fields",
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            60
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Temporal Apex": {
@@ -1093,7 +1613,7 @@
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1101,7 +1621,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1109,28 +1629,36 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         }
       ],
-      "maxTier": 20,
+      "maxTier": 15,
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            30
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Epoch Spiral": {
-      "description": "Temporal Apex Zone 2 — Reality splinters as evolving forms and broken time converge.",
+      "description": "Temporal Apex Zone 2 \u3014 Reality splinters as evolving forms and broken time converge.",
       "units": [
         {
           "name": "entropyspawn",
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1138,7 +1666,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1146,7 +1674,7 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1154,7 +1682,7 @@
           "weight": 7,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1162,18 +1690,26 @@
           "weight": 6,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "previousZone": "Temporal Apex",
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            60
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Desolation Tunnels": {
@@ -1184,7 +1720,7 @@
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1192,7 +1728,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1200,28 +1736,36 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         }
       ],
-      "maxTier": 20,
+      "maxTier": 15,
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            30
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Ironwake Depths": {
-      "description": "Desolation Tunnels Zone 2 — Forgotten giants stir with seismic force and unholy resilience.",
+      "description": "Desolation Tunnels Zone 2 \u3014 Forgotten giants stir with seismic force and unholy resilience.",
       "units": [
         {
           "name": "deepbreaker",
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1229,7 +1773,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1237,7 +1781,7 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1245,7 +1789,7 @@
           "weight": 7,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1253,18 +1797,26 @@
           "weight": 6,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "previousZone": "Desolation Tunnels",
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            60
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Whispershade Vale": {
@@ -1275,7 +1827,7 @@
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1283,7 +1835,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1291,28 +1843,36 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         }
       ],
-      "maxTier": 20,
+      "maxTier": 15,
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            30
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Nightveil Hollow": {
-      "description": "Whispershade Vale Zone 2 — Disembodied whispers shred your focus and unravel sanity.",
+      "description": "Whispershade Vale Zone 2 \u3014 Disembodied whispers shred your focus and unravel sanity.",
       "units": [
         {
           "name": "veilhowler",
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1320,7 +1880,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1328,7 +1888,7 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1336,7 +1896,7 @@
           "weight": 7,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1344,18 +1904,26 @@
           "weight": 6,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "previousZone": "Whispershade Vale",
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            60
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Astral Maw": {
@@ -1366,7 +1934,7 @@
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1374,7 +1942,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1382,28 +1950,36 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         }
       ],
-      "maxTier": 20,
+      "maxTier": 15,
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            30
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Singularity Core": {
-      "description": "Astral Maw Zone 2 — A collapsing domain where reality frays and only nightmares remain.",
+      "description": "Astral Maw Zone 2 \u3014 A collapsing domain where reality frays and only nightmares remain.",
       "units": [
         {
           "name": "coreterror",
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1411,7 +1987,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1419,7 +1995,7 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1427,7 +2003,7 @@
           "weight": 7,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1435,18 +2011,26 @@
           "weight": 6,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "previousZone": "Astral Maw",
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            60
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Sanctum Gate": {
@@ -1457,7 +2041,7 @@
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1465,7 +2049,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1473,28 +2057,36 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         }
       ],
-      "maxTier": 20,
+      "maxTier": 15,
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            30
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Sentinel Rise": {
-      "description": "Sanctum Gate Zone 2 — Watchers wield divine arrows that pierce even the incorporeal.",
+      "description": "Sanctum Gate Zone 2 \u3014 Watchers wield divine arrows that pierce even the incorporeal.",
       "units": [
         {
           "name": "soulpiercer",
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1502,7 +2094,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1510,7 +2102,7 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1518,7 +2110,7 @@
           "weight": 7,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1526,18 +2118,26 @@
           "weight": 6,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "previousZone": "Sanctum Gate",
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            60
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Blade of Grace": {
@@ -1548,7 +2148,7 @@
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1556,7 +2156,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1564,28 +2164,36 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         }
       ],
-      "maxTier": 20,
+      "maxTier": 15,
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            30
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Chamber of Judged Steel": {
-      "description": "Blade of Grace Zone 2 — Duelists punish excess and strike in precise, divine retaliation.",
+      "description": "Blade of Grace Zone 2 \u3014 Duelists punish excess and strike in precise, divine retaliation.",
       "units": [
         {
           "name": "precisionzealot",
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1593,7 +2201,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1601,7 +2209,7 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1609,7 +2217,7 @@
           "weight": 7,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1617,18 +2225,26 @@
           "weight": 6,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "previousZone": "Blade of Grace",
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            60
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Cathedral of Fidelity": {
@@ -1639,7 +2255,7 @@
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1647,7 +2263,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1655,28 +2271,36 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         }
       ],
-      "maxTier": 20,
+      "maxTier": 15,
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            30
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Celestial Inquisition": {
-      "description": "Cathedral of Fidelity Zone 2 — Blazing heralds incinerate soul and flesh with purging fire.",
+      "description": "Cathedral of Fidelity Zone 2 \u3014 Blazing heralds incinerate soul and flesh with purging fire.",
       "units": [
         {
           "name": "flamevicar",
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1684,7 +2308,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1692,7 +2316,7 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1700,7 +2324,7 @@
           "weight": 7,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1708,18 +2332,26 @@
           "weight": 6,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "previousZone": "Cathedral of Oaths",
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            60
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Warfront Trenches": {
@@ -1730,7 +2362,7 @@
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1738,7 +2370,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1746,28 +2378,36 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         }
       ],
-      "maxTier": 20,
+      "maxTier": 15,
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            30
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Siegewake Plateau": {
-      "description": "Warfront Trenches Zone 2 — Artillery beasts and shield-breakers test your durability with crushing might.",
+      "description": "Warfront Trenches Zone 2 \u3014 Artillery beasts and shield-breakers test your durability with crushing might.",
       "units": [
         {
           "name": "blastcrawler",
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1775,7 +2415,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1783,7 +2423,7 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1791,7 +2431,7 @@
           "weight": 7,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1799,18 +2439,26 @@
           "weight": 6,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "previousZone": "Warfront Trenches",
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            60
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Craterforge Expanse": {
@@ -1821,7 +2469,7 @@
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1829,7 +2477,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1837,28 +2485,36 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         }
       ],
-      "maxTier": 20,
+      "maxTier": 15,
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            30
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Forgecore": {
-      "description": "Craterforge Expanse Zone 2 — Frenzied juggernauts unleash devastating attacks amid smoldering slagstorms.",
+      "description": "Craterforge Expanse Zone 2 \u3014 Frenzied juggernauts unleash devastating attacks amid smoldering slagstorms.",
       "units": [
         {
           "name": "coremauler",
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1866,7 +2522,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1874,7 +2530,7 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1882,7 +2538,7 @@
           "weight": 7,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1890,18 +2546,26 @@
           "weight": 6,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "previousZone": "Craterforge Expanse",
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            60
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Shieldspire Bastion": {
@@ -1912,7 +2576,7 @@
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1920,7 +2584,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         },
         {
@@ -1928,28 +2592,36 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 20
+            "max": 15
           }
         }
       ],
-      "maxTier": 20,
+      "maxTier": 15,
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            30
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Ironhold Apex": {
-      "description": "Shieldspire Bastion Zone 2 — Adaptive sentinels scale in power unless broken through by unmatched defense.",
+      "description": "Shieldspire Bastion Zone 2 \u3014 Adaptive sentinels scale in power unless broken through by unmatched defense.",
       "units": [
         {
           "name": "wallrender",
           "weight": 10,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1957,7 +2629,7 @@
           "weight": 9,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1965,7 +2637,7 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1973,7 +2645,7 @@
           "weight": 7,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -1981,29 +2653,37 @@
           "weight": 6,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "previousZone": "Shieldspire Bastion",
       "unitCountWeights": [
-        105,
-        10,
-        5,
-        3,
-        1
+        {
+          "range": [
+            0,
+            60
+          ],
+          "weights": [
+            105,
+            10,
+            5,
+            3,
+            1
+          ]
+        }
       ]
     },
     "Fuzzy Forest": {
-      "description": "— Super fuzzy animal friends",
+      "description": "\u3014 Super fuzzy animal friends",
       "units": [
         {
           "name": "Big Puppy",
           "weight": 3,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -2011,7 +2691,7 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -2019,7 +2699,7 @@
           "weight": 15,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         },
         {
@@ -2027,17 +2707,25 @@
           "weight": 50,
           "levels": {
             "min": 0,
-            "max": 40
+            "max": 30
           }
         }
       ],
-      "maxTier": 40,
+      "maxTier": 30,
       "unitCountWeights": [
-        1,
-        10,
-        25,
-        50,
-        70
+        {
+          "range": [
+            0,
+            60
+          ],
+          "weights": [
+            1,
+            10,
+            25,
+            50,
+            70
+          ]
+        }
       ]
     }
   }

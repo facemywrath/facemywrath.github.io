@@ -1,0 +1,210 @@
+{
+  "pyrowillboost1": {
+    "name": "Willpower Boost I",
+    "description": ["Increase Willpower by 5 (+5 per level)"],
+    "effects": [{
+        "type": "attrBonus",
+        "stat": "willpower",
+        "effect": "add",
+        "base": 5,
+        "perLevel": 5
+    }]
+  },
+  "pyrointboost1": {
+    "name": "Intellect Boost I",
+    "description": ["Increase Intellect by 5 (+5 per level)"],
+    "effects": [{
+        "type": "attrBonus",
+        "stat": "intellect",
+        "effect": "add",
+        "base": 5,
+        "perLevel": 5
+    }]
+  },
+  "pyrowisboost1": {
+    "name": "Wisdom Boost I",
+    "description": ["Increase Wisdom by 5 (+5 per level)"],
+    "effects": [{
+        "type": "attrBonus",
+        "stat": "wisdom",
+        "effect": "add",
+        "base": 5,
+        "perLevel": 5
+    }]
+  },
+  "pyrowillboost2": {
+    "name": "Willpower Boost II",
+    "description": ["Increase Willpower by 10 (+10 per level)"],
+    "effects": [{
+        "type": "attrBonus",
+        "stat": "willpower",
+        "effect": "add",
+        "base": 10,
+        "perLevel": 10
+    }]
+  },
+  "pyrointboost2": {
+    "name": "Intellect Boost II",
+    "description": ["Increase Intellect by 10 (+10 per level)"],
+    "effects": [{
+        "type": "attrBonus",
+        "stat": "intellect",
+        "effect": "add",
+        "base": 10,
+        "perLevel": 10
+    }]
+  },
+  "pyrowisboost2": {
+    "name": "Wisdom Boost II",
+    "description": ["Increase Wisdom by 10 (+10 per level)"],
+    "effects": [{
+        "type": "attrBonus",
+        "stat": "wisdom",
+        "effect": "add",
+        "base": 10,
+        "perLevel": 10
+    }]
+  },
+  "pyrocritboost1": {
+    "name": "Spicy Aiming",
+    "description": ["Gain 3% Critical Hit Chance"],
+    "effects": [{
+        "type": "statBonus",
+        "stat": "critChance",
+        "effect": "add",
+        "base": 3,
+        "perLevel": 0
+    }]
+  },
+  "branding": {
+    "name": "Branding",
+    "description": ["Whenever you deal Heat damage (except from Burning), inflict 1 Burning (+1 per level)"],
+    "effects": [
+      {
+        "type": "listener",
+        "trigger": {
+          "event": "onDamage",
+          "damageType": "heat",
+          "caster": "self",
+          "target": "any"
+        },
+        "effects": [{
+          "type": "condition",
+          "name": "Burning",
+          "target": "target",
+          "stacks": {
+            "base": 1,
+          "scaling": [{
+            "target": "caster",
+            "stat": "skillLevel",
+            "scale": 1
+          }]
+          }
+        }]
+    }]
+  },
+  "moltenCore": {
+    "name": "Molten Core",
+    "description": ["Double your Consitution"],
+    "effects": [{
+        "type": "attrBonus",
+        "stat": "constitution",
+        "effect": "multi",
+        "base": 2,
+        "perLevel": 1
+    }]
+  },
+  "pyromaniac": {
+    "name": "Pyromaniac",
+    "description": ["Multiply your Cooldown Reduction by 0.9 (x0.99/level)","Whenever you apply Burning stacks, heal equal to half the Burning stacks on the target."],
+    "effects": [
+       {
+        "type": "statBonus",
+        "stat": "cooldownReduction",
+        "effect": "multi",
+        "base": 0.9,
+        "scaling": [{
+          "target": "caster",
+          "stat": "skillLevel",
+          "scale": 0.99,
+          "effect": "multi"
+        }]
+      },
+      {
+        "type": "listener",
+        "trigger": {
+          "event": "conditionStack",
+          "condition": "Burning",
+          "caster": "self",
+          "target": "any"
+        },
+        "effects": [{
+          "type": "heal",
+          "target": "self",
+          "base": 0,
+          "scaling": [{
+            "target": "target",
+            "stat": "Burning",
+            "scale": 1
+          }]
+        }]
+      }
+    ]
+  },
+  "phoenixUp": {
+    "name": "Phoenix Up!",
+    "description": ["Multiply your Max HP by 1.1x (x1.1 per level)", "The first time each combat you take lethal damage, heal to 1 HP and stun all enemies for 5 seconds."],
+    "effects": [
+      {
+        "type": "statBonus",
+        "stat": "maxHp",
+        "effect": "multi",
+        "base": 1,
+        "scaling": [{
+          "target": "caster",
+          "stat": "skillLevel",
+          "scale": 1.1,
+          "effect": "multi"
+        }]
+      },
+      {
+        "type": "listener",
+        "trigger": {
+          "event": "death",
+          "perCombatMax": 1,
+          "caster": "self"
+        },
+        "effects": [{
+          "type": "debug",
+          "text": "triggering"
+          },{
+          "type": "revive",
+          "target": "self"
+        },
+        {
+          "type": "heal",
+          "base": 0,
+          "scaling": [{
+            "target": "caster",
+            "stat": "maxHp",
+            "scale": 0.4
+          }]
+        },
+        {
+          "type": "condition",
+          "name": "Stunned",
+          "target": "allEnemies",
+          "duration": {
+            "base": 5000,
+            "scaling": []
+          },
+          "stacks": {
+            "base": 1,
+            "scaling": []
+          }
+        }]
+      }
+    ]
+  }
+
+}

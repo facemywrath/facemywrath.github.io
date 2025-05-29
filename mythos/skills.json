@@ -1,39 +1,111 @@
 {  
   "emberSpike": {
     "name": "Ember Spike",
+    "flavorText": "{casterName} flings a molten ember at {targetName}!",
+    "description": "Fling a molten ember at an enemy dealing minorheat damage and inflicting Burning.",
     "cooldown": {
-      "base": 3,
-      "scaling": [{
-        "target": "caster",
-        "stat": "wisdom",
-        "scale": -0.01
-      },
+      "base": 2.8,
+      "scaling": [
       {
         "target": "caster",
         "stat": "skillLevel",
-        "scale": -0.15
+        "scale": -0.02
       }]
     },
-    "cost": { "mp": 8 },
+    "cost": { "mp": 13 },
     "target": "singleEnemy",
     "requiresTarget": true,
     "effects": [
       { 
         "type": "damage",
         "target": "singleEnemy", 
-        "base": 6, 
+        "base": 5,
         "damageType": "heat",
         "scaling": [{
          "target": "caster",
          "stat": "intellect", 
-         "scale": 0.1
+         "scale": 0.3
         },
         {
           "target": "caster",
           "stat": "skillLevel",
-          "scale": 1
+          "scale": 2
         }]
       },
+      { "type": "condition",
+      "name": "Burning",
+      "stacks": {
+        "base": 2,
+        "scaling": [{
+          "target": "caster",
+          "stat": "skillLevel",
+          "scale": 0.5
+        }]
+      }
+      }
+    ]
+  },
+  "poisonSting": {
+    "name": "Poison Sting",
+    "flavorText": "{casterName} stings {targetName} with poison!",
+    "description": "Sting the target with your huge stinger.",
+    "cooldown": {
+      "base": 5,
+      "min": 2,
+      "scaling": [
+      {
+        "target": "caster",
+        "stat": "tier",
+        "scale": 0.98,
+        "effect": "multi"
+      }]
+    },
+    "cost": { "sp": 10 },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "effects": [
+      { 
+        "type": "damage",
+        "target": "singleEnemy", 
+        "base": 2,
+        "damageType": "poison",
+        "scaling": [{
+         "target": "caster",
+         "stat": "strength", 
+         "scale": 0.3
+        }]
+      },
+      { 
+        "type": "damage",
+        "target": "singleEnemy", 
+        "base": 4,
+        "damageType": "piercing",
+        "scaling": [{
+         "target": "caster",
+         "stat": "dexterity", 
+         "scale": 0.5
+        }]
+      }
+
+    ]
+  },
+  "globalWarming": {
+    "name": "Global Warming",
+    "flavorText": "{casterName} heats up the battlefield!",
+    "description": "Inflict Burning on all enemies.",
+    "cooldown": {
+      "base": 1.5,
+      "scaling": [
+      {
+        "target": "caster",
+        "stat": "skillLevel",
+        "scale": -0.05
+      }]
+    },
+    "cost": { "mp": 4 },
+    "target": "allEnemies",
+    "requiresTarget": false,
+    "effects": [
       { "type": "condition",
       "name": "Burning",
       "stacks": {
@@ -47,19 +119,112 @@
       }
     ]
   },
+  "heatShield": {
+    "name": "Heat Shield",
+    "flavorText": "{casterName} begins absorbing nearby flames.",
+    "initialCooldown": 0.5,
+    "cooldown": {
+      "base": 5,
+      "scaling": [{
+        "target": "caster",
+        "stat": "skillLevel",
+        "scale": -0.05
+      }]
+    },
+    "cost": {
+      "mp": 75
+    },
+    "target": "singleAlly",
+    "requiresTarget": true,
+    "effects": [{
+        "type": "buff",
+        "statType": "resistance",
+        "resistanceType": "heat",
+        "duration": {
+          "base": 3000,
+          "scaling": [{
+            "target": "caster",
+            "stat": "skillLevel",
+            "scale": 100
+          },
+          {
+            "target": "caster",
+            "stat": "willpower",
+            "scale": 5
+          }]
+        },
+        "value": {
+          "base": 0.7,
+          "scaling": [{
+            "target": "caster",
+            "stat": "willpower",
+            "effect": "multi",
+            "scale": 0.99
+          },
+          {
+            "target": "caster",
+            "stat": "skillLevel",
+            "effect": "multi",
+            "scale": 0.95
+          }]
+        }
+    }]
+  },
+    "moltenShell": {
+    "name": "Molten Shell",
+    "flavorText": "{casterName} encases themselves in molten rock.",
+    "initialCooldown": 1.5,
+    "cooldown": {
+      "base": 10,
+      "scaling": [{
+        "target": "caster",
+        "stat": "skillLevel",
+        "scale": -0.08
+      }]
+    },
+    "cost": {
+      "mp": 120
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "effects": [{
+        "type": "buff",
+        "statType": "stat",
+        "stat": "damageTaken",
+        "duration": {
+          "base": 3000,
+          "scaling": [{
+            "target": "caster",
+            "stat": "skillLevel",
+            "scale": 100
+          }]
+        },
+        "value": {
+          "base": 0.9,
+          "scaling": [{
+            "target": "caster",
+            "stat": "willpower",
+            "effect": "multi",
+            "scale": 0.98
+          },
+          {
+            "target": "caster",
+            "stat": "skillLevel",
+            "effect": "multi",
+            "scale": 0.95
+          }]
+        }
+    }]
+  },
   "fireball": {
     "name": "Fireball",
+    "flavorText": "{casterName} shoots a ball of concentrated flame at {targetName}!",
     "cooldown": {
       "base": 4,
       "scaling": [{
         "target": "caster",
-        "stat": "wisdom",
-        "scale": -0.01
-      },
-      {
-        "target": "caster",
         "stat": "skillLevel",
-        "scale": -0.25
+        "scale": -0.04
       }]
     },
     "cost": { "mp": 25 },
@@ -69,60 +234,53 @@
       { 
         "type": "damage", 
         "target": "singleEnemy", 
-        "base": 5,
+        "base": 6,
         "damageType": "heat", 
         "scaling": [{
           "target": "caster",
           "stat":"intellect",
-          "scale":0.2
+          "scale":0.45
         },
         {
           "target": "caster",
           "stat": "skillLevel",
-          "scale": 2
+          "scale": 1.75
         }]
       },
       { 
         "type": "condition",
         "name": "Burning",
         "stacks": {
-          "base": 1,
+          "base": 3,
           "scaling": [{
             "target": "caster",
             "stat": "willpower",
-            "scale": 0.1
+            "scale": 0.15
           },
           {
             "target": "caster",
             "stat": "skillLevel",
-            "scale": 1
+            "scale": 2
           }]
         }
       }
-    ],
-    "levelUpEffects": [
-      { "type": "add", "stat": "cooldown", "value": -0.05}
-      ]
+    ]
   },
-  "emberFall": {
-    "name": "Ember Fall",
+  "flamewall": {
+    "name": "Flamewall",
+    "flavorText": "{casterName} creates a massive wall of fire through the battlefield!",
     "cost": {
-      "mp": 25
+      "mp": 105
     },
     "target": "allEnemies",
     "requiresTarget": false,
     "cooldown": {
-      "base": 10,
+      "base": 6,
       "scaling": [
         {
           "target": "caster",
-          "scale": -0.5,
+          "scale": -0.03,
           "stat": "skillLevel"
-        },
-        {
-          "target": "caster",
-          "scale": -0.02,
-          "stat": "willpower"
         }
       ]
     },
@@ -130,40 +288,48 @@
       {
         "type": "damage",
         "damageType": "heat",
-        "base": 2,
+        "base": 5,
         "scaling": [
           {
             "target": "caster",
-            "scale": 0.15,
+            "scale": 0.4,
             "stat": "intellect"
           },
           {
             "target": "caster",
-            "scale": 2,
+            "scale": 15,
             "stat": "skillLevel"
           }
         ]
+      },
+      {
+        "type": "condition",
+        "name": "Burning",
+        "stacks": {
+          "base": 10,
+          "scaling": [{
+            "target": "caster",
+            "stat": "skillLevel",
+            "scale": 2
+          }]
+        }
       }
     ]
   },
   "emberStream": {
     "name": "Ember Stream",
+    "flavorText": "{casterName} spews out a stream of embers into the chaos!",
     "cost": {
       "mp": 3
     },
     "target": "randomEnemy",
-    "requiresTarget": true,
+    "requiresTarget": false,
     "cooldown": {
       "base": 1.5,
       "scaling": [
         {
           "target": "caster",
-          "scale": -0.01,
-          "stat": "wisdom"
-        },
-        {
-          "target": "caster",
-          "scale": -0.1,
+          "scale": -0.008,
           "stat": "skillLevel"
         }
       ]
@@ -176,12 +342,12 @@
         "scaling": [
           {
             "target": "caster",
-            "scale": 0.2,
+            "scale": 0.5,
             "stat": "intellect"
           },
           {
             "target": "caster",
-            "scale": 0.5,
+            "scale": 1.5,
             "stat": "skillLevel"
           }
         ]
@@ -190,58 +356,302 @@
         "type": "condition",
         "name": "Burning",
         "stacks": {
-          "base": 1
+          "base": 1,
+          "scaling": [
+            ]
         }
       }
     ]
   },
-    "searingShot": {
-    "name": "Searing Shot",
-    "cooldown": {
-      "base": 4,
-      "scaling": "willpower",
-      "scale": -0.01
+  "sling": {
+    "name": "Sling",
+    "flavorText": "{casterName} flings a rock and misses their target, hitting a random enemy instead.",
+    "cost": {
+      "sp": 3
     },
+    "target": "randomEnemy",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 0.8,
+      "scaling": [
+      ]
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "piercing",
+        "base": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.2,
+            "stat": "dexterity"
+          },
+          {
+            "target": "caster",
+            "scale": 1.5,
+            "stat": "skillLevel"
+          }
+        ]
+      }
+    ]
+  },
+  "stab": {
+    "name": "Stab",
+    "flavorText": "{casterName} stabs {targetName}!",
+    "cost": {
+      "sp": 5
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "cooldown": {
+      "base": 2.5,
+      "scaling": [
+      ]
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "piercing",
+        "base": 5,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.5,
+            "stat": "strength"
+          },
+          {
+            "target": "caster",
+            "scale": 1.5,
+            "stat": "skillLevel"
+          }
+        ]
+      }
+    ]
+  },
+  "emberstorm": {
+    "name": "Emberstorm",
+    "flavorText": "{casterName} calls down bell from above, raining molten embers throughout the battlefield.",
+    "cost": {
+      "mp": 100
+    },
+    "target": "allEnemies",
+    "requiresTarget": false,
+    "initialCooldown": 3,
+    "cooldown": {
+      "base": 6,
+      "scaling": [{
+        "target": "caster",
+        "stat": "skillLevel",
+        "scale": -0.03
+      }]
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "heat",
+        "base": 5,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 4,
+            "stat": "skillLevel"
+          },
+          {
+            "target": "caster",
+            "scale": 0.25,
+            "stat": "intellect"
+          }
+        ]
+      }
+    ]
+  },
+  "vineLegSweep": {
+    "name": "Leg Sweep",
+    "flavorText": "{casterName} swipes down across the floor.",
+    "cost": {
+      "mp": 25
+    },
+    "target": "allEnemies",
+    "requiresTarget": false,
+    "initialCooldown": 10,
+    "cooldown": {
+      "base": 6,
+      "min": 3,
+      "scaling": [{
+        "target": "caster",
+        "stat": "tier",
+        "scale": -0.03
+      }]
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "nature",
+        "base": 5,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 1,
+            "stat": "tier"
+          },
+          {
+            "target": "caster",
+            "scale": 0.25,
+            "stat": "strength"
+          }
+        ]
+      }
+    ]
+  },
+  "blazingMaelstrom": {
+    "name": "Blazing Maelstrom",
+    "flavorText": "{casterName} splits forth the ground, bringing forth magma to destroy their enemies.",
+    "cost": {
+      "mp": 80
+    },
+    "target": "allEnemies",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 5,
+      "scaling": [
+        {
+          "target": "caster",
+          "scale": -0.03,
+          "stat": "skillLevel"
+        }
+      ]
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "heat",
+        "base": 10,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 5,
+            "stat": "skillLevel"
+          },
+          {
+            "target": "caster",
+            "scale": 0.12,
+            "stat": "intellect"
+          }
+        ]
+      },
+      {
+        "type": "condition",
+        "name": "Burning",
+        "stacks": {
+          "base": 5
+        }
+      }
+    ]
+  },
+  "searingShot": {
+    "name": "Searing Shot",
+    "flavorText": "{casterName} shoots a molten ember through {targetName}!",
     "cost": {
       "mp": 5
     },
     "target": "randomEnemy",
     "requiresTarget": false,
+    "cooldown": {
+      "base": 5,
+      "scaling": [
+        {
+          "target": "caster",
+          "scale": -0.04,
+          "stat": "skillLevel"
+        }
+      ]
+    },
     "effects": [
       {
         "type": "damage",
-        "base": 10,
         "damageType": "heat",
-        "scaling": "willpower",
-        "scale": 1
-      },     
+        "base": 6,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.3,
+            "stat": "intellect"
+          }
+        ]
+      },
       {
         "type": "damage",
-        "base": 10,
         "damageType": "piercing",
-        "scaling": "strength",
-        "scale": 0.25
+        "base": 3,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 1.5,
+            "stat": "strength"
+          }
+        ]
       }
-      
-    ],
-    "levelUpEffects": []
+    ]
+  },
+  "moltenBullet": {
+    "name": "Molten Bullet",
+    "flavorText": "{casterName} shoots a bullet of molten iron at ${targetName}",
+    "cost": {
+      "mp": 5
+    },
+    "target": "randomEnemy",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 1.5,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "heat",
+        "base": 9,
+        "scaling": [
+           {
+            "target": "caster",
+            "scale": 0.5,
+            "stat": "intellect"
+          },
+          {
+            "target": "caster",
+            "scale": 10,
+            "stat": "skillLevel"
+          }
+        ]
+      },
+      {
+        "type": "damage",
+        "damageType": "piercing",
+        "base": 8,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 1,
+            "stat": "strength"
+          }
+        ]
+      }
+    ]
   },
   "boilingBlood": {
     "name": "Boiling Blood",
+    "initialCooldown": 3,
     "cooldown": {
       "base": 10,
+      "min": 3,
       "scaling": [{
-        "target": "caster",
-        "stat": "willpower",
-        "scale": -0.05
-      },{
         "target":"caster",
         "stat":"skillLevel",
-        "scale":-0.5
+        "scale":-0.02
       }]
     },
     "cost": {
-      "mp": 20,
+      "mp": 50,
       "hp": 10
     },
     "target": "self",
@@ -253,451 +663,51 @@
         "statType": "stat",
         "effect": "multi",
         "value": {
-          "base": 0.8,
+          "base": 0.9,
           "scaling": [{
             "target": "caster",
             "stat": "wisdom",
-            "scale": -0.0085
+            "scale": 0.99,
+            "effect": "multi",
+            "min": 0.4
           }]
         },
         "duration": {
           "base": 3000,
-          "scaling": [{
-            "target": "caster",
-            "stat": "willpower",
-            "scale": 100
-          },
+          "scaling": [
           {
             "target": "caster",
             "stat": "skillLevel",
-            "scale": 500
+            "scale": 400
           }]
         },
         "stat": "cooldownReduction"
-      }
-    ],
-    "levelUpEffects": []
-  },
-    "sporeBurst": {
-    "name": "Spore Burst",
-    "cooldown": {
-      "base": 10,
-      "scaling": [{
-        "target": "caster",
-        "stat": "constitution",
-        "scale": -0.05
-      }]
-    },
-    "cost": {
-      "mp": 20,
-      "hp": 10
-    },
-    "target": "randomEnemy",
-    "requiresTarget": false,
-    "effects": [
-      {
-        "type": "damage",
-        "base": 20,
-        "damageType": "blight",
-        "scaling": [{
-          "target": "caster",
-          "stat": "willpower",
-          "scale": 1
-        }]
-      }
-    ],
-    "levelUpEffects": []
-  },
-    "infectiousGrowth": {
-    "name": "Infectious Growth",
-    "cooldown": {
-      "base": 20,
-      "scaling": [{
-        "target": "caster",
-        "stat": "constitution",
-        "scale": -0.05
-      }]
-    },
-    "cost": {
-      "mp": 19,
-      "sp": 10
-    },
-    "target": "self",
-    "requiresTarget": false,
-    "effects": [
-      {
-        "type": "buff",
-        "statType": "stat",
-        "effect": "add",
-        "value": 5,
-        "duration": 5000,
-        "stat": "hpRegen"
-      }
-    ],
-    "levelUpEffects": []
-  },
-  "rendAndFeed": {
-    "name": "Rend And Feed",
-    "id": "rendAndFeed",
-    "cooldown": {
-      "base": 5,
-      "scaling": "strength",
-      "scale": -0.05
-    },
-    "cost": {
-      "sp": 10
-    },
-    "target": "singleEnemy",
-    "requiresTarget": true,
-    "effects": [
-      {
-        "type": "damage",
-        "base": 15,
-        "damageType": "slashing",
-        "scaling": "strength",
-        "scale": 1
-      },
-      {
-        "type": "heal",
-        "base": 5,
-        "scaling": "willpower",
-        "scale": 0.5,
-        "target": "self"
-      }
-    ],
-    "levelUpEffects": [
-      {
-        "type": "add",
-        "stat": "attackPower",
-        "value": 1
-      }
-    ]
-  },
-  "thornlash": {
-    "name": "Thornlash",
-    "id": "thornlash",
-    "cooldown": {
-      "base": 6,
-      "scaling": "dexterity",
-      "scale": -0.03
-    },
-    "cost": {
-      "sp": 8
-    },
-    "target": "singleEnemy",
-    "requiresTarget": true,
-    "effects": [
-      {
-        "type": "damage",
-        "base": 10,
-        "damageType": "nature",
-        "scaling": "dexterity",
-        "scale": 0.9
-      }
-    ],
-    "levelUpEffects": [
-      {
-        "type": "add",
-        "stat": "critChance",
-        "value": 0.01
-      }
-    ]
-  },
-  "frenziedHowl": {
-    "name": "Frenzied Howl",
-    "id": "frenziedHowl",
-    "cooldown": {
-      "base": 10,
-      "scaling": "willpower",
-      "scale": -0.02
-    },
-    "cost": {
-      "mp": 12
-    },
-    "target": "allAllies",
-    "requiresTarget": false,
-    "effects": [
-      {
-        "type": "buff",
-        "statType": "stat",
-        "stat": "attackSpeed",
-        "effect": "multi",
-        "value": 1.2,
-        "duration": 6000,
-        "target": "allAllies"
-      }
-    ],
-    "levelUpEffects": [
-      {
-        "type": "add",
-        "stat": "cooldownReduction",
-        "value": 0.01
-      }
-    ]
-  },
-  "twistingRoots": {
-    "name": "Twisting Roots",
-    "cooldown": {
-      "base": 8,
-      "scaling": "willpower",
-      "scale": -0.03
-    },
-    "cost": {
-      "mp": 10
-    },
-    "target": "randomEnemy",
-    "requiresTarget": false,
-    "effects": [
-      {
-        "type": "debuff",
-        "statType": "stat",
-        "stat": "cooldownReduction",
-        "effect": "multi",
-        "value": 1.4,
-        "duration": 5000,
-        "target": "randomEnemy"
-      }
-    ],
-    "levelUpEffects": []
-  },
-  "decayTouch": {
-    "name": "Decay Touch",
-    "cooldown": {
-      "base": 2,
-      "scaling": "intellect",
-      "scale": -0.02
-    },
-    "cost": {
-      "hp": 1
-    },
-    "target": "singleEnemy",
-    "requiresTarget": true,
-    "effects": [
-      {
-        "type": "damage",
-        "base": 1,
-        "damageType": "blight",
-        "scaling": "intellect",
-        "scale": 0.9,
-        "target": "singleEnemy"
       },
       {
         "type": "debuff",
-        "statType": "stat",
-        "stat": "hpRegen",
-        "effect": "add",
-        "value": -1,
-        "duration": 5000,
-        "target": "singleEnemy"
-      }
-    ],
-    "levelUpEffects": []
-  },
-  "fungalArmor": {
-    "name": "Fungal Armor",
-    "cooldown": {
-      "base": 4,
-      "scaling": "constitution",
-      "scale": -0.03
-    },
-    "cost": {
-      "sp": 15
-    },
-    "target": "self",
-    "requiresTarget": false,
-    "effects": [
-      {
-        "type": "buff",
-        "statType": "stat",
-        "stat": "hpRegen",
-        "effect": "add",
-        "value": 1,
-        "duration": 15000,
-        "target": "self"
-      }
-    ],
-    "levelUpEffects": []
-  },
-  "soulRend": {
-    "name": "Soul Rend",
-    "description": "Deal stacking damage to the foe's soul.",
-    "cooldown": {
-      "base": 5,
-      "scaling": "dexterity",
-      "scale": -0.07
-    },
-    "cost": {
-      "hp": 1,
-      "sp": 10
-    },
-    "target": "singleEnemy",
-    "requiresTarget": true,
-    "effects": [
-      {
-        "type": "condition",
-        "name": "Corruption",
-        "stacks": 1
-      },
-      {
-        "type": "damage",
-        "base": 5,
-        "damageType": "blight",
-        "scaling": "strength",
-        "scale": 1
-      }
-    ],
-    "levelUpEffects": []
-  },
-  "devourVitality": {
-    "name": "Devour Vitality",
-    "description": "Siphon strength from the enemy temporarily.",
-    "cooldown": {
-      "base": 15,
-      "scaling": "constitution",
-      "scale": -0.05
-    },
-    "cost": {
-      "mp": 15,
-      "sp": 20
-    },
-    "target": "singleEnemy",
-    "requiresTarget": true,
-    "effects": [
-      {
-        "type": "condition",
-        "name": "Corruption",
-        "stacks": 1
-      },
-      {
-        "type": "buff",
         "target": "self",
-        "statType": "attribute",
-        "stat": "constitution",
+        "statType": "stat",
         "effect": "multi",
-        "value": 2,
-        "duration": 7500
-      },
-      {
-        "type": "debuff",
-        "target": "singleEnemy",
-        "statType": "attribute",
-        "stat": "constitution",
-        "effect": "multi",
-        "value": 0.5,
-        "duration": 7500
-      }
-    ],
-    "levelUpEffects": []
-  },
-  "cuddle": {
-    "name": "Cuddle",
-    "cooldown": {
-      "base": 1,
-      "scaling": "dexterity",
-      "scale": -0.01
-    },
-    "cost": {
-      "mp": 1,
-      "sp": 1
-    },
-    "target": "randomEnemy",
-    "requiresTarget": false,
-    "effects": [
-      {
-        "type": "damage",
-        "base": 1,
-        "damageType": "physical",
-        "scaling": "strength",
-        "scale": 0.3
-      },
-      {
-        "type": "condition",
-        "name": "Stunned",
-        "stacks": 1,
-        "duration": 500
-      }
-    ],
-    "levelUpEffects": []
-  },
-  "nuzzles": {
-    "name": "Nuzzles",
-    "cooldown": {
-      "base": 2.5,
-      "scaling": "dexterity",
-      "scale": -0.01
-    },
-    "cost": {
-      "mp": 1,
-      "sp": 1
-    },
-    "target": "randomEnemy",
-    "requiresTarget": false,
-    "effects": [
-      {
-        "type": "damage",
-        "base": 1,
-        "damageType": "physical",
-        "scaling": "willpower",
-        "scale": 0.3
-      }
-    ],
-    "levelUpEffects": []
-  },
-  "hug": {
-    "name": "Hug",
-    "cooldown": {
-      "base": 10,
-      "scaling": "dexterity",
-      "scale": -0.01
-    },
-    "cost": {
-      "mp": 1,
-      "sp": 5
-    },
-    "target": "randomEnemy",
-    "requiresTarget": false,
-    "effects": [
-      {
-        "type": "damage",
-        "base": 5,
-        "damageType": "physical",
-        "scaling": "constitution",
-        "scale": 1
-      },
-      {
-        "type": "condition",
-        "name": "Stunned",
-        "stacks": 1,
-        "duration": 2000
-      }
-    ],
-    "levelUpEffects": []
-  },
-  "bark": {
-    "name": "Bark",
-    "cooldown": {
-      "base": 8,
-      "scaling": "dexterity",
-      "scale": -0.01
-    },
-    "cost": {
-      "mp": 1,
-      "sp": 2
-    },
-    "target": "allEnemies",
-    "requiresTarget": false,
-    "effects": [
-      {
-        "type": "debuff",
-        "statType": "attribute",
-        "stat": "willpower",
-        "effect": "multi",
-        "value": "0.8",
-        "duration": 2000
-      },
-      {
-        "type": "interrupt",
-        "base": 2000
+        "value": {
+          "base": 1.1,
+          "scaling": [{
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1.01,
+            "effect": "multi",
+            "max": 2
+          }]
+        },
+        "duration": {
+          "base": 3000,
+          "scaling": [
+          {
+            "target": "caster",
+            "stat": "skillLevel",
+            "scale": 150
+          }]
+        },
+        "stat": "mpEfficiency"
       }
     ],
     "levelUpEffects": []
@@ -712,6 +722,7 @@
     "requiresTarget": false,
     "cooldown": {
       "base": 8,
+      "min": 2,
       "scaling": [
         {
           "target": "caster",
@@ -741,6 +752,7 @@
     "requiresTarget": false,
     "cooldown": {
       "base": 7,
+      "min": 2,
       "scaling": [
         {
           "target": "caster",
@@ -768,7 +780,12 @@
       "type": "condition",
       "name": "Burning",
       "stacks": {
-        "base": 1
+        "base": 1,
+        "scaling": [{
+          "target": "caster",
+          "stat": "tier",
+          "scale": 0.5
+        }]
       }
     }]
   },
@@ -780,7 +797,8 @@
     "target": "allAllies",
     "requiresTarget": false,
     "cooldown": {
-      "base": 5,
+      "base": 7,
+      "min": 5,
       "scaling": []
     },
     "effects": [
@@ -805,7 +823,7 @@
           "scaling": [
             {
               "target": "caster",
-              "scale": -0.01,
+              "scale": -0.005,
               "stat": "willpower"
             }
           ]
@@ -840,6 +858,55 @@
       }
     ]
 },
+  "evasiveFlight": {
+    "name": "Evasive Flight",
+    "cost": {
+      "sp": 5
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 10,
+      "min": 5,
+      "scaling": [
+        {
+          "target": "caster",
+          "scale": 0.99,
+          "stat": "dexterity",
+          "effect": "multi"
+        }
+      ]
+    },
+    "effects": [
+      {
+        "type": "buff",
+        "statType": "stat",
+        "stat": "evasionChance",
+        "duration": {
+          "base": 1500,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 10,
+              "stat": "dexterity"
+            }
+          ]
+        },
+        "effect": "add",
+        "value": {
+          "base": 5,
+          "max": 50,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 0.35,
+              "stat": "dexterity"
+            }
+          ]
+        }
+      }
+    ]
+  },
   "skitter": {
     "name": "Skitter",
     "cost": {
@@ -872,7 +939,7 @@
             }
           ]
         },
-        "effectDisplay": "caster",
+        "effect": "add",
         "value": {
           "base": 1,
           "scaling": [
@@ -958,10 +1025,11 @@
     "requiresTarget": false,
     "cooldown": {
       "base": 3,
+      "min": 1,
       "scaling": [
         {
           "target": "caster",
-          "scale": -0.05,
+          "scale": -0.01,
           "stat": "dexterity"
         }
       ]
@@ -1000,6 +1068,7 @@
     "requiresTarget": true,
     "cooldown": {
       "base": 10,
+      "min": 5,
       "scaling": []
     },
     "effects": [
@@ -1019,6 +1088,945 @@
             "stat": "skillLevel"
           }
         ]
+      }
+    ]
+  },
+  "consumeHeat": {
+    "name": "Consume Heat",
+    "cost": {
+      "mp": 10,
+      "sp": 10
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 4,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "buff",
+        "target": "self",
+        "statType": "stat",
+        "stat": "maxHp",
+        "duration": {
+          "base": 30000,
+          "scaling": [{
+          }]
+        },
+        "effect": "add",
+        "value": {
+          "base": 8,
+          "scaling": [
+            {
+              "target": "allEnemies",
+              "scale": 2,
+              "stat": "Burning"
+            }
+          ]
+        }
+      },
+      {
+        "type": "cleanse",
+        "name": "Burning",
+        "target": "allEnemies",
+        "stacks": "all"
+      }
+    ]
+  },
+  "recksplode": {
+    "name": "Recksplode",
+    "cost": {
+      "mp": 40
+    },
+    "target": "allEnemies",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 5,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "target": "allEnemies",
+        "damageType": "heat",
+        "base": 5,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.5,
+            "stat": "maxHp"
+          }
+        ]
+      },
+      {
+        "type": "damage",
+        "target": "self",
+        "damageType": "heat",
+        "base": 5,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.5,
+            "stat": "hp"
+          }
+        ]
+      }
+    ]
+  },
+  "fireStomp": {
+    "name": "Fire Stomp",
+    "cost": {
+      "mp": 3,
+      "sp": 5
+    },
+    "target": "allEnemies",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 8,
+      "min": 4,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "force",
+        "base": 15,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.6,
+            "stat": "strength"
+          }
+        ]
+      },
+      {
+        "type": "damage",
+        "damageType": "heat",
+        "base": 3,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.5,
+            "stat": "willpower"
+          }
+        ]
+      },
+      {
+        "type": "condition",
+        "name": "Burning",
+        "stacks": 1
+      }
+    ]
+  },
+  "bloodlust": {
+    "name": "Bloodlust",
+    "cost": {
+      "sp": 5
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 8,
+      "min": 4,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "buff",
+        "statType": "stat",
+        "stat": "critChance",
+        "duration": {
+          "base": 5000,
+          "scaling": []
+        },
+        "effect": "multi",
+        "value": {
+          "base": 1.25,
+          "scaling": []
+        }
+      }
+    ]
+  },
+  "lockjaw": {
+    "name": "Lockjaw",
+    "cost": {
+      "sp": 15
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "cooldown": {
+      "base": 12,
+      "min": 6,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "piercing",
+        "base": 5,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.4,
+            "stat": "strength"
+          }
+        ]
+      },
+      {
+        "type": "condition",
+        "name": "Stunned",
+        "stacks": {
+          "base": 1,
+          "scaling": []
+        },
+        "duration": {
+          "base": 1500,
+          "scaling": []
+        }
+      }
+    ]
+  },
+  "fierceSwipe": {
+    "name": "Fierce Swipe",
+    "cost": {
+      "sp": 5
+    },
+    "target": "allEnemies",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 8,
+      "min": 4,
+      "scaling": [
+        {"target": "caster",
+          "stat": "tier",
+          "scale": 0.98,
+          "effect": "multi"
+        }]
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "slashing",
+        "base": 5,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.6,
+            "stat": "strength"
+          }
+        ]
+      }
+    ]
+  },
+  "earthquake": {
+    "name": "Earthquake",
+    "cost": {
+      "sp": 15
+    },
+    "target": "all",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 10,
+      "min": 5,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "force",
+        "base": 15,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.5,
+            "stat": "strength"
+          }
+        ]
+      },
+      {
+        "type": "interrupt",
+        "base": 0.5
+      }
+    ]
+  },
+  "heatFloes": {
+    "name": "Heat Floes",
+    "cost": {
+      "mp": 3
+    },
+    "target": "randomEnemy",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 0.5,
+      "min": 0.2,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "condition",
+        "name": "Burning",
+        "stacks": 1
+      }
+    ]
+  },
+  "pyroblast": {
+    "name": "Pyroblast",
+    "cost": {
+      "mp": 25
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "initialCooldown": 7,
+    "cooldown": {
+      "base": 10,
+      "scaling": [{
+        "target": "caster",
+        "stat": "skillLevel",
+        "scale": -0.02
+      }]
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "force",
+        "base": 15,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 1.5,
+            "stat": "strength"
+          }
+        ]
+      },
+      {
+        "type": "damage",
+        "damageType": "heat",
+        "base": 25,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.4,
+            "stat": "intellect"
+          },
+          {
+            "target": "caster",
+            "scale": 10,
+            "stat": "skillLevel"
+          }
+        ]
+      },
+      {
+        "type": "condition",
+        "target": "allEnemies",
+        "name": "Burning",
+        "stacks": {
+          "base": 1,
+          "scaling": []
+        }
+      }
+    ]
+  },
+  "spewMagma": {
+    "name": "Spew Magma",
+    "cost": {
+      "mp": 5
+    },
+    "target": "randomEnemy",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 3,
+      "min": 1,
+      "scaling": [
+        {
+          "target": "caster",
+          "scale": -0.25,
+          "stat": "skillLevel"
+        },
+        {
+          "target": "caster",
+          "stat": "wisdom",
+          "scale": -0.02
+        }
+      ]
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "heat",
+        "base": 5,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.5,
+            "stat": "intellect"
+          }
+        ]
+      },
+      {
+        "type": "condition",
+        "name": "Burning",
+        "stacks": {
+          "base": 1,
+          "scaling": [{
+            "target": "caster",
+            "stat": "willpower",
+            "scale": 0.2
+          }]
+        }
+      }
+    ]
+  },
+  "hardenShell": {
+    "name": "Harden Shell",
+    "cost": {
+      "sp": 10
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 5,
+      "min": 2,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "buff",
+        "statType": "stat",
+        "stat": "damageResistance",
+        "duration": {
+          "base": 3000,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 100,
+              "stat": "constitution"
+            }
+          ]
+        },
+        "effect": "multi",
+        "value": {
+          "base": 1.3,
+          "scaling": []
+        }
+      },
+      {
+        "type": "heal",
+        "base": 3,
+        "scaling": [{
+          "target": "caster",
+          "stat": "maxHp",
+          "scale": 0.1
+        }]
+      }
+    ]
+  },
+    "summonVine": {
+    "name": "Summon Vine",
+    "cost": {
+      "mp": 30
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "initialCooldown": 5,
+    "cooldown": {
+      "base": 10,
+      "scaling": [
+        {
+          "target": "caster",
+          "scale": 0.998,
+          "effect": "multi",
+          "stat": "wisdom"
+        }
+      ]
+    },
+    "effects": [
+      {
+        "type": "summon",
+        "unit": "Monstrous Vine",
+        "tier": {
+          "base": 0,
+          "scaling": [{
+            "target": "caster",
+            "stat": "tier",
+            "scale": 1
+          }]
+        },
+        "isAlly": "true"
+      }
+    ]
+  },
+  "summonWolf": {
+    "name": "Summon Wolf",
+    "cost": {
+      "mp": 30
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 10,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "summon",
+        "unit": "Wolf Familiar",
+        "tier": {
+          "base": 0,
+          "scaling": [{
+            "target": "caster",
+            "stat": "tier",
+            "scale": 0.9,
+            "round": "down"
+          }]
+        },
+        "isAlly": "true"
+      }
+    ]
+  },
+  "thornWhip": {
+    "name": "Thorn Whip",
+    "cost": {
+      "mp": 3
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "cooldown": {
+      "base": 2,
+      "scaling": [
+        {
+          "target": "caster",
+          "scale": 0.995,
+          "effect": "multi",
+          "stat": "dexterity"
+        }
+      ]
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "nature",
+        "base": 5,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.2,
+            "stat": "strength"
+          },
+          {
+            "target": "caster",
+            "scale": 0.2,
+            "stat": "dexterity"
+          },
+          {
+            "target": "caster",
+            "scale": 0.5,
+            "stat": "intellect"
+          }
+        ]
+      }
+    ]
+  },
+  "vigorousGrowth": {
+    "name": "Vigorous Growth",
+    "cost": {
+      "mp": 10
+    },
+    "target": "allAllies",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 3,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "buff",
+        "statType": "stat",
+        "stat": "hpRegen",
+        "duration": {
+          "base": 1500,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 20,
+              "stat": "wisdom"
+            }
+          ]
+        },
+        "effect": "add",
+        "value": {
+          "base": 3,
+          "scaling": []
+        }
+      }
+    ]
+  },
+  "entangle": {
+    "name": "Entangle",
+    "cost": {
+      "mp": 30,
+      "sp": 10
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "cooldown": {
+      "base": 10,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "condition",
+        "name": "Stunned",
+        "stacks": 1,
+        "duration": 1500
+      }
+    ]
+  },
+  "chillingPresence": {
+    "name": "Chilling Presence",
+    "cost": {
+      "mp": 4
+    },
+    "target": "allEnemies",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 2,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "debuff",
+        "target": "allEnemies",
+        "statType": "stat",
+        "stat": "cooldownReduction",
+        "duration": {
+          "base": 2000,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 50,
+              "stat": "willpower"
+            }
+          ]
+        },
+        "effect": "multi",
+        "value": {
+          "base": 1.05,
+          "max": 1.35,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 1.01,
+              "effect": "multi",
+              "stat": "willpower"
+            }
+          ]
+        }
+      },
+      {
+        "type": "damage",
+        "damageType": "cold",
+        "base": 3,
+        "scaling": [{
+          "target": "caster",
+          "stat": "intellect",
+          "scale": 2.5
+        }]
+      }
+    ]
+  },
+  "ragebornRoar": {
+    "name": "Rageborn Roar",
+    "cost": {
+      "sp": 30
+    },
+    "target": "allEnemies",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 15,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "debuff",
+        "target": "allEnemies",
+        "statType": "stat",
+        "stat": "damageAmp",
+        "duration": {
+          "base": 4000,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 50,
+              "stat": "strength"
+            }
+          ]
+        },
+        "effect": "multi",
+        "value": {
+          "base": 0.95,
+          "min": 0.5,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 0.98,
+              "effect": "multi",
+              "stat": "constitution"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "yetinSmash": {
+    "name": "Yetin Smash",
+    "cost": {
+      "sp": 15
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "cooldown": {
+      "base": 15,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "condition",
+        "name": "Stunned",
+        "stacks": {
+          "base": 1,
+          "scaling": []
+        },
+        "duration": {
+          "base": 3500,
+          "scaling": []
+        }
+      },
+      {
+        "type": "interrupt",
+        "base": 5000,
+        "scaling": []
+      },
+      {
+        "type": "damage",
+        "damageType": "blunt",
+        "base": 17,
+        "scaling": [{
+          "target": "caster",
+          "stat": "strength",
+          "scale": 5
+        }]
+      }
+    ]
+  },
+   "umbralSlice": {
+    "name": "Umbral Slice",
+    "cooldown": {
+      "base": 1.0,
+      "scaling": []
+    },
+    "cost": { "sp": 4 },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "effects": [
+      { 
+        "type": "damage",
+        "target": "singleEnemy", 
+        "base": 5,
+        "damageType": "blight",
+        "scaling": [{
+         "target": "caster",
+         "stat": "dexterity", 
+         "scale": 0.45
+        }]
+      }
+    ]
+  },
+    "soulRend": {
+    "name": "Soul Rend",
+    "cooldown": {
+      "base": 2.8,
+      "scaling": [
+      {
+        "target": "caster",
+        "stat": "skillLevel",
+        "scale": -0.02
+      }]
+    },
+    "cost": { "sp": 4 },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "effects": [
+      { 
+        "type": "damage",
+        "target": "singleEnemy", 
+        "base": 6,
+        "damageType": "blight",
+        "scaling": [{
+         "target": "caster",
+         "stat": "dexterity", 
+         "scale": 0.25
+        },
+        {
+          "target": "caster",
+          "stat": "skillLevel",
+          "scale": 2.5
+        }]
+      }
+    ]
+  },
+  "gnollWarCry": {
+    "name": "Gnoll War Cry",
+    "cost": {
+      "mp": 15
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "initialCooldown": 3,
+    "cooldown": {
+      "base": 5,
+      "scaling": [
+        {
+          "target": "caster",
+          "scale": -0.05,
+          "stat": "wisdom"
+        }
+      ]
+    },
+    "effects": [
+      {
+        "type": "summon",
+        "unit": "Grove Druid",
+        "tier": {
+          "base": 1,
+          "scaling": [{
+            "target": "caster",
+            "stat": "tier",
+            "scale": 1
+          }]
+        },
+        "isAlly": "true"
+      }
+    ]
+  },
+  "rallyingBoost": {
+    "name": "Rallying Boost",
+    "cost": {
+      "mp": 10
+    },
+    "target": "allAllies",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 3,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "buff",
+        "statType": "stat",
+        "stat": "cooldownReduction",
+        "duration": {
+          "base": 1500,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 20,
+              "stat": "wisdom"
+            }
+          ]
+        },
+        "effect": "multi",
+        "value": {
+          "base": 0.95,
+          "scaling": []
+        }
+      }
+    ]
+  },
+  "mistForm": {
+    "name": "Mist Form",
+    "flavorText": "{casterName} evaporates into mist!",
+    "cost": {
+      "mp": 5
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "initialCooldown": 7,
+    "cooldown": {
+      "base": 10,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "buff",
+        "statType": "stat",
+        "stat": "evasionChance",
+        "duration": {
+          "base": 4000,
+          "scaling": []
+        },
+        "effect": "add",
+        "value": {
+          "base": 5,
+          "max": 90,
+          "scaling": [{
+            "target": "caster",
+            "stat": "tier",
+            "scale": 5
+          }]
+        }
+      }
+    ]
+  },
+  "soar": {
+    "name": "Soar",
+    "flavorText": "{casterName} flies into the sky!",
+    "cost": {
+      "sp": 1
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "initialCooldown": 15,
+    "cooldown": {
+      "base": 10,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "buff",
+        "statType": "stat",
+        "stat": "evasionChance",
+        "duration": {
+          "base": 5000,
+          "scaling": [
+          ]
+        },
+        "effect": "add",
+        "value": {
+          "base": 95,
+          "scaling": []
+        }
+      },
+      {
+        "type": "buff",
+        "statType": "stat",
+        "stat": "spRegen",
+        "duration": {
+          "base": 5000,
+          "scaling": [
+          ]
+        },
+        "effect": "add",
+        "value": {
+          "base": 15,
+          "scaling": []
+        }
+      },
+      {
+        "type": "interrupt",
+        "base": 5000,
+        "scaling": [],
+        "overrideCooldown": true
       }
     ]
   }
