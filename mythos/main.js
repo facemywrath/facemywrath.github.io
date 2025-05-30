@@ -6086,25 +6086,6 @@ function selectCharacter(slot) {
     const data = localStorage.getItem(key);
     const char = JSON.parse(data).playerData;
     player = char;
-    player.classData = {
-      Pyromancer: {
-        level: 10,
-        skillPoints: 0
-      },
-      Ironveil: {
-        level: 8,
-        skillPoints: 0
-      },
-      Voidcaller: {
-        level: 64,
-        skillPoints: 0
-      },
-      Chronomancer: {
-        level: 43,
-        skillPoints: 0
-      }
-    }
-    player.level = 125;
     
     document.getElementById("menu-content").classList.remove("hidden")
     
