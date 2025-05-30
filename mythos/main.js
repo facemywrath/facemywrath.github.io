@@ -3,6 +3,7 @@ let damageTypeMultipliers = null;
 let skillsData = null;
 let unitsData = null;
 let talentsData = null;
+let loadFromGithub = true;
 let debugMode = true;
 let hintData;
 const updateSpeed = 100;
@@ -511,7 +512,8 @@ async function getLoreData() {
   menuContent = document.getElementById("menu-content");
   try {
     if (!loreDataCache) {
-      const baseURL = "https://raw.githubusercontent.com/facemywrath/facemywrath.github.io/main/mythos/";
+
+      const baseURL = loadFromGithub?"https://raw.githubusercontent.com/facemywrath/facemywrath.github.io/main/mythos/":"";
 
       const [
         loreRes,
@@ -632,7 +634,7 @@ function recalculateStat(unit, statName) {
   }
   if(unit.id == 0 && unit.skills.learned){
 const talentEffects = [].concat(...unit.skills.learned
-  .filter(s => s.type === "talent")
+  .filter(s => s.type === "talent" && s.active)
   .flatMap(t => 
     (talentsData[t.id]?.effects || []).map(effect => ({
       talentId: t.id,
@@ -2377,6 +2379,7 @@ function renderSkillTree() {
     const isAvailable = affordableSkills.some(s => s.id === skill.id);
 
     const dataSource = isTalent ? talentsData : skillsData;
+    const isActive = isTalent?learned?learned.active:false:false
     const data = dataSource[skill.id] || { name: "(Missing Data)" };
 
     const node = document.createElement("div");
@@ -2582,7 +2585,7 @@ function showSkillDetails(skill, isAvailable = false) {
   const level = learned ? learned.level : 0;
   const isMaxed = level >= skill.maxLevel;
   const canLevel = isAvailable;
-
+  const isActive = isTalent?learned?learned.active:false:false
   let skillCost = skill.cost;
   if (!learned) {
     if (skill.unlockCost) {
@@ -2595,7 +2598,9 @@ function showSkillDetails(skill, isAvailable = false) {
   const buttonLabel = level > 0
     ? (isMaxed ? "Maxed Out" : "Level Up")
     : (isTalent ? "Unlock Talent" : "Unlock Skill");
-
+  const checkbox = `
+  <input type="checkbox" id="talent-checkbox" ${isActive ? "checked" : ""}><span id="checkbox-label">${isActive?" On":" Off"}</span>
+`;
   const skillTree = loreDataCache.classes[player.class].skillTree;
   const skillTreeData = skillTree.find(s => s.id == skill.id);
 
@@ -2637,6 +2642,7 @@ function showSkillDetails(skill, isAvailable = false) {
       >
         ${buttonLabel}
       </button>
+      ${level > 0 && isTalent?checkbox:""}
     </div>
   `;
 
@@ -2644,13 +2650,19 @@ function showSkillDetails(skill, isAvailable = false) {
     const upgradeBtn = document.getElementById("skill-upgrade-btn");
     upgradeBtn.addEventListener("click", () => levelUpSkill(skill.id, skillCost));
   }
+  const toggleCheckbox = document.getElementById("talent-checkbox");
+  if(toggleCheckbox){
+toggleCheckbox.addEventListener("change", (e) => {
+  learned.active = !learned.active;
+  document.getElementById("checkbox-label").textContent = learned.active?" On":" Off"
+});
+}
 }
 
 function levelUpSkill(skillId, cost) {
   const skillTree = loreDataCache.classes[player.class].skillTree;
   const skill = skillTree.find(s => s.id === skillId);
   let learned = player.skills.learned.find(s => s.id === skillId);
-
   if (player.classData[player.class].skillPoints >= cost && (!learned || learned.level < skill.maxLevel)) {
     player.classData[player.class].skillPoints -= cost;
     if (learned) {
@@ -2667,6 +2679,9 @@ function levelUpSkill(skillId, cost) {
   updateAllSkillDisplays(); // re-render to update display
   recalculateDerivedStats(player)
   if(skill.type == "talent"){
+    if(learned.level == 1){
+      learned.active = true;
+    }
     let talentData = talentsData[skill.id];
     if(talentData && talentData.effects){
       calculateAttributes(player)
@@ -4051,9 +4066,14 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
     }
 
     if (skill.effects) {
+      let skillContext = {
+        target: target,
+        caster: caster,
+        id: skillId
+      }
       for (const effect of skill.effects) {
         if (effect)
-          applyEffect(effect, caster, target, skillId, originalTarget);
+          applyEffect(effect, caster, target, skillId, originalTarget, skillContext);
       }
     }
 
@@ -4089,21 +4109,36 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
       unit.skills.combatData.lastUse = {}
     }
     unit.skills.combatData.lastUse[talentId] = Date.now();
+    let skillContext = {
+      target: event.target || null,
+      caster: event.caster || null,
+      id: talentId
+    }
     for (let eff of effect.effects) {
-      applyEffect(eff, unit, undefined, talentId, undefined);
+      console.log("wheyoff",eff, skillContext)
+    applyEffect(eff, unit, undefined, talentId, undefined, skillContext);
     }
   };
 }
 function passesTriggerConditions(effect, event, unit, talentId) {
+  const talentInfo = unit.skills.learned.find(s => s.id == talentId);
+  if(!talentInfo){
+    return false;
+  }
+  if(!talentInfo.active){
+    return false;
+  }
   const trigger = effect.trigger;
   if (trigger.condition && event.effect?.name !== trigger.condition) return false;
   if (trigger.target && trigger.target !== "any") {
+    console.log("uh",event)
     const targets = getPotentialTargets(unit, undefined, trigger.target, talentId);
-    if (!targets.includes(unit)) return false;
+    if (!targets.includes(event.target)) return false;
+    console.log("passed")
   }
   if (trigger.caster && trigger.caster !== "any") {
     const casters = getPotentialTargets(unit, trigger.caster);
-    if (!casters.includes(unit)) return false;
+    if (!casters.includes(event.caster)) return false;
   }
   if(trigger.skillId && trigger.skillId != "any" && event.skillId  != trigger.skillId){
     return false;
@@ -4150,7 +4185,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
     let additiveBuff = 0;
     let multiplierBuff = 1;
     const talentEffects = [].concat(...unit.skills.learned
-  .filter(s => s && s.type === "talent")
+  .filter(s => s && s.type === "talent" && s.active)
   .flatMap(t => 
     (talentsData[t.id]?.effects || []).map(effect => ({
       talentId: t.id,
@@ -4230,7 +4265,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
 
     return effective;
   }
-  function getTarget(caster, target, targetType) {
+  function getTarget(caster, target, targetType, skillContext) {
     if(targetType == "singleAlly" || targetType == "singleEnemy"){
       if(!target){
         console.error("no target found", new Error().stack)
@@ -4290,6 +4325,14 @@ function passesTriggerConditions(effect, event, unit, talentId) {
 
         target = adjacentTargets;
         break;
+        case "skillTarget":
+          if(!skillContext){
+            console.error("skill context not found", targetType, new Error().stack)
+          }else{
+            console.log(skillContext)
+          }
+          return skillContext.target;
+          break;
       }
     } else {
       target = getPotentialTargets(caster, targetType);
@@ -4319,7 +4362,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       });
     });
 }
-  function applyEffect(effect, caster, target, skillId, originalTarget) {
+  function applyEffect(effect, caster, target, skillId, originalTarget, skillContext) {
     let pushedEffect = null;
     if (!skillId) {
       console.error("no skill defined");
@@ -4332,7 +4375,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
     // Always treat target as array
 
     if (effect.target) {
-      target = getTarget(caster, originalTarget, effect.target);
+      target = getTarget(caster, originalTarget, effect.target, skillContext);
     }
     if (!Array.isArray(target)) target = [target];
     
@@ -4358,14 +4401,14 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         if(Math.random()*100 < critChance){
           critMulti = caster.stats.critMulti.value || 1
         }
-        let total = critMulti*calculateEffectiveValue(effect, caster, unit, skillLevel)
+        let total = critMulti*calculateEffectiveValue(effect, caster, unit, skillLevel, skillContext)
         let finalDamage = damageUnit(caster, unit, effect.damageType, total)
 
 
         updateCombatLog(`${critMulti > 1? "CRITICAL HIT! ":""}${caster.name} deals ${finalDamage.toFixed(2)} ${getDamageTypeIcon(effect.damageType)} damage to ${unit.name}`, caster, ["damage", caster.isAlly?"ally":"enemy"]);
         break;
       case "interrupt":
-        let interruptAmount = calculateEffectiveValue(effect, caster, undefined, skillLevel);
+        let interruptAmount = calculateEffectiveValue(effect, caster, undefined, skillLevel, skillContext);
         let override = effect.overrideCooldown;
         Object.keys(unit.skills.combatData.lastUsed).forEach(s => {
           if(!override){
@@ -4383,7 +4426,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
           break;
       case "summon":
         let unitToSummon = effect.unit;
-        let tier = calculateEffectiveValue(effect.tier, caster, undefined, skillLevel)
+        let tier = calculateEffectiveValue(effect.tier, caster, undefined, skillLevel, skillContext)
         let unitData = createUnit(unitToSummon, effect.isAlly, tier);
         const crewContainer = document.getElementById("player-crew");
         const enemyContainer = document.getElementById("enemy-crew");
@@ -4469,8 +4512,8 @@ function passesTriggerConditions(effect, event, unit, talentId) {
 
         pushedEffect = JSON.parse(JSON.stringify(effect));
         pushedEffect.startTime = Date.now()
-        pushedEffect.duration = calculateEffectiveValue(pushedEffect.duration, caster, unit, skillLevel);
-        pushedEffect.value = calculateEffectiveValue(pushedEffect.value, caster, unit, skillLevel)
+        pushedEffect.duration = calculateEffectiveValue(pushedEffect.duration, caster, unit, skillLevel, skillContext);
+        pushedEffect.value = calculateEffectiveValue(pushedEffect.value, caster, unit, skillLevel, skillContext)
 
         let isResistanceEffect = pushedEffect.resistanceType
                 statusStartEvent.emit({effect: effect,
@@ -4532,11 +4575,11 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         pushedEffect.duration =calculateEffectiveValue(pushedEffect.duration,
           caster,
           unit,
-          skillLevel);
+          skillLevel, skillContext);
         pushedEffect.value = calculateEffectiveValue(pushedEffect.value,
           caster,
           unit,
-          skillLevel)
+          skillLevel, skillContext)
         pushedEffect.startTime = Date.now();
         statusStartEvent.emit({effect: effect,
           caster: caster,
@@ -4578,7 +4621,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       case "heal":
         if (!unit.isAlive) break;
         
-        let base = calculateEffectiveValue(effect, caster, unit, skillLevel || 1)
+        let base = calculateEffectiveValue(effect, caster, unit, skillLevel || 1, skillContext)
 
         unit.stats.hp.value = Math.min(unit.stats.maxHp.value, unit.stats.hp.value + base);
         updateCombatBar(unit, "hp");
@@ -4601,7 +4644,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
 
         if (!unit.conditions) unit.conditions = {};
         const condition = effect.name;
-        const stacksToAdd = calculateEffectiveValue(effect.stacks, caster, unit, skillLevel) || 1;
+        const stacksToAdd = calculateEffectiveValue(effect.stacks, caster, unit, skillLevel, skillContext) || 1;
 
         if (!unit.conditions[condition]) {
           unit.conditions[condition] = {
@@ -4618,7 +4661,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         break;
       }
     }
-    applyEffectEvent.emit({effect: effect, caster: caster, target: target, skillId: skillId})
+  applyEffectEvent.emit({effect: effect, caster: caster, target: target, skillId: skillId, skillContext: skillContext})
   }
   function removeTalentListeners(unit) {
   unit.skills.combatData.perCombat = {};
@@ -5595,7 +5638,7 @@ function showClassDetails(className){
     requestAnimationFrame(update);
   }
 
-  function calculateEffectiveValue(block, caster, target, skillLevel) {
+  function calculateEffectiveValue(block, caster, target, skillLevel, skillContext) {
     if (!block) {
       console.error("No block defined", new Error().stack);
       return null;
@@ -5618,7 +5661,7 @@ function showClassDetails(className){
 
     for (const scaleEntry of block.scaling) {
       
-      const targets = getTarget(caster, target, scaleEntry.target || "self");
+      const targets = getTarget(caster, target, scaleEntry.target || "self", skillContext);
 
       target = Array.isArray(targets)?targets:[targets];
       
@@ -5644,7 +5687,9 @@ function showClassDetails(className){
           tier = entity.tier || 0;
         }
         statValue = tier;
-      } else {
+      } else if(stat == "skillTarget"){
+        
+        }else {
         console.warn(`Stat "${stat}" not found in ${scaleEntry.target}`, scaleEntry);
         console.log(entity.conditions, entity.conditions[stat], stat)
       }
