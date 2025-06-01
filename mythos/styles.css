@@ -443,42 +443,33 @@ svg.lines {
   border-bottom: 1px solid #444;
 }
 
-.equipment-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 4px;
-  padding: 5px 0;
-  margin: 10px 5px;
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.equip-slot {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 80px;
-  text-align: center;
+.inventory-table th,
+.inventory-table td {
+  border: 1px solid #999;
+  padding: 4px 8px;
+  text-align: left;
 }
 
-.slot-label {
-  font-weight: bold;
-  margin-bottom: 5px;
+.inventory-table th {
+  background-color: #333;
+  color: white;
 }
 
-.slot-item {
-  background-color: #222;
-  border: 1px solid #555;
-  border-radius: 4px;
-  padding: 4px;
-  width: 80%;
+.equip-btn,
+.unequip-btn {
   font-size: 0.9em;
+  cursor: pointer;
 }
 
 .skill-node {
   position: absolute;
   width: 100px;
   height: 50px;
-  color: white;
   text-align: center;
   line-height: 1.2em;
   border-radius: 8px;
@@ -519,7 +510,11 @@ svg.lines {
 
 /* Base talent background */
 .skill-node.talent .skill-node-content {
-  background: linear-gradient(#cb6, #ba6);
+  background: linear-gradient(#ba5, #984);
+}
+
+.skill-node .skill-node-content.talent.activeTalent {
+  color: #afa;
 }
 
 /* Locked talent */
@@ -808,13 +803,59 @@ svg.lines {
   box-shadow: 0 0 4px #000;
   transition: background 0.2s;
 }
+.equipment-row {
+  display: flex;
+  flex-wrap: wrap; /* Optional: wraps items to next line if space runs out */
+  gap: 8px;         /* Optional: spacing between slots */
+}
+.equip-rect {
+  border: 1px solid #666;
+  padding: 4px 8px;
+  margin: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #222;
+  cursor: pointer;
+}
+.resist-table {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+  font-family: monospace;
+}
 
+.resist-row {
+  display: table-row;
+}
+
+.resist-cell {
+  display: table-cell;
+  border: 1px solid #444;
+  padding: 4px 8px;
+  text-align: left;
+}
+
+.resist-header .resist-cell {
+  font-weight: bold;
+  background-color: #101010;
+}
+
+.equip-rect div {
+  margin-bottom: 4px;
+}
+.equip-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Optional: center text and labels */
+  border: 1px solid #444;
+  padding: 8px;
+  background-color: #111;
+}
 .unequip-btn:hover {
   background: linear-gradient(#733, #411);
 }
 .equip-btn {
-  margin-left: 10px;
-  padding: 1px 16px;
   background: linear-gradient(#bb4,#772);
   color: #fff;
   border: 1px solid #dda;

@@ -440,7 +440,16 @@
         "blood",
         "corruption",
         "nature"
-      ]
+      ],
+      "gearOres": [
+        "Runite",
+        "Iron",
+        "Vilecore",
+        "Sanguinite",
+        "Hemalite",
+        "Rotstone",
+        "Festerite"
+        ]
     },
     "Cinderrift": {
       "description": "A world without rotation, half in eternal darkness and the other eternal light.",
@@ -462,7 +471,8 @@
         "nature",
         "cold",
         "arcane"
-      ]
+      ],
+      "gearOres": ["Runite", "Iron", "Pyronite", "Prismite", "Cryostone", "Frostrine", "Embercore"]
     },
     "Ferrania": {
       "description": "A dense jungle planet where all life holds a grudge.",
@@ -475,7 +485,8 @@
         "arcane",
         "shock",
         "elemental"
-      ]
+      ],
+      "gearOres": ["Runite", "Iron", "Verdite", "Venomite", "Prismite", "Floracite", "Toxinite"]
     },
     "Fractalis": {
       "description": "A fractured, crystalline planet where time slips and magic pulses.",
@@ -494,7 +505,8 @@
         "gravity",
         "force",
         "blight"
-      ]
+      ],
+      "gearOres": ["Runite", "Iron", "Mindore", "Massium", "Impactor", "Gravitite", "Noctite"]
     },
     "Hollowreach": {
       "description": "A void-ridden world filled with echoing silence and elite horrors.",
@@ -514,7 +526,8 @@
         "psychic",
         "sonic",
         "ethereal"
-      ]
+      ],
+      "gearOres": ["Runite", "Iron", "Nullite", "Phasemite", "Echoite", "Abyssium", "Driftglass"]
     },
     "Halcyon Bastion": {
       "description": "A once-holy fortress in the sky now fractured by radiant madness.",
@@ -534,7 +547,8 @@
         "piercing",
         "radiant",
         "holy"
-      ]
+      ],
+      "gearOres": ["Runite", "Iron", "Razorite", "Cragsteel", "Needlite", "Lumenite", "Haloite"]
     },
     "Gravemount": {
       "description": "A battlefield planet covered in metal, traps, and relentless armies.",
@@ -554,7 +568,8 @@
         "fire",
         "blood",
         "corrupt"
-      ]
+      ],
+      "gearOres": ["Runite", "Iron", "Needlite", "Impactor", "Sanguinite", "Ferrite", "Malformite"]
     }
   },
   "zones": {

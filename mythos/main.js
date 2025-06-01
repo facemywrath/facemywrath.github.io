@@ -3,6 +3,9 @@ let damageTypeMultipliers = null;
 let skillsData = null;
 let unitsData = null;
 let talentsData = null;
+Array.prototype.random = function() {
+  return this[Math.floor(Math.random() * this.length)];
+};
 let loadFromGithub = true;
 let debugMode = true;
 let hintData;
@@ -25,6 +28,592 @@ let isDragging = false;
 let isCombatPaused = false;
 let startX, startY, scrollLeft, scrollTop;
 let statusPopupInterval = null;
+const gearTypes = {
+  "Helm": {
+    slot: "head",
+    oreRequired: 9,
+    statBoosts: [
+      { stat: "lifestealMulti", weight: 1, multi: 1.04 },
+      { stat: "critChance", weight: 2, multi: 1.02 },
+      { stat: "lifestealChance", weight: 5, multi: 1.04 },
+      { stat: "hpRegen", weight: 2, multi: 1.06},
+      { stat: "maxSp", weight: 2, multi: 1.09 },
+      { stat: "damageTaken", weight: 2, multi: 0.96 }
+    ]
+  },
+  "Circlet": {
+    slot: "head",
+    oreRequired: 4,
+    statBoosts: [
+      { stat: "critChance", weight: 1, multi: 1.04 },
+      { stat: "mpEfficiency", weight: 5, multi: 0.96 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.97 },
+      { stat: "maxSp", weight: 3, multi: 1.06 },
+      { stat: "critMulti", weight: 3, multi: 1.04 },
+      { stat: "lifestealMulti", weight: 1, multi: 1.07 }
+    ]
+  },
+  "Spaulders": {
+    slot: "torso",
+    oreRequired: 8,
+    statBoosts: [
+      { stat: "cooldownReduction", weight: 1, multi: 0.91 },
+      { stat: "critChance", weight: 2, multi: 1.04 },
+      { stat: "damageTaken", weight: 3, multi: 0.98 },
+      { stat: "maxHp", weight: 2, multi: 1.07 },
+      { stat: "hpRegen", weight: 2, multi: 1.02
+      },
+      { stat: "evasionChance", weight: 5, multi: 1.04 }
+    ]
+  },
+  "Cuirass": {
+    slot: "torso",
+    oreRequired: 15,
+    statBoosts: [
+      { stat: "maxMp", weight: 2, multi: 1.1 },
+      { stat: "maxSp", weight: 5, multi: 1.01 },
+      { stat: "damageTaken", weight: 2, multi: 0.93 },
+      { stat: "lifestealMulti", weight: 3, multi: 1.08 },
+      { stat: "cooldownReduction", weight: 1, multi: 0.98 },
+      { stat: "hpRegen", weight: 2, multi: 1.05}
+    ]
+  },
+  "Bracers": {
+    slot: "hands",
+    oreRequired: 5,
+    statBoosts: [
+      { stat: "critMulti", weight: 2, multi: 1.03 },
+      { stat: "mpEfficiency", weight: 2, multi: 0.94 },
+      { stat: "lifestealChance", weight: 1, multi: 1.06 },
+      { stat: "evasionChance", weight: 3, multi: 1.11 },
+      { stat: "maxMp", weight: 4, multi: 1.09 },
+      { stat: "xpGain", weight: 2, multi: 1.03 }
+    ]
+  },
+  "Gloves": {
+    slot: "hands",
+    oreRequired: 6,
+    statBoosts: [
+      { stat: "lifestealChance", weight: 2, multi: 1.1 },
+      { stat: "critMulti", weight: 2, multi: 1.09 },
+      { stat: "maxSp", weight: 3, multi: 1.05},
+      { stat: "cooldownReduction", weight: 3, multi: 0.91 },
+      { stat: "evasionChance", weight: 1, multi: 1.13 },
+      { stat: "damageTaken", weight: 2, multi: 0.98 }
+    ]
+  },
+  "Gauntlets": {
+    slot: "hands",
+    oreRequired: 5,
+    statBoosts: [
+      { stat: "maxSp", weight: 3, multi: 0.93 },
+      { stat: "spRegen", weight: 2, multi: 1.06},
+      { stat: "lifestealChance", weight: 2, multi: 0.92 },
+      { stat: "cooldownReduction", weight: 1, multi: 0.95 },
+      { stat: "hpRegen", weight: 4, multi: 1.02},
+      { stat: "xpGain", weight: 2, multi: 1.05 }
+    ]
+  },
+  "Belt": {
+    slot: "waist",
+    oreRequired: 7,
+    statBoosts: [
+      { stat: "damageTaken", weight: 3, multi: 0.96 },
+      { stat: "hpRegen", weight: 3, multi: 1.04},
+      { stat: "maxHp", weight: 2, multi: 1.08 },
+      { stat: "evasionChance", weight: 4, multi: 1.1 },
+      { stat: "mpRegen", weight: 2, multi: 1.06 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.94 }
+    ]
+  },
+  "Girdle": {
+    slot: "waist",
+    oreRequired: 9,
+    statBoosts: [
+      { stat: "lifestealMulti", weight: 2, multi: 1.08 },
+      { stat: "hpRegen", weight: 3, multi: 1.04},
+      { stat: "critMulti", weight: 2, multi: 0.9 },
+      { stat: "evasionChance", weight: 2, multi: 1.12 },
+      { stat: "maxSp", weight: 2, multi: 1.03 },
+      { stat: "mpEfficiency", weight: 3, multi: 0.97 }
+    ]
+  },
+  "Greaves": {
+    slot: "legs",
+    oreRequired: 13,
+    statBoosts: [
+      { stat: "maxSp", weight: 2, multi: 1.02 },
+      { stat: "evasionChance", weight: 2, multi: 1.1 },
+      { stat: "damageTaken", weight: 2, multi: 0.95 },
+      { stat: "spRegen", weight: 3, multi: 1.0 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.92 },
+      { stat: "lifestealMulti", weight: 1, multi: 1.06 }
+    ]
+  },
+  "Pants": {
+    slot: "legs",
+    oreRequired: 11,
+    statBoosts: [
+      { stat: "maxHp", weight: 2, multi: 1.09 },
+      { stat: "evasionChance", weight: 3, multi: 1.03 },
+      { stat: "damageTaken", weight: 2, multi: 0.93 },
+      { stat: "hpRegen", weight: 3, multi: 1.1 },
+      { stat: "critChance", weight: 2, multi: 1.04 },
+      { stat: "lifestealMulti", weight: 2, multi: 1.03 }
+    ]
+  },
+  "Boots": {
+    slot: "feet",
+    oreRequired: 6,
+    statBoosts: [
+      { stat: "critChance", weight: 1, multi: 1.06 },
+      { stat: "evasionChance", weight: 2, multi: 1.11 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.93 },
+      { stat: "spRegen", weight: 2, multi: 1.1},
+      { stat: "lifestealChance", weight: 3, multi: 1.07 },
+      { stat: "damageTaken", weight: 3, multi: 0.97 }
+    ]
+  },
+  "Ring": {
+    slot: "hands",
+    oreRequired: 1,
+    statBoosts: [
+      { stat: "xpGain", weight: 2, multi: 1.3},
+      { stat: "mpRegen", weight: 2, multi: 1.15 },
+      { stat: "lifestealChance", weight: 2, multi: 1.15 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.91 },
+      { stat: "lifestealMulti", weight: 2, multi: 1.2 },
+      { stat: "evasionChance", weight: 2, multi: 1.1 }
+    ]
+  },
+  "Towershield": {
+    slot: "weapon",
+    oreRequired: 15,
+    statBoosts: [
+      { stat: "damageTaken", weight: 2, multi: 0.9},
+      { stat: "damageAmp", weight: 3, multi: 1.1 },
+      { stat: "maxHp", weight: 2, multi: 1.12 },
+      { stat: "hpRegen", weight: 3, multi: 1.08 },
+      { stat: "critMulti", weight: 1, multi: 1.05 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.98 }
+    ]
+  },
+  "Shield": {
+    slot: "weapon",
+    oreRequired: 10,
+    statBoosts: [
+      { stat: "damageTaken", weight: 2, multi: 0.96 },
+      { stat: "damageAmp", weight: 3, multi: 1.05 },
+      { stat: "maxHp", weight: 2, multi: 1.05 },
+      { stat: "hpRegen", weight: 3, multi: 1.08 },
+      { stat: "critMulti", weight: 1, multi: 1.05 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.96 }
+    ]
+  },
+  "Claws": {
+    slot: "weapon",
+    oreRequired: 11,
+    statBoosts: [
+      { stat: "maxMp", weight: 2, multi: 1.07 },
+      { stat: "mpEfficiency", weight: 3, multi: 0.95 },
+      { stat: "mpRegen", weight: 2, multi: 1.03},
+      { stat: "lifestealMulti", weight: 1, multi: 1.07 },
+      { stat: "lifestealChance", weight: 2, multi: 1.1 },
+      { stat: "critChance", weight: 1, multi: 1.06 }
+    ]
+  },
+  "Dagger": {
+    slot: "weapon",
+    oreRequired: 5,
+    damageAmp: 1.07,
+    statBoosts: [
+      { stat: "critChance", weight: 2, multi: 1.08 },
+      { stat: "cooldownReduction", weight: 1, multi: 0.97 },
+      { stat: "critMulti", weight: 2, multi: 1.05 },
+      { stat: "lifestealChance", weight: 3, multi: 1.05 },
+      { stat: "evasionChance", weight: 2, multi: 1.1 },
+      { stat: "xpGain", weight: 1, multi: 1.02 }
+    ]
+  },
+  "Sword": {
+    slot: "weapon",
+    oreRequired: 11,
+    statBoosts: [
+      { stat: "spRegen", weight: 2, multi: 1.07},
+      { stat: "critChance", weight: 3, multi: 1.03 },
+      { stat: "lifestealMulti", weight: 2, multi: 1.02 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.92 },
+      { stat: "evasionChance", weight: 2, multi: 1.07 },
+      { stat: "damageTaken", weight: 2, multi: 0.88 }
+    ]
+  },
+  "Axe": {
+    slot: "weapon",
+    oreRequired: 13,
+    statBoosts: [
+      { stat: "lifestealMulti", weight: 3, multi: 1.09},
+      { stat: "critMulti", weight: 2, multi: 1.09 },
+      { stat: "hpRegen", weight: 2, multi: 1.04},
+      { stat: "damageTaken", weight: 1, multi: 0.98 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.94 },
+      { stat: "xpGain", weight: 3, multi: 1.01 }
+    ]
+  },
+  "Hammer": {
+    slot: "weapon",
+    oreRequired: 12,
+    statBoosts: [
+      { stat: "maxSp", weight: 3, multi: 1.03 },
+      { stat: "damageTaken", weight: 3, multi: 0.97 },
+      { stat: "critMulti", weight: 2, multi: 1.07 },
+      { stat: "evasionChance", weight: 2, multi: 1.13 },
+      { stat: "hpRegen", weight: 2, multi: 1.1 },
+      { stat: "lifestealMulti", weight: 1, multi: 1.08 }
+    ]
+  },
+  "Bow": {
+    slot: "weapon",
+    oreRequired: 14,
+    statBoosts: [
+      { stat: "critMulti", weight: 2, multi: 1.13 },
+      { stat: "spEfficiency", weight: 2, multi: 0.93 },
+      { stat: "critChance", weight: 3, multi: 1.06 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.95 },
+      { stat: "xpGain", weight: 1, multi: 1.03 },
+      { stat: "evasionChance", weight: 2, multi: 1.11 }
+    ]
+  }
+};
+const gearWeights = Object.fromEntries(Object.entries(gearTypes).map(([k, v]) => [k, v.oreRequired]));
+const oresData = {
+  Runite: {
+    tier: 0,
+    bonus: { stat: "xpGain", multi: 1.004 },
+    resistances: { magic: 0.99995 }
+  },
+  Iron: {
+    tier: 0,
+    bonus: { stat: "xpGain", multi: 1.004 },
+    resistances: { physical: 0.99995 }
+  },
+  Ferrite: {
+    tier: 1,
+    bonus: { stat: "damageTaken", multi: 0.993 },
+    resistances: { physical: 0.9995, blunt: 0.9998, force: 0.993, shock: 0.998 }
+  },
+  Brawnite: {
+    tier: 2,
+    bonus: { stat: "critChance", multi: 1.007 },
+    resistances: { physical: 0.998, blunt: 0.99, force: 0.98, poison: 0.979, shock: 0.985 }
+  },
+  Mystarium: {
+    tier: 1,
+    bonus: { stat: "mpRegen", multi: 1.006 },
+    resistances: { magic: 0.9997, arcane: 0.999, psychic: 0.993 }
+  },
+  Spellite: {
+    tier: 2,
+    bonus: { stat: "cooldownReduction", multi: 0.996 },
+    resistances: { magic: 0.996, arcane: 0.99, spirit: 0.998, ethereal: 0.991 }
+  },
+  Razorite: {
+    tier: 1,
+    bonus: { stat: "spEfficiency", multi: 0.994 },
+    resistances: { slashing: 0.995, physical: 0.989, heat: 0.999, sonic: 0.996 }
+  },
+  Cleavium: {
+    tier: 2,
+    bonus: { stat: "critMulti", multi: 1.01 },
+    resistances: { slashing: 0.9, physical: 0.911, heat: 0.924, poison: 0.928 }
+  },
+  Needlite: {
+    tier: 1,
+    bonus: { stat: "evasionChance", multi: 1.007 },
+    resistances: { piercing: 0.995, shock: 0.999, force: 0.998 }
+  },
+  Puncturine: {
+    tier: 2,
+    bonus: { stat: "lifestealChance", multi: 1.006 },
+    resistances: { piercing: 0.9, shock: 0.92, force: 0.916, gravity: 0.93 }
+  },
+  Cragsteel: {
+    tier: 1,
+    bonus: { stat: "maxHp", multi: 1.009 },
+    resistances: { blunt: 0.999, gravity: 0.99, physical: 0.996 }
+  },
+  Smashite: {
+    tier: 2,
+    bonus: { stat: "lifestealMulti", multi: 1.008 },
+    resistances: { blunt: 0.9, gravity: 0.912, void: 0.924, poison: 0.919 }
+  },
+  Impactor: {
+    tier: 1,
+    bonus: { stat: "hpRegen", multi: 1.006 },
+    resistances: { force: 0.999, blunt: 0.993, physical: 0.988, shock: 0.996 }
+  },
+  Pressanite: {
+    tier: 2,
+    bonus: { stat: "maxMp", multi: 1.01 },
+    resistances: { force: 0.912, blunt: 0.907, physical: 0.9, sonic: 0.931 }
+  },
+  Vilecore: {
+    tier: 1,
+    bonus: { stat: "mpEfficiency", multi: 0.993 },
+    resistances: { corrupt: 0.991, poison: 0.999, void: 0.994 }
+  },
+  Malformite: {
+    tier: 2,
+    bonus: { stat: "cooldownReduction", multi: 0.998 },
+    resistances: { corrupt: 0.9, poison: 0.912, void: 0.917, blood: 0.924, psychic: 0.931 }
+  },
+  Lumenite: {
+    tier: 1,
+    bonus: { stat: "maxSp", multi: 1.007 },
+    resistances: { holy: 0.999, radiant: 0.997, spirit: 0.994, arcane: 0.989 }
+  },
+  Haloite: {
+    tier: 2,
+    bonus: { stat: "spRegen", multi: 1.008 },
+    resistances: { holy: 0.919, radiant: 0.915, spirit: 0.928, blight: 0.9 }
+  },
+  Arkanite: {
+    tier: 1,
+    bonus: { stat: "xpGain", multi: 1.009 },
+    resistances: { arcane: 0.999, magic: 0.995, psychic: 0.996 }
+  },
+  Sigilstone: {
+    tier: 2,
+    bonus: { stat: "critChance", multi: 1.006 },
+    resistances: { arcane: 0.916, magic: 0.92, psychic: 0.93, ethereal: 0.9 }
+  },
+  Prismite: {
+    tier: 1,
+    bonus: { stat: "mpRegen", multi: 1.009 },
+    resistances: { elemental: 0.9998, heat: 0.9972, cold: 0.996, shock: 0.9951 }
+  },
+  Essentium: {
+    tier: 2,
+    bonus: { stat: "lifestealMulti", multi: 1.007 },
+    resistances: { elemental: 0.9, heat: 0.916, cold: 0.92, shock: 0.91, water: 0.936 }
+  },
+  Sanguinite: {
+    tier: 1,
+    bonus: { stat: "lifestealChance", multi: 1.009 },
+    resistances: { blood: 0.996, corrupt: 0.999, water: 0.994 }
+  },
+  Hemalite: {
+    tier: 2,
+    bonus: { stat: "critMulti", multi: 1.009 },
+    resistances: { blood: 0.92, corrupt: 0.91, poison: 0.93, void: 0.9 }
+  },
+  Nullite: {
+    tier: 1,
+    bonus: { stat: "maxHp", multi: 1.01 },
+    resistances: { void: 0.995, ethereal: 0.993, corrupt: 0.999 }
+  },
+  Abyssium: {
+    tier: 2,
+    bonus: { stat: "damageTaken", multi: 0.991 },
+    resistances: { void: 0.911, ethereal: 0.9, corrupt: 0.921, gravity: 0.932 }
+  },
+  Rotstone: {
+    tier: 1,
+    bonus: { stat: "maxSp", multi: 1.008 },
+    resistances: { blight: 0.996, poison: 0.994, blood: 0.999 }
+  },
+  Festerite: {
+    tier: 2,
+    bonus: { stat: "spEfficiency", multi: 0.992 },
+    resistances: { blight: 0.91, poison: 0.92, blood: 0.93, nature: 0.9 }
+  },
+  Ectrium: {
+    tier: 1,
+    bonus: { stat: "spRegen", multi: 1.006 },
+    resistances: { spirit: 0.999, ethereal: 0.996, holy: 0.993 }
+  },
+  Soulvein: {
+    tier: 2,
+    bonus: { stat: "mpEfficiency", multi: 0.994 },
+    resistances: { spirit: 0.9, ethereal: 0.907, holy: 0.912, radiant: 0.924 }
+  },
+  Solarium: {
+    tier: 1,
+    bonus: { stat: "maxMp", multi: 1.009 },
+    resistances: { radiant: 0.999, light: 0.995, spirit: 0.996, arcane: 0.991 }
+  },
+  Gleamite: {
+    tier: 2,
+    bonus: { stat: "xpGain", multi: 1.01 },
+    resistances: { radiant: 0.92, holy: 0.93, arcane: 0.9, shock: 0.936 }
+  },
+  Phasemite: {
+    tier: 1,
+    bonus: { stat: "evasionChance", multi: 1.008 },
+    resistances: { ethereal: 0.994, psychic: 0.996, magic: 0.999 }
+  },
+  Driftglass: {
+    tier: 2,
+    bonus: { stat: "lifestealMulti", multi: 1.009 },
+    resistances: { ethereal: 0.9, psychic: 0.916, magic: 0.91, sonic: 0.93 }
+  },
+  Echoite: {
+    tier: 1,
+    bonus: { stat: "hpRegen", multi: 1.007 },
+    resistances: { sonic: 0.999, shock: 0.991, force: 0.994 }
+  },
+  Resonium: {
+    tier: 2,
+    bonus: { stat: "cooldownReduction", multi: 0.997 },
+    resistances: { sonic: 0.912, shock: 0.9, force: 0.907, gravity: 0.931 }
+  },
+  Massium: {
+    tier: 1,
+    bonus: { stat: "maxHp", multi: 1.007 },
+    resistances: { gravity: 0.999, blunt: 0.996, force: 0.998 }
+  },
+  Gravitite: {
+    tier: 2,
+    bonus: { stat: "critMulti", multi: 1.008 },
+    resistances: { gravity: 0.912, blunt: 0.9, force: 0.923, cold: 0.935 }
+  },
+  Mindore: {
+    tier: 1,
+    bonus: { stat: "mpRegen", multi: 1.01 },
+    resistances: { psychic: 0.999, arcane: 0.996, spirit: 0.993 }
+  },
+  Noctite: {
+    tier: 2,
+    bonus: { stat: "damageTaken", multi: 0.99 },
+    resistances: { psychic: 0.917, arcane: 0.9, spirit: 0.911, void: 0.932 }
+  },
+  Verdite: {
+    tier: 1,
+    bonus: { stat: "hpRegen", multi: 1.008 },
+    resistances: { nature: 0.999, poison: 0.996, water: 0.991 }
+  },
+  Floracite: {
+    tier: 2,
+    bonus: { stat: "lifestealChance", multi: 1.007 },
+    resistances: { nature: 0.92, poison: 0.91, water: 0.93, blight: 0.9 }
+  },
+  Aqualith: {
+    tier: 1,
+    bonus: { stat: "maxSp", multi: 1.009 },
+    resistances: { water: 0.996, cold: 0.992, nature: 0.999 }
+  },
+  Drownite: {
+    tier: 2,
+    bonus: { stat: "spEfficiency", multi: 0.991 },
+    resistances: { water: 0.92, cold: 0.916, nature: 0.93, poison: 0.9 }
+  },
+  Pyronite: {
+    tier: 1,
+    bonus: { stat: "maxMp", multi: 1.007 },
+    resistances: { heat: 0.996, elemental: 0.999, shock: 0.994 }
+  },
+  Embercore: {
+    tier: 2,
+    bonus: { stat: "mpEfficiency", multi: 0.992 },
+    resistances: { heat: 0.989, elemental: 0.997, shock: 0.993, cold: 0.99 }
+  },
+  Voltite: {
+    tier: 1,
+    bonus: { stat: "critChance", multi: 1.008 },
+    resistances: { shock: 0.999, sonic: 0.993, force: 0.991 }
+  },
+  Sparksteel: {
+    tier: 2,
+    bonus: { stat: "evasionChance", multi: 1.01 },
+    resistances: { shock: 0.912, sonic: 0.9, force: 0.907, water: 0.931 }
+  },
+  Cryostone: {
+    tier: 1,
+    bonus: { stat: "cooldownReduction", multi: 0.995 },
+    resistances: { cold: 0.9986, water: 0.9982, heat: 0.997 }
+  },
+  Frostrine: {
+    tier: 2,
+    bonus: { stat: "xpGain", multi: 1.007 },
+    resistances: { cold: 0.99, water: 0.991, heat: 0.995, poison: 0.996 }
+  },
+  Venomite: {
+    tier: 1,
+    bonus: { stat: "lifestealMulti", multi: 1.01 },
+    resistances: { poison: 0.999, corrupt: 0.995, blight: 0.996 }
+  },
+  Toxinite: {
+    tier: 2,
+    bonus: { stat: "damageTaken", multi: 0.992 },
+    resistances: { poison: 0.9, corrupt: 0.917, blight: 0.921, blood: 0.932 }
+  }
+}
+const itemQualities = {
+  rusty: "#AAAAAA",
+  common: "#FFFFFF",       // Gray
+  uncommon: "#1EFF00",     // Green
+  rare: "#0070FF",         // Blue
+  epic: "#A335EE",         // Purple
+  legendary: "#FF8000",    // Orange
+  mythic: "#E6CC80",       // Gold
+  artifact: "#B30000",     // Dark Red
+  divine: "#00FFFF",       // Cyan
+  cursed: "#5500AA"        // Dark Purple
+};
+const statGroups = [{
+        title: "Health (HP)",
+        class: "hp",
+        stats: [
+            { label: "Current", key: "hp" },
+            { label: "Max", key: "maxHp" },
+            { label: "Regen", key: "hpRegen" }
+        ]
+    }, {
+        title: "Stamina (SP)",
+        class: "sp",
+        stats: [
+            { label: "Current", key: "sp" },
+            { label: "Max", key: "maxSp" },
+            { label: "Regen", key: "spRegen" },
+            { label: "Efficiency", key: "spEfficiency" }
+        ]
+    }, {
+        title: "Mana (MP)",
+        class: "mp",
+        stats: [
+            { label: "Current", key: "mp" },
+            { label: "Max", key: "maxMp" },
+            { label: "Regen", key: "mpRegen" },
+            { label: "Efficiency", key: "mpEfficiency" }
+        ]
+    }, {
+        title: "Combat",
+        class: "combat",
+        stats: [
+            { label: "Cooldown Reduction", key: "cooldownReduction" },
+            { label: "Damage Taken", key: "damageTaken" }
+
+        ]
+    }, {
+        title: "Critical",
+        class: "crit",
+        stats: [
+            { label: "Crit Chance", key: "critChance" },
+            { label: "Crit Multiplier", key: "critMulti" }
+        ]
+    }, {
+        title: "Lifesteal",
+        class: "lifesteal",
+        stats: [
+            { label: "Lifesteal %", key: "lifestealMulti" },
+            { label: "Lifesteal Chance", key: "lifestealChance" }
+        ]
+    }, {
+        title: "Misc",
+        class: "misc",
+        stats: [
+            { label: "XP Gain Multi", key: "xpGain" }
+        ]
+    }];
 let combatLogFilters = {
   ally: true,
   enemy: true,
@@ -116,6 +705,7 @@ const damageTypeBreakdown = {
 };
 let settings = {
   confirmLeaveCombat: true,
+  confirmTrashItem: true,
   friendlyFire: false,
   autoTimer: 5,
   autoTarget: true,
@@ -219,7 +809,7 @@ const conditionsData = {
 
           if (burning.stacks > 0) {
             const damage = damageUnit(undefined, target, "heat", burning.stacks);
-            const reduction = Math.max(1, Math.floor(burning.stacks / 5));
+            const reduction = Math.max(1, Math.floor(burning.stacks / 3));
             burning.stacks = Math.max(0, burning.stacks - reduction);
 
             updateCombatLog(`${target.name} takes ${damage} ${getDamageTypeIcon("heat")} damage from burning alive!`, caster, ["condition", target.isAlly ? "ally" : "enemy"]);
@@ -277,10 +867,11 @@ player = {
   maxXp: 30,
   attributePoints: 0,
   skillSlots: 2,
+  inventorySlots: 8,
   beatenZones: 0,
   beatenTiers: 0,
   totalResistances: {},
-bonusResistances: [],
+  bonusResistances: [],
   discoveredEnemies: [],
   inCombat: false,
   isAlly: true,
@@ -448,31 +1039,13 @@ bonusResistances: [],
     equipped: {
       head: null,
       torso: null,
+      waist: null,
       legs: null,
       hands: null,
       feet: null,
       weapon: null
     },
-    storage: {
-      swordOfApophis: {
-        display: "Sword of Apophis",
-        equippable: true,
-        type: "Weapon",
-        count: 1,
-        color: "#d84",
-        description: "An ancient relic that once belonged to the God of Chaos",
-        bonuses: [`- Basic attacks deal an additional 1-30 ${getDamageTypeIcon("blight")} damage.`, "- Become the God of Chaos."]
-      },
-      valkyriesHelmet: {
-        display: "Helm of the Valkyrie",
-        equippable: true,
-        type: "Head",
-        count: 1,
-        color: "#dd7",
-        description: "A helmet forged by the divine. Grants the user power over life and death.",
-        bonuses: [`- 25% Resistance to ${getDamageTypeIcon("blight")} damage.`, `- 25% Bonus ${getDamageTypeIcon('radiant')} Damage Dealt.`]
-      }
-    }
+    storage: []
   },
   skills: {
     equipped: [],
@@ -655,7 +1228,11 @@ const talentEffects = [].concat(...unit.skills.learned
    })
   
   }
-
+  let gearMulti = Object.values(player.inventory.equipped)
+    .filter(item => item && Array.isArray(item.totalBonuses))
+    .flatMap(item => item.totalBonuses)
+    .filter(bonus => bonus.stat === statName)
+    .reduce((total, bonus) => total * bonus.multi, 1);
   let buffMulti = 1;
   let debuffMulti = 1;
   
@@ -694,13 +1271,14 @@ const talentEffects = [].concat(...unit.skills.learned
   
 
   let oldValue = stat.value;
-  stat.value = debuffMulti * buffMulti * base;
+  stat.value = gearMulti * debuffMulti * buffMulti * base;
 
   const hpStats = ["hp", "maxHp"];
   const spStats = ["sp", "maxSp"];
   const mpStats = ["mp", "maxMp"];
 
   recalculateStatEvent.emit({unit: unit, statName: statName, oldValue: oldValue, newValue: stat.value});
+  updateStatDisplay(unit, statName)
   if(!player.inCombat){
     return;
   }
@@ -778,7 +1356,7 @@ function handleCharacterCreation() {
     name,
     race,
     class: chosenClass,
-    damageType: getRaceDamageType(race)
+    damageType: loreDataCache.races[race].damageType
   });
   
   
@@ -858,8 +1436,8 @@ function getRaceDamageType(race) {
   const mapping = {
     Human: "Physical",
     Undead: "Blight",
-    Fae: "Nature",
-    Construct: "Force",
+    Other: "Nature",
+    Automaton: "Force",
     Seraphim: "Radiant",
     Voidborn: "Void",
     Spiritkin: "Spirit",
@@ -950,34 +1528,59 @@ function updateBar(fillId, textId, label, current, max) {
 }
 function recalculateTotalResistances(unit) {
     const now = Date.now();
-    let breakdownMap = damageTypeBreakdown
-    // Clean expired
+    let breakdownMap = damageTypeBreakdown;
+
+    // Clean expired bonus resistances
     unit.bonusResistances = (unit.bonusResistances || []).filter(b => now <= b.timeExpired);
-    let baseResistances = getEffectiveResistances(unit.damageType)
-    // Flattenbonuses into base components
+
+    // Get base resistances
+    let baseResistances = getEffectiveResistances(unit.damageType);
+
+    // Flatten bonus resistances
     const flatBonuses = {};
-    for (const bonus of unit.bonusResistances) {
-        const type = bonus.damageType.toLowerCase();
-        const breakdown = getDamageComponents(type, breakdownMap);
-        for (const [compType, weight] of Object.entries(breakdown)) {
-            const key = compType.toLowerCase();
-            flatBonuses[key] = (flatBonuses[key] || 1) * Math.pow(bonus.value, weight);
+    if (unit.bonusResistances && unit.bonusResistances.length > 0) {
+        for (const bonus of unit.bonusResistances) {
+            const type = bonus.damageType.toLowerCase();
+            const breakdown = getDamageComponents(type, breakdownMap);
+            for (const [compType, weight] of Object.entries(breakdown)) {
+                const key = compType.toLowerCase();
+                flatBonuses[key] = (flatBonuses[key] || 1) * Math.pow(bonus.value, weight);
+            }
         }
     }
+    // Flatten gear-based resistances
+    const gearBonuses = {};
+    if (player.inventory && player.inventory.equipped) {
+        Object.values(player.inventory.equipped).filter(i => i).forEach(item => {
+          
+            if (item?.totalResistances) {
+                for (const [type, value] of Object.entries(item.totalResistances)) {
+                    const key = type.toLowerCase();
+                    gearBonuses[key] = (gearBonuses[key] || 1) * value;
+                }
+            }
+        })
+    }
 
-    // Merge base and bonus resistances
+    // Merge all resistances
     const resistances = {};
     const allTypes = new Set([
         ...Object.keys(baseResistances).map(t => t.toLowerCase()),
         ...Object.keys(flatBonuses),
+        ...Object.keys(gearBonuses),
         ...Object.keys(breakdownMap)
     ]);
 
-    for (const type of allTypes) {
-        const base = baseResistances[type.toLowerCase()] ?? 1;
-        const bonus = flatBonuses[type.toLowerCase()] ?? 1;
-        resistances[type] = base * bonus;
-    }
+   for (const type of allTypes) {
+    const base = 1 - (baseResistances[type] ?? 1); // how much is blocked
+    const bonus = 1 - (flatBonuses[type] ?? 1);
+    const gear = 1 - (gearBonuses[type] ?? 1);
+
+    // total blocked = 1 - (damage taken)
+    const totalBlocked = 1 - ((1 - base) * (1 - bonus) * (1 - gear));
+
+    resistances[type] = 1 - totalBlocked; // store back as a multiplier (1 means no resistance)
+}
 
     // Final calculation
     unit.totalResistances = {};
@@ -1130,49 +1733,7 @@ function showCharacterCreation(charId) {
   }
 }
 
-function tryEquipItem(index) {
-  const keys = Object.keys(player.inventory.storage);
-  if (index >= keys.length) {
-    return;
-  }
 
-  let item = player.inventory.storage[keys[index]];
-  if (item.equippable == false) {
-    return;
-  }
-
-  let type = item.type;
-  let equippableTypes = ["head",
-    "torso",
-    "legs",
-    "hands",
-    "feet",
-    "weapon"];
-  if (!equippableTypes.includes(type.toLowerCase())) {
-    console.log(`Item of type ${item.type} not equippable`);
-    return;
-  }
-
-  let equippedItem = player.inventory.equipped[type];
-
-  if (equippedItem == null) {
-    console.log(`Equipped ${item.display} in the ${type} slot.`);
-  } else {
-    // Return the currently equipped item back to storage
-    player.inventory.storage[keys[index]] = equippedItem;
-    console.log(`Swapped ${equippedItem.display} with ${item.display} in the ${type} slot.`);
-  }
-
-  // Equip the new item
-  player.inventory.equipped[type.toLowerCase()] = item;
-
-  // Remove item from storage (since it's now equipped)
-  delete player.inventory.storage[keys[index]];
-
-  // Optionally refresh the UI here
-  updateInventoryDisplay();
-
-}
 
 function arraysEqual(a, b) {
     if (a.length !== b.length) return false;
@@ -1220,10 +1781,8 @@ case "planets":
     let allPlanetsCompleted = arraysEqual(planetsUnlocked, planetsCompleted)
     let planetsToDisplay = Object.keys(loreDataCache.planets).filter(p => loreDataCache.planets[p].startingPlanet || player.planetsProgress[p])
     
-    console.log(planetsToDisplay)
     for (let planetIndex in planetsToDisplay) {
       let planetKey = planetsToDisplay[planetIndex]
-      console.log(planetKey)
         let planet = loreDataCache.planets[planetKey];
         let progress = player.planetsProgress[planetKey] || { zonesCompleted: 0, completed: false, timesCompleted: 0 };
 
@@ -1417,6 +1976,23 @@ case "planets":
 
       <div class="menu-header" onclick="toggleSection('inventory-section')">Inventory</div>
       <div id="inventory-section" class="menu-content">
+      <div style="margin-bottom: 10px;">
+  <label for="sort-column">Sort by:</label>
+  <select id="sort-column">
+    <option value="name">Name</option>
+    <option value="type">Type</option>
+    <option value="quality">Quality</option>
+    <option value="count">Count</option>
+    <option value="slot">Slot</option>
+    <option value="tier">Tier</option>
+  </select>
+
+  <label for="sort-direction">Order:</label>
+  <select id="sort-direction">
+    <option value="asc">Ascending</option>
+    <option value="desc">Descending</option>
+  </select>
+</div>
       <h2>Equipped</h2>
       <div id="equipment-slots" class="equipment-row">
       <div class="equip-slot">
@@ -1425,7 +2001,7 @@ case "planets":
       </div>
       <div class="equip-slot">
       <div class="slot-label">Torso</div>
-      <div class="slot-item" id="equip-torso">Plated Vest</div>
+      <div class="slot-item" id="equip-torso">None</div>
       </div>
       <div class="equip-slot">
       <div class="slot-label">Legs</div>
@@ -1433,18 +2009,22 @@ case "planets":
       </div>
       <div class="equip-slot">
       <div class="slot-label">Feet</div>
-      <div class="slot-item" id="equip-feet">Rugged Boots</div>
+      <div class="slot-item" id="equip-feet">None</div>
       </div>
       <div class="equip-slot">
       <div class="slot-label">Hands</div>
-      <div class="slot-item" id="equiphands">None</div>
+      <div class="slot-item" id="equip-hands">None</div>
+      </div>
+      <div class="equip-slot">
+      <div class="slot-label">Waist</div>
+      <div class="slot-item" id="equip-waist">None</div>
       </div>
       <div class="equip-slot">
       <div class="slot-label">Weapon</div>
-      <div class="slot-item" id="equip-weapon">Rusty Scythe</div>
+      <div class="slot-item" id="equip-weapon">None</div>
       </div>
       </div>
-      <h2>Storage</h2>
+      <h2>Storage (<span id='item-count'>${player.inventory.storage.filter(i => i).length}</span>/${player.inventorySlots})</h2>
       <div id="inventory-items">
 
       <!-- Inventory list -->
@@ -1474,6 +2054,7 @@ case "planets":
       document.getElementById("attributes-section").appendChild(attributesDiv)
       calculateAttributes(player)
       updateAttributesSection();
+      updateResistancesSection(player)
       
       let statsDiv = document.createElement("div");
       statsDiv.id = "stats-div"
@@ -1754,9 +2335,15 @@ zoneMenu.addEventListener("click", (e) => {
 
       <div style="text-align: center;">
       <button id="hard-reset-btn" onclick="hardReset(${player.characterId})">Hard Reset</button>
-      <div style="margin-bottom: 0.5em;">Confirm before leaving combat</div>
+      <div style="margin-top: 0.5em;">Confirm before leaving combat</div>
       <label class="toggle-switch">
-      <input type="checkbox" id="forceConfirmToggleBtn">
+        <input type="checkbox" id="forceConfirmToggleBtn">
+      <span class="slider"></span>
+      </label>
+      </div>
+      <div>Confirm before trashing items</div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="forceConfirmTrashBtn">
       <span class="slider"></span>
       </label>
       </div>
@@ -1786,6 +2373,11 @@ zoneMenu.addEventListener("click", (e) => {
       </div>
       `;
 
+      trashToggle = document.getElementById("forceConfirmTrashBtn");
+      trashToggle.checked = settings.confirmTrashItem;
+      trashToggle.addEventListener("change", function () {
+        settings.confirmTrashItem = trashToggle.checked;
+      });
       confirmToggle = document.getElementById("forceConfirmToggleBtn");
       confirmToggle.checked = settings.confirmLeaveCombat;
       confirmToggle.addEventListener("change", function () {
@@ -1812,6 +2404,36 @@ zoneMenu.addEventListener("click", (e) => {
       });
       break;
   }
+}
+
+function updateStatDisplay(unit, statKey) {
+  const statData = unit.stats[statKey];
+  const statElement = document.getElementById(`stat-${statKey}`);
+  if (!statData || !statElement) return;
+
+  const spans = statElement.getElementsByTagName("span");
+  if (spans.length !== 2) return;
+
+  // Build the label text
+  let label = "";
+  for (const group of statGroups) {
+    const match = group.stats.find(stat => stat.key === statKey);
+    if (match) {
+      label = match.label;
+      break;
+    }
+  }
+
+  if (statData.scaling) {
+    const scalingLabel = statData.scaling
+      .map(sc => sc.stat === "tier" ? "LVL" : sc.stat.toUpperCase().slice(0, 3))
+      .join("/");
+    label += `(${scalingLabel})`;
+  }
+
+  // Update the DOM
+  spans[0].textContent = label + ":";
+  spans[1].textContent = statData.value.toFixed(2);
 }
 function getZoneDamageTypes(zoneName) {
   const zone = loreDataCache.zones[zoneName];
@@ -2389,9 +3011,13 @@ function renderSkillTree() {
     node.style.top = `${y}px`;
 
     const content = document.createElement("div");
+    content.id = `${skill.id}-skill-node`
     content.className = "skill-node-content";
     if(isTalent){
       content.classList.add("talent")
+      if(isActive){
+        content.classList.add("activeTalent")
+      }
     }else{
       content.classList.add("skill")
     }
@@ -2599,7 +3225,10 @@ function showSkillDetails(skill, isAvailable = false) {
     ? (isMaxed ? "Maxed Out" : "Level Up")
     : (isTalent ? "Unlock Talent" : "Unlock Skill");
   const checkbox = `
-  <input type="checkbox" id="talent-checkbox" ${isActive ? "checked" : ""}><span id="checkbox-label">${isActive?" On":" Off"}</span>
+  <label style="padding-left: 2em;">
+    <input type="checkbox" id="talent-checkbox" ${isActive ? "checked" : ""}>
+    <span id="checkbox-label">${isActive ? " On" : " Off"}</span>
+  </label>
 `;
   const skillTree = loreDataCache.classes[player.class].skillTree;
   const skillTreeData = skillTree.find(s => s.id == skill.id);
@@ -2654,6 +3283,12 @@ function showSkillDetails(skill, isAvailable = false) {
   if(toggleCheckbox){
 toggleCheckbox.addEventListener("change", (e) => {
   learned.active = !learned.active;
+  let nodeEle = document.getElementById(`${skill.id}-skill-node`);
+  if(learned.active){
+    nodeEle.classList.add("activeTalent")
+  }else{
+    nodeEle.classList.remove("activeTalent")
+  }
   document.getElementById("checkbox-label").textContent = learned.active?" On":" Off"
 });
 }
@@ -2675,18 +3310,21 @@ function levelUpSkill(skillId, cost) {
     }
 
   }
-  showSkillDetails(skill, player.classData[player.class].skillPoints >= cost && learned.level < skill.maxLevel)
-  updateAllSkillDisplays(); // re-render to update display
+  
+  
   recalculateDerivedStats(player)
   if(skill.type == "talent"){
     if(learned.level == 1){
       learned.active = true;
+      
     }
     let talentData = talentsData[skill.id];
     if(talentData && talentData.effects){
       calculateAttributes(player)
     }
   }
+  showSkillDetails(skill, player.classData[player.class].skillPoints >= cost && learned.level < skill.maxLevel)
+  updateAllSkillDisplays(); // re-render to update display
 }
 function updateAllSkillDisplays() {
   const skillTree = loreDataCache.classes[player.class].skillTree;
@@ -2741,62 +3379,239 @@ function updateInventoryDisplay() {
   const inventoryContainer = document.getElementById("inventory-items");
   if (!inventoryContainer) return;
 
-  let itemIndex = 0;
-  let invHtml = ``;
+  const sortColumn = document.getElementById("sort-column")?.value || "name";
+  const sortDirection = document.getElementById("sort-direction")?.value || "asc";
 
-  Object.keys(player.inventory.storage).forEach(key => {
-    const item = player.inventory.storage[key];
-    const equippableBtn = item.equippable
-    ? `<button class="equip-btn" onclick="tryEquipItem(${itemIndex})">Equip</button>`: "";
+  // Filter and copy items
+  let items = player.inventory.storage
+    .map((item, originalIndex) => item ? { ...item, originalIndex } : null)
+    .filter(item => item); // Only filled slots
 
-    invHtml += `
-    <div class="item-display">
-    <button class="menu-header" style="color: ${item.color};" onclick="setTimeout(() => showItemPopup(player.inventory.storage['${key}']),1)">
-    ${item.display} (${item.count})
-    </button>
-    ${equippableBtn}
-    </div>
-    `;
-    itemIndex++;
+  // Sort the items
+  items.sort((a, b) => {
+    let aVal = a[sortColumn] ?? "";
+    let bVal = b[sortColumn] ?? "";
+
+    if (sortColumn === "count" || sortColumn === "tier") {
+      aVal = parseInt(aVal) || 0;
+      bVal = parseInt(bVal) || 0;
+    } else {
+      aVal = String(aVal).toLowerCase();
+      bVal = String(bVal).toLowerCase();
+    }
+
+    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+    return 0;
   });
 
-  inventoryContainer.innerHTML = invHtml;
+  // Attach sorting listeners if not already attached
+  document.getElementById("sort-column")?.removeEventListener("change", updateInventoryDisplay);
+  document.getElementById("sort-direction")?.removeEventListener("change", updateInventoryDisplay);
+  document.getElementById("sort-column")?.addEventListener("change", updateInventoryDisplay);
+  document.getElementById("sort-direction")?.addEventListener("change", updateInventoryDisplay);
 
-  // Update equipped items
-  const equipSlots = ["head",
-    "torso",
-    "legs",
-    "feet",
-    "hands",
-    "weapon"];
+  let tableHtml = `
+    <table class="inventory-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Quality</th>
+          <th>Count</th>
+          <th>Slot</th>
+          <th>Equip</th>
+          <th>Trash</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  // Add rows for filled items (sorted)
+  items.forEach((item, index) => {
+    const nameCell = `
+      <td style="color: ${itemQualities[item?.quality || "common"]}; cursor: pointer;" onclick="setTimeout(() => showItemPopup(player.inventory.storage[${item.originalIndex}]), 1)">
+        ${item.name} ${item.tier ? "(T" + item.tier + ")" : ""}
+      </td>
+    `;
+    const typeCell = `<td>${item.type}</td>`;
+    const qualityCell = `<td>${capitalize(item.quality)}</td>`;
+    const countCell = `<td>${item.count}</td>`;
+    const slotCell = `<td>${capitalize(item.slot) || ""}</td>`;
+
+    const equipBtn = item.type == "Gear"
+      ? `<button class="equip-btn" onclick="tryEquipItem(${item.originalIndex})">Equip</button>`
+      : "";
+    const trashBtn = `<button class="unequip-btn" onclick="trashItem(${item.originalIndex})">Trash</button>`;
+
+    tableHtml += `<tr>${nameCell}${typeCell}${qualityCell}${countCell}${slotCell}<td>${equipBtn}</td><td>${trashBtn}</td></tr>`;
+  });
+
+  // Add rows for empty slots
+  const emptySlots = player.inventorySlots - items.length;
+  document.getElementById("item-count").textContent = (player.inventorySlots-emptySlots) + ""
+  for (let i = 0; i < emptySlots; i++) {
+    tableHtml += `
+      <tr>
+        <td colspan="7" style="color: #666; text-align: center; font-style: italic;">Empty Slot</td>
+      </tr>
+    `;
+  }
+
+  tableHtml += `</tbody></table>`;
+  inventoryContainer.innerHTML = tableHtml;
+
+  // Equipped item display (unchanged)
+  const equipSlots = ["head", "torso", "legs", "waist", "feet", "hands", "weapon"];
   equipSlots.forEach(slot => {
     const slotElement = document.getElementById(`equip-${slot}`);
     const item = player.inventory.equipped[slot];
 
     if (slotElement) {
-      slotElement.innerHTML = item
-      ? `
-      <div style="color: ${item.color}; cursor: pointer;" onclick="setTimeout(() => showItemPopup(player.inventory.equipped['${slot}']),1)">
-      ${item.display}
-      </div>
-      <button class="unequip-btn" onclick="unequipItem('${slot}')">Unequip</button>
-      `: "None";
+      if (item) {
+        slotElement.innerHTML = `
+          <div class="equip-rect" style="border: 1px solid #666; padding: 4px 8px; margin: 4px; display: flex; flex-direction: column; align-items: center; background-color: #222; color: ${itemQualities[item.quality || "common"]}; cursor: pointer;">
+            <div onclick="setTimeout(() => showItemPopup(player.inventory.equipped['${slot}']), 1)" style="margin-bottom: 4px;">
+              ${item.name} (T${item.tier})
+            </div>
+            <button class="unequip-btn" onclick="unequipItem('${slot}')">Unequip</button>
+          </div>
+        `;
+      } else {
+        slotElement.innerHTML = `
+          <div class="equip-rect" style="border: 1px solid #666; padding: 4px 8px; margin: 4px; display: inline-block; background-color: #222; color: #aaa;">
+            None
+          </div>
+        `;
+      }
     }
   });
 }
-function unequipItem(slot) {
-  const item = player.inventory.equipped[slot];
-  if (!item) return;
-
-  // Add item back to storage
-  const key = `${item.display}-${Date.now()}`; // or another way to create a unique key
-  player.inventory.storage[key] = item;
-
-  // Clear equipped slot
-  player.inventory.equipped[slot] = null;
-
-  // Refresh UI
+function trashItem(index, force){
+      if(!force && settings.confirmTrashItem){
+        setTimeout(() => showPopup(`
+          <h2 style="color: #d88">Are you sure?</h2>
+          <span>Are you sure you want to delete this item?</span>
+          <div style="display: flex; margin-top: 70px; position: relative;">
+          <button style="background: linear-gradient(#844,#633); position: absolute; bottom: 1em; left: 1em; border-radius: 1em;" onclick="trashItem('${index}', true)">Continue</button>
+          <button style="background: linear-gradient(#484,#363); position: absolute; bottom: 1em; right: 1em; border-radius: 1em;" onclick="document.getElementById('popup-overlay').remove()">Go Back</button>
+          </div>
+          `), 1);
+        return;
+    }
+    player.inventory.storage.splice(index, 1);
+  recalculateDerivedStats(player);
+  // Optionally refresh the UI here
   updateInventoryDisplay();
+  let items = player.inventory.storage
+    .map((item, originalIndex) => item ? { ...item, originalIndex } : null)
+    .filter(item => item); // Only filled slots
+const emptySlots = player.inventorySlots - items.length;
+  document.getElementById("item-count").textContent = (player.inventorySlots-emptySlots) + ""
+  updateResistancesSection(player)
+}
+function tryEquipItem(index) {
+  if (index >= player.inventory.storage.length) {
+    console.error("Couldn't equip due to bad index");
+    return;
+  }
+
+  let item = player.inventory.storage[index];
+  if (!item || item.type !== "Gear") {
+    console.error("Invalid item for equipping", item);
+    return;
+  }
+
+  let slot = item.slot?.toLowerCase();
+  let equippedTypes = Object.keys(player.inventory.equipped);
+  if (!equippedTypes.includes(slot)) {
+    console.warn(`Item type ${slot} is not equippable.`);
+    return;
+  }
+
+  let equippedItem = player.inventory.equipped[slot];
+
+  // If swapping with another item
+  if (equippedItem) {
+    // Replace equipped slot first
+    player.inventory.equipped[slot] = item;
+
+    // Replace storage item with the previously equipped item
+    player.inventory.storage[index] = equippedItem;
+
+    console.log(`Swapped ${equippedItem.name} with ${item.name} in the ${slot} slot.`);
+  } else {
+    // No item equipped — check if inventory has space to remove from it
+    player.inventory.equipped[slot] = item;
+    player.inventory.storage.splice(index, 1);
+    console.log(`Equipped ${item.name} in the ${slot} slot.`);
+  }
+
+  recalculateDerivedStats(player);
+  updateInventoryDisplay();
+  let items = player.inventory.storage
+    .map((item, originalIndex) => item ? { ...item, originalIndex } : null)
+    .filter(item => item); // Only filled slots
+const emptySlots = player.inventorySlots - items.length;
+  document.getElementById("item-count").textContent = (player.inventorySlots-emptySlots) + ""
+  updateResistancesSection(player);
+}
+function unequipItem(slot, returnItem = true) {
+  const item = player.inventory.equipped[slot];
+  if (!item) return null;
+
+  if (returnItem) {
+    const storage = player.inventory.storage;
+    if (storage.filter(i => i).length >= player.inventorySlots) {
+      console.warn("Cannot unequip — inventory full.");
+      return false;
+    }
+    storage.push(item);
+  }
+
+  player.inventory.equipped[slot] = null;
+  recalculateDerivedStats(player);
+  updateInventoryDisplay();
+  updateResistancesSection(player);
+
+  return item;
+}
+function isEquivalentItem(item1, item2){
+  if(item1.name != item2.name) return false;
+  if(item1.type != item2.type) return false;
+  if(item1.type == "Gear") return false;
+  return true;
+}
+function addItem(item) {
+  const inventory = player.inventory.storage;
+
+  // Check if there's room
+  if (inventory.filter(i => i).length >= player.inventorySlots) {
+    console.warn("Inventory is full!");
+    return false;
+  }
+
+  // Try to stack item if already exists (stackable items)
+  for (let i = 0; i < inventory.length; i++) {
+    let currentItem = inventory[i];
+    if (currentItem && isEquivalentItem(item, currentItem) && item.count) {
+      currentItem.count += item.count;
+      return true;
+    }
+  }
+
+  // Find first empty slot
+  for (let i = 0; i < player.inventorySlots; i++) {
+    if (!inventory[i]) {
+      inventory[i] = { ...item }; // clone to avoid reference issues
+      if (!inventory[i].count) inventory[i].count = 1;
+      updateInventoryDisplay();
+      return true;
+    }
+  }
+
+  console.warn("Could not add item — no open slots found.");
+  return false;
 }
 function resetBuffData(unit){
   unit.buffs = []
@@ -2832,7 +3647,7 @@ function updateSkillsMenu() {
     cell.style.verticalAlign = "middle";
 
     const name = document.createElement("span");
-    console.log(skill, sk)
+  
     name.textContent = `${skill.name} (${sk.level})`;
     name.style.color = "#0bf";
     name.style.cursor = "pointer";
@@ -3725,14 +4540,14 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
         case "buff":
         case "debuff":
           e.value = calculateEffectiveValue(e.value, member, undefined, skillLevel)
-          const sign = (e.type === "buff" ? e.value >=1?"+": "":"-");
+          const sign = (e.effect === "multi" ? "×":e.type == "buff"? "+":"-");
           
           e.duration = calculateEffectiveValue(e.duration, member, undefined, skillLevel)
           if(e.resistanceType){
-            desc = `${capitalize(e.resistanceType)} Resistance * ${(1/e.value).toFixed(2)} for ${(e.duration/1000).toFixed(2)}s`
+            desc = `${capitalize(e.resistanceType)} Damage Taken * ${(e.value).toFixed(2)} for ${(e.duration/1000).toFixed(2)}s`
             break;
           }
-          value = e.effect === "add" ? e.value.toFixed(2): ((e.type === "buff" ? e.value - 1: 1 - e.value) * 100).toFixed(2) + "%";
+          value = e.value.toFixed(2);
           
           desc = `${sign}${value} ${fromCamelCase(e.stat)} for ${(e.duration / 1000).toFixed(2)}s`;
 
@@ -3950,11 +4765,30 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
     popup.style.boxShadow = "0 0 10px #000";
 
     // Fill with item content (same as in inventory)
+    let oreDiv = item.ores && item.ores.length > 0
+  ? `<div style="color: #aaa; margin-top: 6px;">Alloy: ${item.ores.map(obj => {
+      let key = Object.keys(obj)[0];
+      return `${key} (${obj[key]})`;
+    }).join(', ')}</div>`
+  : "";
+  
+  let bonusDiv = item.totalBonuses && item.totalBonuses.length > 0
+  ? `<div style="color: #8f8; margin-top: 6px;">Bonuses:<br>${item.totalBonuses.map(bonus => 
+      `- ${fromCamelCase(bonus.stat)}: ×${bonus.multi.toFixed(3)}`
+    ).join('<br>')}</div>`
+  : "";
+  let resistanceDiv = item.totalResistances && Object.keys(item.totalResistances).length > 0
+  ? `<div style="color: #8d8; margin-top: 6px;">Resistances:<br>${Object.entries(item.totalResistances).map(
+      ([type, value]) => `- ${capitalize(type)} ${getDamageTypeIcon(type)}: ×${value.toFixed(3)}`
+    ).join('<br>')}</div>`
+  : "";
     popup.innerHTML = `
-    <div style="color: ${item.color}; font-size: 18px; font-weight: bold;">${item.display}</div>
-    <div style="color: #aaa; margin-top: 8px;">${item.type}</div>
-    <div style="color: #aaa; margin-top: 4px;">${item.description}</div>
-    <div style="color: #aaa; margin-top: 6px;">${item.bonuses.join("<br>")}</div>
+    <div style="color: ${itemQualities[item.quality || "common"]}; font-size: 18px; font-weight: bold;">${item.name} ${item.tier?"(T"+item.tier+")":""}</div>
+    <div style="color: #aaa; margin-top: 8px;">${item.quality?capitalize(item.quality) + " ":""}${item.type}</div>
+    <div style="color: #aaa; margin-top: 4px;">${item.type == "Gear"?"A wearable item":item.description || "This item has no description."}</div>
+    ${oreDiv}
+    ${bonusDiv}
+    ${resistanceDiv}
     `;
 
     overlay.appendChild(popup);
@@ -4115,7 +4949,6 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
       id: talentId
     }
     for (let eff of effect.effects) {
-      console.log("wheyoff",eff, skillContext)
     applyEffect(eff, unit, undefined, talentId, undefined, skillContext);
     }
   };
@@ -4328,8 +5161,6 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         case "skillTarget":
           if(!skillContext){
             console.error("skill context not found", targetType, new Error().stack)
-          }else{
-            console.log(skillContext)
           }
           return skillContext.target;
           break;
@@ -4522,7 +5353,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
           skillId: skillId})
         unit.buffs.push(pushedEffect);
         if(isResistanceEffect){
-          console.log("whT");
+          
           if(!unit.bonusResistances)unit.bonusResistances=[]
           let res = {
             damageType: isResistanceEffect,
@@ -4530,7 +5361,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
             timeExpired: pushedEffect.duration + Date.now()
           };
           unit.bonusResistances.push(res);
-          console.log("adding res", unit.name, res)
+          
           recalculateTotalResistances(unit)
           updateStatusButton(unit);
           break;
@@ -4965,61 +5796,7 @@ function findUnitById(id) {
     html += `</div>`;
 
     // Create stat groups like the player version
-    const statGroups = [{
-        title: "Health (HP)",
-        class: "hp",
-        stats: [
-            { label: "Current", key: "hp" },
-            { label: "Max", key: "maxHp" },
-            { label: "Regen", key: "hpRegen" }
-        ]
-    }, {
-        title: "Stamina (SP)",
-        class: "sp",
-        stats: [
-            { label: "Current", key: "sp" },
-            { label: "Max", key: "maxSp" },
-            { label: "Regen", key: "spRegen" },
-            { label: "Efficiency", key: "spEfficiency" }
-        ]
-    }, {
-        title: "Mana (MP)",
-        class: "mp",
-        stats: [
-            { label: "Current", key: "mp" },
-            { label: "Max", key: "maxMp" },
-            { label: "Regen", key: "mpRegen" },
-            { label: "Efficiency", key: "mpEfficiency" }
-        ]
-    }, {
-        title: "Combat",
-        class: "combat",
-        stats: [
-            { label: "Cooldown Reduction", key: "cooldownReduction" },
-            { label: "Damage Taken", key: "damageTaken" }
-
-        ]
-    }, {
-        title: "Critical",
-        class: "crit",
-        stats: [
-            { label: "Crit Chance", key: "critChance" },
-            { label: "Crit Multiplier", key: "critMulti" }
-        ]
-    }, {
-        title: "Lifesteal",
-        class: "lifesteal",
-        stats: [
-            { label: "Lifesteal %", key: "lifestealMulti" },
-            { label: "Lifesteal Chance", key: "lifestealChance" }
-        ]
-    }, {
-        title: "Misc",
-        class: "misc",
-        stats: [
-            { label: "XP Gain Multi", key: "xpGain" }
-        ]
-    }];
+    
 
     // Build stats HTML
     let statsHTML = `<div class="stat-block">`;
@@ -5151,185 +5928,240 @@ function getAvailableSkills() {
     }
   }
   function finishCombat(win) {
-    document.querySelectorAll(".popup").forEach(e => e.remove())
-    let menuContent = document.getElementById("menu-content")
-    menuContent.innerHTML = ""
-    combatUnits.forEach(u => {
-      u.skills.combatData.target = [];
-      removeTalentListeners(u)
-    })
-    player.inCombat = false;
-    skillIntervals.forEach(ski => clearInterval(ski));
-    regenIntervals.forEach(regi => clearInterval(regi))
-    skillIntervals = []
-    regenIntervals = [];
-    let defeated = combatUnits.filter(unit => !unit.isAlive && !unit.isAlly && !unit.isSummon);
-    combatUnits = [];
-    let finDiv = document.createElement("div");
-    finDiv.style.display = "flex";
-    finDiv.style.display = "flex"
-    finDiv.style.flexDirection = "column"
-    finDiv.style.textAlign = "center"
-    let levelUpDiv = document.createElement("div")
-    xpBar = `
-    <div class="bar xp-bar" style="height: 1em; display: flex; margin-bottom: 2em; align-items: center; position: relative; margin-left: 20%; width: 60%">
-    <div
-    class="xp-bar fill"
-    id="bar-fill-${player.id}-xp"
-    style="width: ${(player.xp / player.maxXp) * 100}%; position: absolute; height: 25px; top: 0; left: 0; z-index: 0;">
-    </div>
-    <div
-    class="bar-text"
-    style="font-size: 8px; position: relative; z-index: 1; width: 100%; text-align: center;"
-    id="bar-text-${player.id}-xp">
-    XP (<span id="xp-display">${player.xp}</span>/${player.maxXp})
-    </div>
-    </div>
-    `
-    finDiv.style.flexDirection = "column"
-    let mainArea = document.getElementById("main-area")
-    mainArea.innerHTML = "";
+  document.querySelectorAll(".popup").forEach(e => e.remove());
+  let menuContent = document.getElementById("menu-content");
+  menuContent.innerHTML = "";
+  combatUnits.forEach(u => {
+    u.skills.combatData.target = [];
+    removeTalentListeners(u);
+  });
+  player.inCombat = false;
+  skillIntervals.forEach(ski => clearInterval(ski));
+  regenIntervals.forEach(regi => clearInterval(regi));
+  skillIntervals = [];
+  regenIntervals = [];
 
+  let defeated = combatUnits.filter(unit => !unit.isAlive && !unit.isAlly && !unit.isSummon);
+  combatUnits = [];
 
-    if (win) {
-      finDiv.innerHTML += "<h1>You are Victorious!</h1><br>"
-      finDiv.innerHTML += xpBar;
-      let oldXp = player.xp;
-      if (!player.discoveredEnemies) {
-        player.discoveredEnemies = [];
-      }
-      defeated.forEach(unit => {
-        let xpModifier = (10+unit.tier)/(10+player.classData[player.class].level) * player.stats.xpGain.value;
-        let xpGained = Math.floor((unit.xp * unit.tier/2+unit.tier)*xpModifier);
-        finDiv.innerHTML += `
-        <div><span>${unit.name} defeated: </span><span style="color: #d8a">${xpGained} xp!<br></span></div>
-        `
-        if (!player.discoveredEnemies.includes(unit.name)) {
-          let discoveryXp = unit.discoveryXp || 0
-          let discoXpText = discoveryXp?`${discoveryXp} xp!`:""
-          xpGained += discoveryXp;
-          finDiv.innerHTML += `
-          <div><span color="#aa5">${unit.name} discovered! </span><span style="color: #d8a">${discoXpText}<br></span></div>
-          `
-          player.discoveredEnemies.push(unit.name)
-          let discoverableEnemies = loreDataCache.zones[player.currentZone.name].units
-          let allDiscovered = discoverableEnemies.every(e => player.discoveredEnemies.includes[e])
-          if(allDiscovered){
-            let fullDiscoveryXp = loreDataCache.zones[player.currentZone.name].fullDiscoveryXp || 0;
-            xpGained += fullDiscoveryXp
-            let fullDiscoveryText = fullDiscoveryXp?fullDiscoveryXp + " xp!":"";
-            finDiv.innerHTML += `
-          <div><span color="#aa5">All units in ${player.currentZone.name} discovered! </span><span style="color: #d8a">${fullDiscoveryText}<br></span></div>
-          `
+  let finDiv = document.createElement("div");
+  finDiv.style.display = "flex";
+  finDiv.style.flexDirection = "column";
+  finDiv.style.textAlign = "center";
+  finDiv.style.alignItems = "center";
+
+  let levelUpDiv = document.createElement("div");
+
+  let xpBar = `
+<div class="bar xp-bar" style="height: 1em; display: flex; margin-bottom: 2em; align-items: center; position: relative; width: 100%; max-width: 400px;">
+      <div class="xp-bar fill" id="bar-fill-${player.id}-xp"
+        style="width: ${(player.xp / player.maxXp) * 100}%; position: absolute; height: 25px; top: 0; left: 0; z-index: 0;">
+      </div>
+      <div class="bar-text"
+        style="font-size: 8px; position: relative; z-index: 1; width: 100%; text-align: center;"
+        id="bar-text-${player.id}-xp">
+        XP (<span id="xp-display">${player.xp}</span>/${player.maxXp})
+      </div>
+    </div>`;
+
+  let mainArea = document.getElementById("main-area");
+  mainArea.innerHTML = "";
+
+  if (win) {
+    finDiv.innerHTML += "<h1>You are Victorious!</h1><br>";
+    finDiv.innerHTML += xpBar;
+
+    let messageDiv = document.createElement("div");
+    messageDiv.style.display = "flex";
+    messageDiv.style.flexDirection = "column";
+    messageDiv.style.alignItems = "center";
+    messageDiv.style.marginBottom = "1em";
+
+    let oldXp = player.xp;
+    let levelUps = 0;
+
+    if (!player.discoveredEnemies) player.discoveredEnemies = [];
+
+    defeated.forEach(unit => {
+      let xpModifier = (10 + unit.tier) / (10 + player.classData[player.class].level) * player.stats.xpGain.value;
+      let xpGained = Math.floor((unit.xp * unit.tier / 2 + unit.tier) * xpModifier);
+
+      // XP gain
+      messageDiv.innerHTML += `<div><span>${unit.name} defeated: </span><span style="color: #d8a">${xpGained} xp!</span></div>`;
+
+      // Item drops
+      let dropAmount = Math.min(3,rollLogRandom(Math.pow(unit.tier, 1.2) * 10));
+      if (dropAmount) {
+        for (let drop = 0; drop < dropAmount; drop++) {
+          let randomSlotType = Object.keys(player.inventory.equipped).random();
+
+          let filteredGearEntries = Object.entries(gearTypes).filter(([name, data]) => data.slot === randomSlotType);
+          let filteredGearWeights = Object.fromEntries(filteredGearEntries.map(([name, data]) => [name, data.oreRequired]));
+
+          let gearTypeName = invertedWeightedRandom(filteredGearWeights)[0];
+          let gearType = gearTypes[gearTypeName];
+          let tier = unit.tier;
+          let oreRequired = gearType.oreRequired;
+          let inputOres = [];
+
+          for (let i = 0; i < oreRequired; i++) {
+            const oreName = Object.keys(oresData)
+              .filter(o => loreDataCache.planets[player.planet].gearOres.includes(o) && oresData[o].tier <= rollLogRandom(tier))
+              .random();
+            const existing = inputOres.find(entry => Object.keys(entry)[0] === oreName);
+            if (existing) existing[oreName]++;
+            else inputOres.push({ [oreName]: 1 });
           }
-        }
 
-        player.xp += xpGained
-        let levelups = checkLevelUp();
-        if (levelups) {
-          for (let i = 0; i < levelups; i++) {
-            levelUpDiv.innerHTML += `<h3>Level Up!</h3>`
-          }
-        }
-      })
-      let max = loreDataCache.zones[player.currentZone.name].maxTier;
-      if (player.currentZone.count == max && !player.zoneProgress[player.currentZone.name].completed) {
-        finDiv.innerHTML += `<h3>You have completed this zone!</h3><br><h3>New Skill Slot Unlocked!</h3>`
-        let reward = loreDataCache.zones[player.currentZone.name].reward;
-        player.skillSlots = Math.min(6, player.skillSlots+1)
-        player.zoneProgress[player.currentZone.name].completed = true;
-        
-        player.beatenZones++;
-        player.beatenTiers += max;
-        delete player.progressingZone
-        if (reward) {
-          if (reward.xp) {
-            finDiv.innerHTML += `<h3>Gained ${reward.xp*player.beatenZones} xp</h3>`
-            player.zoneProgress[player.currentZone.name].xpGained = reward.xp*player.beatenZones
-            player.xp += reward.xp*player.beatenZones;
-            let levelups = checkLevelUp();
-            if (levelups) {
-              for (let i = 0; i < levelups; i++) {
-                levelUpDiv.innerHTML += `<h3>Level Up!</h3>`
-              }
-            }
+          let quality = Object.keys(itemQualities)[getRandomQuality(tier)];
+          let gear = buildGear(gearTypeName, tier, quality, inputOres);
+          if(addItem(gear)){
+
+          let dropDiv = document.createElement("div");
+          let itemSpan = document.createElement("span");
+          itemSpan.textContent = `[ ${gear.name} ]`;
+          itemSpan.style.color = itemQualities[gear.quality];
+          itemSpan.style.cursor = "pointer";
+          itemSpan.onclick = () => setTimeout(()=>showItemPopup(gear),1);
+          dropDiv.innerText = "Received ";
+          dropDiv.appendChild(itemSpan);
+          messageDiv.appendChild(dropDiv);
           }
         }
       }
-      
-      player.zoneProgress[player.currentZone.name].count = Math.min(Math.max(player.currentZone.count+1, player.zoneProgress[player.currentZone.name].count), max);
 
+      // Discovery
+      if (!player.discoveredEnemies.includes(unit.name)) {
+        let discoveryXp = unit.discoveryXp || 0;
+        if (discoveryXp > 0) {
+          messageDiv.innerHTML += `
+            <div><span style="color: #aa5">${unit.name} discovered! </span><span style="color: #d8a">${discoveryXp} xp!</span></div>`;
+        }
+        xpGained += discoveryXp;
+        player.discoveredEnemies.push(unit.name);
 
-      mainArea.appendChild(finDiv);
-      mainArea.appendChild(levelUpDiv);
-      let newXp = player.xp;
-      let newXpPercentage = player.xp/player.maxXp
-      animateXpGain( {
-        elementId: "xp-display",
-        barId: "bar-fill-0-xp",
-        startXp: oldXp,
-        endXp: newXp,
-        maxXp: player.maxXp,
-        duration: 2500
-      });
-    } else {
-      finDiv.innerHTML += "<h1>You Have Died!</h1><br>"
-      finDiv.innerHTML += xpBar;
-      mainArea.appendChild(finDiv);
-      mainArea.appendChild(levelUpDiv);
+        let discoverableEnemies = loreDataCache.zones[player.currentZone.name].units;
+        let allDiscovered = discoverableEnemies.every(e => player.discoveredEnemies.includes(e));
+        if (allDiscovered) {
+          let fullDiscoveryXp = loreDataCache.zones[player.currentZone.name].fullDiscoveryXp || 0;
+          xpGained += fullDiscoveryXp;
+          if (fullDiscoveryXp > 0) {
+            messageDiv.innerHTML += `
+              <div><span style="color: #aa5">All units in ${player.currentZone.name} discovered! </span><span style="color: #d8a">${fullDiscoveryXp} xp!</span></div>`;
+          }
+        }
+      }
+
+      player.xp += xpGained;
+      levelUps += checkLevelUp() || 0;
+    });
+
+    if (levelUps > 0) {
+      let levelUpMsg = document.createElement("h3");
+      levelUpMsg.textContent = `Level Up x${levelUps}`;
+      levelUpMsg.style.color = "#8f8";
+      messageDiv.appendChild(levelUpMsg);
     }
-    saveCharacter()
-    initializeCombatUnits(player.currentZone.name);
-    
-    if (win) {
-      menuContent.innerHTML += `
-      <button style="width: 50%; margin: 2em 25%; border-radius: 2em;" id="continue-btn" ${forceContinue?`class="countdown-button"`: ""}>
-      <span class="label">Continue?</span>
-      <div class="progress-fill"></div>
-      </button>`
+
+    finDiv.appendChild(messageDiv);
+
+    let max = loreDataCache.zones[player.currentZone.name].maxTier;
+    if (player.currentZone.count === max && !player.zoneProgress[player.currentZone.name].completed) {
+      finDiv.innerHTML += `<h3>You have completed this zone!</h3><br><h3>New Skill Slot Unlocked!</h3>`;
+      let reward = loreDataCache.zones[player.currentZone.name].reward;
+      player.skillSlots = Math.min(6, player.skillSlots + 1);
+      player.zoneProgress[player.currentZone.name].completed = true;
+      player.beatenZones++;
+      player.beatenTiers += max;
+      delete player.progressingZone;
+
+      if (reward?.xp) {
+        let bonusXp = reward.xp * player.beatenZones;
+        finDiv.innerHTML += `<h3>Gained ${bonusXp} xp</h3>`;
+        player.zoneProgress[player.currentZone.name].xpGained = bonusXp;
+        player.xp += bonusXp;
+        let extraLevelUps = checkLevelUp();
+        if (extraLevelUps) {
+          levelUps += extraLevelUps;
+        }
+      }
     }
+
+    player.zoneProgress[player.currentZone.name].count = Math.min(Math.max(player.currentZone.count + 1, player.zoneProgress[player.currentZone.name].count), max);
+
+    mainArea.appendChild(finDiv);
+    mainArea.appendChild(levelUpDiv);
+
+    animateXpGain({
+      elementId: "xp-display",
+      barId: "bar-fill-0-xp",
+      startXp: oldXp,
+      endXp: player.xp,
+      maxXp: player.maxXp,
+      duration: 2500
+    });
+
+  } else {
+    finDiv.innerHTML += "<h1>You Have Died!</h1><br>";
+    finDiv.innerHTML += xpBar;
+    mainArea.appendChild(finDiv);
+    mainArea.appendChild(levelUpDiv);
+  }
+
+  saveCharacter();
+  initializeCombatUnits(player.currentZone.name);
+
+  if (win) {
     menuContent.innerHTML += `
-    <button style="width: 50%; margin: 0% 25%; border-radius: 2em;" id="repeat-btn" ${!forceContinue || !win?`class="countdown-button"`: ""}>
-    <span class="label">Repeat?</span>
-    <div class="progress-fill"></div>
-    </button>
-    `
-    const button = document.querySelector('.countdown-button');
-    if (forceContinue && win) {
-      countdownAutoClick(button, "Continue?", 1000*settings.autoTimer, () => {
-        forceContinue = true;
-        nextEncounter();
-        startCombat();
-      });
-      document.getElementById("repeat-btn").onclick = () => {
-        forceContinue = false;
-        startCombat();
-      }
-    } else {
-      countdownAutoClick(button, "Repeat?", 1000*settings.autoTimer, () => {
-        forceContinue = false;
-        startCombat();
-      });
-    }
-    if (win) {
-      player.data.deathsInARow = 0;
-      document.getElementById("continue-btn").onclick = () => {
-        forceContinue = true;
-        nextEncounter();
-        startCombat();
-      }
-    }else{
-      player.data.deathsInARow+=1;
-      if(player.data.deathsInARow >= 3){
-        addHint("last-encounter-btn");
-        isCombatPaused = true;
-        showPopup(`
-                  <h2 style="color: #d88">Hint: Encounter Tiers</h2>
+      <button style="width: 50%; margin: 2em 25%; border-radius: 2em;" id="continue-btn" ${forceContinue ? `class="countdown-button"` : ""}>
+        <span class="label">Continue?</span>
+        <div class="progress-fill"></div>
+      </button>`;
+  }
+
+  menuContent.innerHTML += `
+    <button style="width: 50%; margin: 0% 25%; border-radius: 2em;" id="repeat-btn" ${!forceContinue || !win ? `class="countdown-button"` : ""}>
+      <span class="label">Repeat?</span>
+      <div class="progress-fill"></div>
+    </button>`;
+
+  const button = document.querySelector('.countdown-button');
+  if (forceContinue && win) {
+    countdownAutoClick(button, "Continue?", 1000 * settings.autoTimer, () => {
+      forceContinue = true;
+      nextEncounter(true);
+      startCombat(true);
+    });
+    document.getElementById("repeat-btn").onclick = () => {
+      forceContinue = false;
+      startCombat(true);
+    };
+  } else {
+    countdownAutoClick(button, "Repeat?", 1000 * settings.autoTimer, () => {
+      forceContinue = false;
+      startCombat(true);
+    });
+  }
+
+  if (win) {
+    player.data.deathsInARow = 0;
+    document.getElementById("continue-btn").onclick = () => {
+      forceContinue = true;
+      nextEncounter(true);
+      startCombat(true);
+    };
+  } else {
+    player.data.deathsInARow += 1;
+    if (player.data.deathsInARow >= 3) {
+      addHint("last-encounter-btn");
+      isCombatPaused = true;
+      showPopup(`
+        <h2 style="color: #d88">Hint: Encounter Tiers</h2>
         You have died ${player.data.deathsInARow} times in a row. As you beat enemies, you progress into more difficult tiers. Pressing the highlighted button will send you back to a previous tier. Try it!
-        `)
-      }
+      `);
     }
   }
+}
 function addHint(elementId, useOverlay) {
     const target = document.getElementById(elementId);
     if (!target) {
@@ -5984,33 +6816,38 @@ function showClassDetails(className){
     return str[0].toLowerCase() + str.slice(1);
   }
   
-  function getDamageComponents(type, breakdownMap) {
+  function getDamageComponents(type, breakdownMap, multiplier = 1, result = {}) {
     type = type.toLowerCase();
-    if (!breakdownMap[type]) return { [type]: 1 };
 
-    const result = {};
-    for (const [parent, percent] of Object.entries(breakdownMap[type])) {
-        const parentComponents = getDamageComponents(parent, breakdownMap);
-        for (const [compType, compPercent] of Object.entries(parentComponents)) {
-            const key = compType.toLowerCase();
-            result[key] = (result[key] || 0) + compPercent * percent;
-        }
+    // Add or accumulate current type’s contribution
+    result[type] = (result[type] || 0) + multiplier;
+
+    const breakdown = breakdownMap[type];
+    if (!breakdown || Object.keys(breakdown).length === 0) {
+        return result;
     }
+
+    for (const [parent, percent] of Object.entries(breakdown)) {
+        getDamageComponents(parent, breakdownMap, multiplier * percent, result);
+    }
+    
     return result;
 }
-
 function getEffectiveResistanceMultiplier(type, resistances, breakdownMap) {
-    type = type.toLowerCase();
-    const selfResist = resistances[type] ?? 1;
-
+  //if(type != "magic") return;
     const components = getDamageComponents(type, breakdownMap);
-    let total = 0;
+
+    let blocked = 0;
+    
     for (const [compType, fraction] of Object.entries(components)) {
-        const resist = resistances[compType.toLowerCase()] ?? 1;
-        total += fraction * resist;
+        const resist = resistances[compType.toLowerCase()] ?? 1; // 1 = no resistance
+        const effect = 1 - resist; // amount blocked by this component
+        
+        blocked += fraction * effect;
     }
 
-    return selfResist * total;
+    const finalMultiplier = Math.max(0, 1 - blocked); // ensure it's not negative
+    return finalMultiplier;
 }
 
 
@@ -6282,4 +7119,192 @@ function showCharacterPopup(id) {
       }
     }
   });
+}
+function buildGear(gearType, tier, quality, ores) {
+  const gear = gearTypes[gearType];
+  const oreList = ores; // Array of { oreName: amount }
+  const qualityBonusCount = {
+    rusty: 0, common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5,
+    mythic: 6, artifact: 6, divine: 0, cursed: 0
+  }[quality.toLowerCase()];
+
+  const statBonuses = {};
+  const resistances = {};
+
+  // Apply bonuses from ores
+  for (const oreEntry of oreList) {
+    const [oreName, amount] = Object.entries(oreEntry)[0];
+    const ore = oresData[oreName];
+    const stat = ore.bonus.stat;
+    const multi = ore.bonus.multi;
+    const adjusted = multi < 1 ? (1 / (1 + 0.0005 * tier)) : (1 + 0.0005 * tier);
+
+    if (!statBonuses[stat]) statBonuses[stat] = 1;
+    statBonuses[stat] *= Math.pow(multi * adjusted, amount);
+
+    for (const [res, resVal] of Object.entries(ore.resistances)) {
+      if (!resistances[res]) resistances[res] = 1;
+      resistances[res] *= Math.pow(resVal / (1 + 0.0005 * tier), amount);
+    }
+  }
+
+  // Helper to roll from weighted statBoosts
+  function rollWeightedStats(stats, count) {
+    const allStats = [];
+    for (const s of stats) {
+      for (let i = 0; i < s.weight; i++) {
+        allStats.push(s);
+      }
+    }
+
+    const selected = [];
+    const used = new Set();
+
+    while (selected.length < count && allStats.length > 0) {
+      const stat = allStats[Math.floor(Math.random() * allStats.length)];
+      if (!used.has(stat.stat)) {
+        used.add(stat.stat);
+        const adjusted = stat.multi < 1 ? (1 / (1 + 0.001 * tier)) : (1 + 0.001 * tier);
+        if (!statBonuses[stat.stat]) statBonuses[stat.stat] = 1;
+        statBonuses[stat.stat] *= stat.multi * adjusted;
+        selected.push(stat.stat);
+      }
+    }
+  }
+
+  // Add quality-based random stat bonuses
+  rollWeightedStats(gear.statBoosts, qualityBonusCount);
+
+  // Build final gear object
+  return {
+    name: gearType,
+    type: "Gear",
+    slot: gearTypes[gearType].slot,
+    tier: tier,
+    count: 1,
+    quality: quality,
+    ores: ores,
+    totalBonuses: Object.entries(statBonuses).map(([stat, multi]) => ({
+      stat,
+      multi: parseFloat(multi.toFixed(6))
+    })),
+    totalResistances: Object.fromEntries(
+      Object.entries(resistances).map(([res, multi]) => [res, parseFloat(multi.toFixed(6))])
+    )
+  };
+}
+function invertedWeightedRandom(dict) {
+  // Convert object to entries
+  const entries = Object.entries(dict);
+
+  // Calculate inverted weights (1 / weight), avoiding division by 0
+  const invertedWeights = entries.map(([key, weight]) => {
+    const safeWeight = weight <= 0 ? 0.001 : weight;
+    return [key, 1 / safeWeight];
+  });
+
+  // Calculate total weight
+  const total = invertedWeights.reduce((sum, [, w]) => sum + w, 0);
+
+  // Roll a random number
+  let roll = Math.random() * total;
+
+  // Pick the entry based on inverted weights
+  for (const [key, weight] of invertedWeights) {
+    if (roll < weight) return [key, dict[key]];
+    roll -= weight;
+  }
+
+  // Fallback (shouldn't happen if weights are valid)
+  return invertedWeights[0];
+}
+
+// Returns 0, 1, or 2 depending on power level
+function rollLogRandom(power) {
+  if (power < 10) return 0;
+
+  const logP = Math.log10(power);
+  const maxTier = Math.floor(logP);
+  const weights = [];
+
+  const rampPower = 3; // higher = rarer higher tiers
+
+  // Base tier weight (always fallback)
+  weights.push(1); // tier 0
+
+  for (let i = 1; i <= maxTier; i++) {
+    const w = Math.max(0, logP - i) ** rampPower;
+    weights.push(w);
+  }
+
+  const total = weights.reduce((a, b) => a + b, 0);
+  const roll = Math.random() * total;
+
+  let cumulative = 0;
+  for (let i = weights.length - 1; i >= 0; i--) {
+    cumulative += weights[i];
+    if (roll < cumulative) return i;
+  }
+
+  return 0;
+}
+function updateResistancesSection(unit) {
+  // Step 1: Recalculate total resistances
+  recalculateTotalResistances(unit);
+
+  // Step 2: Get the section to update
+  const resistSection = document.getElementById("resistances-section");
+  if (!resistSection) return;
+
+  // Step 3: Clear the section
+  resistSection.innerHTML = "";
+
+  // Step 4: Build table header
+  let tableHTML = `<div class="resist-table">
+                     <div class="resist-row resist-header">
+                       <div class="resist-cell">Damage Type</div>
+                       <div class="resist-cell">Final Damage Taken Multiplier</div>
+                     </div>`;
+
+  // Step 5: Add each resistance that isn't exactly 1
+  for (const [type, value] of Object.entries(unit.totalResistances)) {
+    if (value !== 1) {
+      tableHTML += `<div class="resist-row">
+                      <div class="resist-cell">${capitalize(type)} ${getDamageTypeIcon(type)}</div>
+                      <div class="resist-cell">${value.toFixed(4)}</div>
+                    </div>`;
+    }
+  }
+
+  tableHTML += `</div>`;
+
+  // Step 6: Set the new HTML
+  resistSection.innerHTML = tableHTML;
+}
+function getRandomQuality(tier, maxQuality = 6) {
+  const weights = [];
+
+  for (let q = 0; q <= maxQuality; q++) {
+    if (q === 0) {
+      weights.push(1); // Base weight for quality 0
+    } else {
+      const weight = (Math.pow(tier, 0.6)/10) / (Math.pow(q, 4) + 1);
+      weights.push(weight);
+    }
+  }
+
+  // Normalize weights
+  const totalWeight = weights.reduce((a, b) => a + b, 0);
+  const normalized = weights.map(w => w / totalWeight);
+
+  // Random selection based on weights
+  const rand = Math.random();
+  let cumulative = 0;
+
+  for (let i = 0; i < normalized.length; i++) {
+    cumulative += normalized[i];
+    if (rand < cumulative) return i;
+  }
+
+  return maxQuality; // Fallback
 }

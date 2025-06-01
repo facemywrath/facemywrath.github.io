@@ -4,7 +4,7 @@
     "flavorText": "{casterName} flings a molten ember at {targetName}!",
     "description": "Fling a molten ember at an enemy dealing minorheat damage and inflicting Burning.",
     "cooldown": {
-      "base": 2.8,
+      "base": 5.6,
       "scaling": [
       {
         "target": "caster",
@@ -40,6 +40,10 @@
           "target": "caster",
           "stat": "skillLevel",
           "scale": 0.5
+        },{
+          "target": "caster",
+          "stat": "willpower",
+          "scale": 0.01
         }]
       }
       }
@@ -50,7 +54,7 @@
     "flavorText": "{casterName} stings {targetName} with poison!",
     "description": "Sting the target with your huge stinger.",
     "cooldown": {
-      "base": 5,
+      "base": 10,
       "min": 2,
       "scaling": [
       {
@@ -94,7 +98,7 @@
     "flavorText": "{casterName} heats up the battlefield!",
     "description": "Inflict Burning on all enemies.",
     "cooldown": {
-      "base": 1.5,
+      "base": 3,
       "scaling": [
       {
         "target": "caster",
@@ -124,7 +128,7 @@
     "flavorText": "{casterName} begins absorbing nearby flames.",
     "initialCooldown": 0.5,
     "cooldown": {
-      "base": 5,
+      "base": 10,
       "scaling": [{
         "target": "caster",
         "stat": "skillLevel",
@@ -173,9 +177,9 @@
     "moltenShell": {
     "name": "Molten Shell",
     "flavorText": "{casterName} encases themselves in molten rock.",
-    "initialCooldown": 1.5,
+    "initialCooldown": 3,
     "cooldown": {
-      "base": 10,
+      "base": 20,
       "scaling": [{
         "target": "caster",
         "stat": "skillLevel",
@@ -220,31 +224,31 @@
     "name": "Fireball",
     "flavorText": "{casterName} shoots a ball of concentrated flame at {targetName}!",
     "cooldown": {
-      "base": 4,
+      "base": 8,
       "scaling": [{
         "target": "caster",
         "stat": "skillLevel",
         "scale": -0.04
       }]
     },
-    "cost": { "mp": 25 },
+    "cost": { "mp": 50 },
     "target": "singleEnemy",
     "requiresTarget": true,
     "effects": [
       { 
         "type": "damage", 
         "target": "singleEnemy", 
-        "base": 6,
+        "base": 3,
         "damageType": "heat", 
         "scaling": [{
           "target": "caster",
           "stat":"intellect",
-          "scale":0.45
+          "scale":0.05
         },
         {
           "target": "caster",
           "stat": "skillLevel",
-          "scale": 1.75
+          "scale": 1.25
         }]
       },
       { 
@@ -255,12 +259,12 @@
           "scaling": [{
             "target": "caster",
             "stat": "willpower",
-            "scale": 0.15
+            "scale": 0.1
           },
           {
             "target": "caster",
             "stat": "skillLevel",
-            "scale": 2
+            "scale": 3
           }]
         }
       }
@@ -275,7 +279,7 @@
     "target": "allEnemies",
     "requiresTarget": false,
     "cooldown": {
-      "base": 6,
+      "base": 12,
       "scaling": [
         {
           "target": "caster",
@@ -325,7 +329,7 @@
     "target": "randomEnemy",
     "requiresTarget": false,
     "cooldown": {
-      "base": 1.5,
+      "base": 3,
       "scaling": [
         {
           "target": "caster",
@@ -372,7 +376,7 @@
     "target": "randomEnemy",
     "requiresTarget": false,
     "cooldown": {
-      "base": 0.8,
+      "base": 1.6,
       "scaling": [
       ]
     },
@@ -405,7 +409,7 @@
     "target": "singleEnemy",
     "requiresTarget": true,
     "cooldown": {
-      "base": 2.5,
+      "base": 5,
       "scaling": [
       ]
     },
@@ -437,9 +441,9 @@
     },
     "target": "allEnemies",
     "requiresTarget": false,
-    "initialCooldown": 3,
+    "initialCooldown": 6,
     "cooldown": {
-      "base": 6,
+      "base": 12,
       "scaling": [{
         "target": "caster",
         "stat": "skillLevel",
@@ -474,9 +478,9 @@
     },
     "target": "allEnemies",
     "requiresTarget": false,
-    "initialCooldown": 10,
+    "initialCooldown": 16,
     "cooldown": {
-      "base": 6,
+      "base": 12,
       "min": 3,
       "scaling": [{
         "target": "caster",
@@ -513,7 +517,7 @@
     "target": "allEnemies",
     "requiresTarget": false,
     "cooldown": {
-      "base": 5,
+      "base": 10,
       "scaling": [
         {
           "target": "caster",
@@ -558,7 +562,7 @@
     "target": "randomEnemy",
     "requiresTarget": false,
     "cooldown": {
-      "base": 5,
+      "base": 10,
       "scaling": [
         {
           "target": "caster",
@@ -603,7 +607,7 @@
     "target": "randomEnemy",
     "requiresTarget": false,
     "cooldown": {
-      "base": 1.5,
+      "base": 3,
       "scaling": []
     },
     "effects": [
@@ -640,9 +644,9 @@
   },
   "boilingBlood": {
     "name": "Boiling Blood",
-    "initialCooldown": 3,
+    "initialCooldown": 6,
     "cooldown": {
-      "base": 10,
+      "base": 20,
       "min": 3,
       "scaling": [{
         "target":"caster",
@@ -721,7 +725,7 @@
     "target": "allEnemies",
     "requiresTarget": false,
     "cooldown": {
-      "base": 8,
+      "base": 16,
       "min": 2,
       "scaling": [
         {
@@ -751,7 +755,7 @@
     "target": "randomEnemy",
     "requiresTarget": false,
     "cooldown": {
-      "base": 7,
+      "base": 14,
       "min": 2,
       "scaling": [
         {
@@ -797,7 +801,7 @@
     "target": "allAllies",
     "requiresTarget": false,
     "cooldown": {
-      "base": 7,
+      "base": 14,
       "min": 5,
       "scaling": []
     },
@@ -866,7 +870,7 @@
     "target": "self",
     "requiresTarget": false,
     "cooldown": {
-      "base": 10,
+      "base": 20,
       "min": 5,
       "scaling": [
         {
@@ -915,7 +919,7 @@
     "target": "self",
     "requiresTarget": false,
     "cooldown": {
-      "base": 5,
+      "base": 10,
       "scaling": [
         {
           "target": "caster",
@@ -973,7 +977,7 @@
     "target": "self",
     "requiresTarget": false,
     "cooldown": {
-      "base": 8,
+      "base": 16,
       "scaling": [
         {
           "target": "caster",
@@ -1024,7 +1028,7 @@
     "target": "randomEnemy",
     "requiresTarget": false,
     "cooldown": {
-      "base": 3,
+      "base": 6,
       "min": 1,
       "scaling": [
         {
@@ -1067,7 +1071,7 @@
     "target": "singleEnemy",
     "requiresTarget": true,
     "cooldown": {
-      "base": 10,
+      "base": 20,
       "min": 5,
       "scaling": []
     },
@@ -1100,7 +1104,7 @@
     "target": "self",
     "requiresTarget": false,
     "cooldown": {
-      "base": 4,
+      "base": 8,
       "scaling": []
     },
     "effects": [
@@ -1142,7 +1146,7 @@
     "target": "allEnemies",
     "requiresTarget": false,
     "cooldown": {
-      "base": 5,
+      "base": 10,
       "scaling": []
     },
     "effects": [
@@ -1183,7 +1187,7 @@
     "target": "allEnemies",
     "requiresTarget": false,
     "cooldown": {
-      "base": 8,
+      "base": 16,
       "min": 4,
       "scaling": []
     },
@@ -1227,7 +1231,7 @@
     "target": "self",
     "requiresTarget": false,
     "cooldown": {
-      "base": 8,
+      "base": 16,
       "min": 4,
       "scaling": []
     },
@@ -1256,7 +1260,7 @@
     "target": "singleEnemy",
     "requiresTarget": true,
     "cooldown": {
-      "base": 12,
+      "base": 24,
       "min": 6,
       "scaling": []
     },
@@ -1295,7 +1299,7 @@
     "target": "allEnemies",
     "requiresTarget": false,
     "cooldown": {
-      "base": 8,
+      "base": 16,
       "min": 4,
       "scaling": [
         {"target": "caster",
@@ -1327,7 +1331,7 @@
     "target": "all",
     "requiresTarget": false,
     "cooldown": {
-      "base": 10,
+      "base": 20,
       "min": 5,
       "scaling": []
     },
@@ -1358,7 +1362,7 @@
     "target": "randomEnemy",
     "requiresTarget": false,
     "cooldown": {
-      "base": 0.5,
+      "base": 1,
       "min": 0.2,
       "scaling": []
     },
@@ -1377,9 +1381,9 @@
     },
     "target": "singleEnemy",
     "requiresTarget": true,
-    "initialCooldown": 7,
+    "initialCooldown": 14,
     "cooldown": {
-      "base": 10,
+      "base": 20,
       "scaling": [{
         "target": "caster",
         "stat": "skillLevel",
@@ -1435,7 +1439,7 @@
     "target": "randomEnemy",
     "requiresTarget": false,
     "cooldown": {
-      "base": 3,
+      "base": 6,
       "min": 1,
       "scaling": [
         {
@@ -1485,7 +1489,7 @@
     "target": "self",
     "requiresTarget": false,
     "cooldown": {
-      "base": 5,
+      "base": 10,
       "min": 2,
       "scaling": []
     },
@@ -1528,9 +1532,9 @@
     },
     "target": "self",
     "requiresTarget": false,
-    "initialCooldown": 5,
+    "initialCooldown": 10,
     "cooldown": {
-      "base": 10,
+      "base": 20,
       "scaling": [
         {
           "target": "caster",
@@ -1564,7 +1568,7 @@
     "target": "self",
     "requiresTarget": false,
     "cooldown": {
-      "base": 10,
+      "base": 20,
       "scaling": []
     },
     "effects": [
@@ -1592,7 +1596,7 @@
     "target": "singleEnemy",
     "requiresTarget": true,
     "cooldown": {
-      "base": 2,
+      "base": 4,
       "scaling": [
         {
           "target": "caster",
@@ -1635,7 +1639,7 @@
     "target": "allAllies",
     "requiresTarget": false,
     "cooldown": {
-      "base": 3,
+      "base": 6,
       "scaling": []
     },
     "effects": [
@@ -1670,7 +1674,7 @@
     "target": "singleEnemy",
     "requiresTarget": true,
     "cooldown": {
-      "base": 10,
+      "base": 20,
       "scaling": []
     },
     "effects": [
@@ -1690,7 +1694,7 @@
     "target": "allEnemies",
     "requiresTarget": false,
     "cooldown": {
-      "base": 2,
+      "base": 4,
       "scaling": []
     },
     "effects": [
@@ -1700,11 +1704,11 @@
         "statType": "stat",
         "stat": "cooldownReduction",
         "duration": {
-          "base": 2000,
+          "base": 1500,
           "scaling": [
             {
               "target": "caster",
-              "scale": 50,
+              "scale": 30,
               "stat": "willpower"
             }
           ]
@@ -1712,11 +1716,11 @@
         "effect": "multi",
         "value": {
           "base": 1.05,
-          "max": 1.35,
+          "max": 1.45,
           "scaling": [
             {
               "target": "caster",
-              "scale": 1.01,
+              "scale": 1.008,
               "effect": "multi",
               "stat": "willpower"
             }
@@ -1726,11 +1730,17 @@
       {
         "type": "damage",
         "damageType": "cold",
-        "base": 3,
+        "base": 1,
         "scaling": [{
           "target": "caster",
           "stat": "intellect",
-          "scale": 2.5
+          "scale": 1
+        },
+        {
+          "target": "caster",
+          "stat": "wisdom",
+          "scale": 1.03,
+          "effect": "multi"
         }]
       }
     ]
@@ -1743,7 +1753,7 @@
     "target": "allEnemies",
     "requiresTarget": false,
     "cooldown": {
-      "base": 15,
+      "base": 30,
       "scaling": []
     },
     "effects": [
@@ -1786,7 +1796,7 @@
     "target": "singleEnemy",
     "requiresTarget": true,
     "cooldown": {
-      "base": 15,
+      "base": 30,
       "scaling": []
     },
     "effects": [
@@ -1810,11 +1820,11 @@
       {
         "type": "damage",
         "damageType": "blunt",
-        "base": 17,
+        "base": 27,
         "scaling": [{
           "target": "caster",
           "stat": "strength",
-          "scale": 5
+          "scale": 10
         }]
       }
     ]
@@ -1822,7 +1832,7 @@
    "umbralSlice": {
     "name": "Umbral Slice",
     "cooldown": {
-      "base": 1.0,
+      "base": 2,
       "scaling": []
     },
     "cost": { "sp": 4 },
@@ -1845,7 +1855,7 @@
     "soulRend": {
     "name": "Soul Rend",
     "cooldown": {
-      "base": 2.8,
+      "base": 5.6,
       "scaling": [
       {
         "target": "caster",
@@ -1884,7 +1894,7 @@
     "requiresTarget": false,
     "initialCooldown": 3,
     "cooldown": {
-      "base": 5,
+      "base": 10,
       "scaling": [
         {
           "target": "caster",
@@ -1917,7 +1927,7 @@
     "target": "allAllies",
     "requiresTarget": false,
     "cooldown": {
-      "base": 3,
+      "base": 6,
       "scaling": []
     },
     "effects": [
@@ -1951,9 +1961,9 @@
     },
     "target": "self",
     "requiresTarget": false,
-    "initialCooldown": 7,
+    "initialCooldown": 14,
     "cooldown": {
-      "base": 10,
+      "base": 20,
       "scaling": []
     },
     "effects": [
@@ -1972,7 +1982,7 @@
           "scaling": [{
             "target": "caster",
             "stat": "tier",
-            "scale": 5
+            "scale": 2
           }]
         }
       }
@@ -1986,9 +1996,9 @@
     },
     "target": "self",
     "requiresTarget": false,
-    "initialCooldown": 15,
+    "initialCooldown": 25,
     "cooldown": {
-      "base": 10,
+      "base": 20,
       "scaling": []
     },
     "effects": [

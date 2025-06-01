@@ -2239,7 +2239,7 @@
   "attributesPerLevel": {
     "strength": 2.25,
     "dexterity": 1,
-    "constitution": 2.8,
+    "constitution": 3.6,
     "intellect": 1,
     "wisdom": 1,
     "willpower": 1
@@ -2252,7 +2252,7 @@
       "scaling": [
         {
           "target": "caster",
-          "scale": 13,
+          "scale": 15,
           "stat": "constitution"
         }
       ]
@@ -2445,7 +2445,7 @@
       "scaling": [{
         "target": "caster",
         "stat": "willpower",
-        "scale": 1.02,
+        "scale": 1.05,
         "effect": "multi"
       }],
       "value": 0.25
@@ -2512,20 +2512,20 @@
   "attributesPerLevel": {
     "strength": 0.1,
     "dexterity": 0.1,
-    "constitution": 1.5,
+    "constitution": 1.7,
     "intellect": 1.5,
     "wisdom": 1.5,
-    "willpower": 1.5
+    "willpower": 1.7
   },
   "stats": {
     "maxHp": {
       "display": "Max Hp",
-      "base": 35,
-      "value": 35,
+      "base": 5,
+      "value": 5,
       "scaling": [
         {
           "target": "caster",
-          "scale": 6,
+          "scale": 8,
           "stat": "constitution"
         }
       ]
@@ -2627,7 +2627,7 @@
     },{
       "id": "mistForm",
       "level": 1,
-      "tierRequired": 5
+      "tierRequired": 10
     }
     ]
   },
