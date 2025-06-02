@@ -802,7 +802,7 @@
     "requiresTarget": false,
     "cooldown": {
       "base": 14,
-      "min": 5,
+      "min": 8,
       "scaling": []
     },
     "effects": [
@@ -813,6 +813,7 @@
         "stat": "cooldownReduction",
         "duration": {
           "base": 5000,
+          "max": 10000,
           "scaling": [
             {
               "target": "caster",
@@ -824,6 +825,7 @@
         "effect": "multi",
         "value": {
           "base": 0.9,
+          "min": 0.75,
           "scaling": [
             {
               "target": "caster",
@@ -840,6 +842,7 @@
         "stat": "cooldownReduction",
         "duration": {
           "base": 5000,
+          "max": 10000,
           "scaling": [
             {
               "target": "caster",
@@ -851,6 +854,7 @@
         "effect": "multi",
         "value": {
           "base": 1.1,
+          "max": 1.4,
           "scaling": [
             {
               "target": "caster",

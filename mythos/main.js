@@ -6,7 +6,7 @@ let talentsData = null;
 Array.prototype.random = function() {
   return this[Math.floor(Math.random() * this.length)];
 };
-let loadFromGithub = true;
+let loadFromGithub = false;
 let debugMode = true;
 let hintData;
 const updateSpeed = 100;
@@ -809,7 +809,7 @@ const conditionsData = {
 
           if (burning.stacks > 0) {
             const damage = damageUnit(undefined, target, "heat", burning.stacks);
-            const reduction = Math.max(1, Math.floor(burning.stacks / 3));
+            const reduction = Math.max(1, Math.floor(burning.stacks / 4));
             burning.stacks = Math.max(0, burning.stacks - reduction);
 
             updateCombatLog(`${target.name} takes ${damage} ${getDamageTypeIcon("heat")} damage from burning alive!`, caster, ["condition", target.isAlly ? "ally" : "enemy"]);
@@ -1216,7 +1216,7 @@ const talentEffects = [].concat(...unit.skills.learned
   )
   .filter(e => e.talentData?.type === "statBonus" && e.talentData.stat === statName));
    talentEffects.forEach(e => {
-     let eff = calculateEffectiveValue(e.talentData, unit, undefined, player.skills.learned.find(s => s.id == e.talentId).level)
+     let eff = calculateEffectiveValue(e.talentData, unit, undefined, unit.skills.learned.find(s => s.id == e.talentId).level)
      console.log(e, eff)
      if(e.talentData.effect && e.talentData.effect == "multi"){
        console.log("Multiplying "+statName+" by " + eff)
@@ -1228,11 +1228,15 @@ const talentEffects = [].concat(...unit.skills.learned
    })
   
   }
-  let gearMulti = Object.values(player.inventory.equipped)
+  
+  let gearMulti = 1;
+  if(unit == player){
+    gearMulti = Object.values(player.inventory.equipped)
     .filter(item => item && Array.isArray(item.totalBonuses))
     .flatMap(item => item.totalBonuses)
     .filter(bonus => bonus.stat === statName)
     .reduce((total, bonus) => total * bonus.multi, 1);
+  }
   let buffMulti = 1;
   let debuffMulti = 1;
   
@@ -4672,7 +4676,7 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
       cdr = unit.stats.cooldownReduction.value;
     } else {
       console.error(`Unit ${unit.name} has no cdr`)
-      cdr = 0.1;
+      cdr = 1;
     }
     
     let skillLevel = 0;
@@ -4683,7 +4687,7 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
     }else{
       console.error("SKILL NOT FOUND", talentId)
     }
-    let cd = cdr*calculateEffectiveValue(effect.cooldown, unit, undefined, skillLevel);
+    let cd = cdr*calculateEffectiveValue(effectcooldown, unit, undefined, skillLevel);
     if(skill.cooldown.min){
       cd = Math.max(skill.cooldown.min, cd);
     }
