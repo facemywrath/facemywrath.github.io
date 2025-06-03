@@ -35,7 +35,7 @@ const debugLog = [];
     });
 
     window.addEventListener("unhandledrejection", function (event) {
-        addToDebugLog('unhandled rejection', event.reason);
+        addToDebugLog('unhandled rejection', event.reason, new Error().stack);
     });
 })();
 
@@ -1062,11 +1062,12 @@ const conditionsData = {
             target.conditions["Stunned"]
           ) {
             delete target.conditions["Stunned"];
+            target.stunTimeouts = []
             updateCombatLog(`${target.name} is no longer stunned!`, caster, ["condition", target.isAlly ? "ally" : "enemy"], "#c3c", "#929");
             statusEndEvent.emit({ effect: event.effect, caster, target, skillId: event.skillId });
             updateStatusButton(target);
           }
-        }, calculateEffectiveValue(event.effect.duration, caster, target, 1));
+        }, calculateEffectiveValue(event.effect.duration, event, caster, target, 1));
 
         target.stunTimeouts.push(timeout);
       }
@@ -1508,7 +1509,7 @@ function recalculateStat(unit, statName) {
     stat.value = 0;
   }
 
-  let base = calculateEffectiveValue(stat, unit);
+  let base = calculateEffectiveValue(stat, unit.stats, unit);
   if (isNaN(base)) {
     console.error("base is NaN", stat);
   }
@@ -1523,13 +1524,13 @@ const talentEffects = [].concat(...unit.skills.learned
   )
   .filter(e => e.talentData?.type === "statBonus" && e.talentData.stat === statName));
    talentEffects.forEach(e => {
-     let eff = calculateEffectiveValue(e.talentData, unit, undefined, unit.skills.learned.find(s => s.id == e.talentId).level)
+     let eff = calculateEffectiveValue(e.talentData, e, unit, undefined, unit.skills.learned.find(s => s.id == e.talentId).level)
      console.log(e, eff)
      if(e.talentData.effect && e.talentData.effect == "multi"){
        console.log("Multiplying "+statName+" by " + eff)
        base *= eff;
      }else{
-       console.log("Adding " + eff + " to " +  stat)
+       console.log("Adding " + eff + " to " +  statName)
        base += eff
      }
    })
@@ -4844,7 +4845,7 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
             })
           }
           if (!targetFlag) {
-            desc = `Deal ${calculateEffectiveValue(e, member, undefined, skillLevel)} damage. `;
+            desc = `Deal ${calculateEffectiveValue(e, skillId,  member, undefined, skillLevel)} damage. `;
           } else {
             desc = `Deal damage equal to `
           }
@@ -4864,10 +4865,10 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
           break;
         case "buff":
         case "debuff":
-          e.value = calculateEffectiveValue(e.value, member, undefined, skillLevel)
+          e.value = calculateEffectiveValue(e.value, skillId, member, undefined, skillLevel)
           const sign = (e.effect === "multi" ? "×":e.type == "buff"? "+":"-");
           
-          e.duration = calculateEffectiveValue(e.duration, member, undefined, skillLevel)
+          e.duration = calculateEffectiveValue(e.duration, skillId, member, undefined, skillLevel)
           if(e.resistanceType){
             desc = `${capitalize(e.resistanceType)} Damage Taken * ${(e.value).toFixed(2)} for ${(e.duration/1000).toFixed(2)}s`
             break;
@@ -4893,7 +4894,7 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
                 }
               })
             }
-            desc = `Apply ${calculateEffectiveValue(e.stacks,
+            desc = `Apply ${calculateEffectiveValue(e.stacks, skillId,
               member,
               undefined,
               skillLevel)} stack(s) of ${e.name} <span style="color: #999">(${e.stacks.base.toFixed(2)}${scalingText})</span>`;
@@ -5008,7 +5009,7 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
     }else{
       console.error("SKILL NOT FOUND", talentId)
     }
-    let cd = cdr*calculateEffectiveValue(effectcooldown, unit, undefined, skillLevel);
+    let cd = cdr*calculateEffectiveValue(effectcooldown, skillId, unit, undefined, skillLevel);
     if(skill.cooldown.min){
       cd = Math.max(skill.cooldown.min, cd);
     }
@@ -5043,7 +5044,7 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
     }else{
       console.error("SKILL NOT FOUND", skillId)
     }
-    let cd = cdr*calculateEffectiveValue(skill.cooldown, unit, undefined, skillLevel);
+    let cd = cdr*calculateEffectiveValue(skill.cooldown, skillId,unit, undefined, skillLevel);
     if(skill.cooldown.min){
       cd = Math.max(skill.cooldown.min, cd);
     }
@@ -5564,14 +5565,14 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         if(Math.random()*100 < critChance){
           critMulti = caster.stats.critMulti.value || 1
         }
-        let total = critMulti*calculateEffectiveValue(effect, caster, unit, skillLevel, skillContext)
+        let total = critMulti*calculateEffectiveValue(effect, skillId, caster, unit, skillLevel, skillContext)
         let finalDamage = damageUnit(caster, unit, effect.damageType, total)
 
 
         updateCombatLog(`${critMulti > 1? "CRITICAL HIT! ":""}${caster.name} deals ${finalDamage.toFixed(2)} ${getDamageTypeIcon(effect.damageType)} damage to ${unit.name}`, caster, ["damage", caster.isAlly?"ally":"enemy"]);
         break;
       case "interrupt":
-        let interruptAmount = calculateEffectiveValue(effect, caster, undefined, skillLevel, skillContext);
+        let interruptAmount = calculateEffectiveValue(effect, skillId, caster, undefined, skillLevel, skillContext);
         let override = effect.overrideCooldown;
         Object.keys(unit.skills.combatData.lastUsed).forEach(s => {
           if(!override){
@@ -5589,7 +5590,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
           break;
       case "summon":
         let unitToSummon = effect.unit;
-        let tier = calculateEffectiveValue(effect.tier, caster, undefined, skillLevel, skillContext)
+        let tier = calculateEffectiveValue(effect.tier, skillId, caster, undefined, skillLevel, skillContext)
         let unitData = createUnit(unitToSummon, effect.isAlly, tier);
         const crewContainer = document.getElementById("player-crew");
         const enemyContainer = document.getElementById("enemy-crew");
@@ -5675,8 +5676,8 @@ function passesTriggerConditions(effect, event, unit, talentId) {
 
         pushedEffect = JSON.parse(JSON.stringify(effect));
         pushedEffect.startTime = Date.now()
-        pushedEffect.duration = calculateEffectiveValue(pushedEffect.duration, caster, unit, skillLevel, skillContext);
-        pushedEffect.value = calculateEffectiveValue(pushedEffect.value, caster, unit, skillLevel, skillContext)
+        pushedEffect.duration = calculateEffectiveValue(pushedEffect.duration, skillId, caster, unit, skillLevel, skillContext);
+        pushedEffect.value = calculateEffectiveValue(pushedEffect.value, skillId, caster, unit, skillLevel, skillContext)
 
         let isResistanceEffect = pushedEffect.resistanceType
                 statusStartEvent.emit({effect: effect,
@@ -5735,11 +5736,11 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         break;
       case "debuff":
         pushedEffect = JSON.parse(JSON.stringify(effect));
-        pushedEffect.duration =calculateEffectiveValue(pushedEffect.duration,
+        pushedEffect.duration =calculateEffectiveValue(pushedEffect.duration, skillId,
           caster,
           unit,
           skillLevel, skillContext);
-        pushedEffect.value = calculateEffectiveValue(pushedEffect.value,
+        pushedEffect.value = calculateEffectiveValue(pushedEffect.value, skillId,
           caster,
           unit,
           skillLevel, skillContext)
@@ -5784,7 +5785,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       case "heal":
         if (!unit.isAlive) break;
         
-        let base = calculateEffectiveValue(effect, caster, unit, skillLevel || 1, skillContext)
+        let base = calculateEffectiveValue(effect, skillId, caster, unit, skillLevel || 1, skillContext)
 
         unit.stats.hp.value = Math.min(unit.stats.maxHp.value, unit.stats.hp.value + base);
         updateCombatBar(unit, "hp");
@@ -5807,7 +5808,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
 
         if (!unit.conditions) unit.conditions = {};
         const condition = effect.name;
-        const stacksToAdd = calculateEffectiveValue(effect.stacks, caster, unit, skillLevel, skillContext) || 1;
+        const stacksToAdd = calculateEffectiveValue(effect.stacks, skillId, caster, unit, skillLevel, skillContext) || 1;
 
         if (!unit.conditions[condition]) {
           unit.conditions[condition] = {
@@ -6802,7 +6803,7 @@ function showClassDetails(className){
     requestAnimationFrame(update);
   }
 
-  function calculateEffectiveValue(block, caster, target, skillLevel, skillContext) {
+  function calculateEffectiveValue(block, parentObject, caster, target, skillLevel, skillContext) {
     if (!block) {
       console.error("No block defined", new Error().stack);
       return null;
@@ -6810,7 +6811,7 @@ function showClassDetails(className){
 
     if (block.base === undefined) {
       if (block.value === undefined) {
-        console.error("Block doesn't have a .base or .value", block, new Error().stack);
+        console.error("Block doesn't have a .base or .value", JSON.stringify(block, null, 2), JSON.stringify(parentObject, null, 2), new Error().stack);
         return block;
       } else {
         block.base = block.value;
@@ -7714,6 +7715,9 @@ function showDebugPopup() {
     }else{
       logText = "There is nothing here";
     }
+    logText +=`\nPLAYERDATA: ${JSON.stringify(player, null, 2)}`
+    logText +=`\nCOMBATUNITS: ${JSON.stringify(combatUnits, null, 2)}`
+    logText +=`\nSETTINGS: ${JSON.stringify(settings, null, 2)}`
     
     const html = `
         <div style="background: linear-gradient('#555','#222'); display: flex; flex-direction: column; width: 100%;">

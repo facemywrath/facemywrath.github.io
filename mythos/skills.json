@@ -1720,7 +1720,11 @@
       {
         "type": "condition",
         "name": "Stunned",
-        "stacks": 1,
+        "stacks": {
+          "base": 1,
+          "value": 1,
+          "scaling": []
+        },
         "duration": 1500
       }
     ]
