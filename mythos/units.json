@@ -1018,15 +1018,15 @@
   "xp": 10,
   "attributes": {
     "strength": 2,
-    "dexterity": 4,
+    "dexterity": 3,
     "constitution": 2,
     "intellect": 1,
     "wisdom": 1,
     "willpower": 1
   },
   "attributesPerLevel": {
-    "strength": 2,
-    "dexterity": 1.5,
+    "strength": 2.5,
+    "dexterity": 2,
     "constitution": 1.5,
     "intellect": 0.7,
     "wisdom": 0.9,
@@ -1035,8 +1035,8 @@
   "stats": {
     "maxHp": {
       "display": "Max Hp",
-      "base": 35,
-      "value": 35,
+      "base": 25,
+      "value": 25,
       "scaling": [
         {
           "target": "caster",
@@ -1126,8 +1126,14 @@
     },
     "cooldownReduction": {
       "display": "Cooldown Reduction",
-      "base": 1,
-      "value": 1
+      "base": 0.9,
+      "value": 0.9,
+      "min": 0.75,
+      "scaling": [{
+        "target": "caster",
+        "stat": "tier",
+        "scale": -0.005
+      }]
     },
     "armorPenetration": {
       "display": "Armor Penetration",

@@ -104,6 +104,23 @@ body {
   border-radius: 34px;
 }
 
+#debug-overlay {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 99999;
+  pointer-events: none; /* Allows clicks to pass through unless you want interaction */
+}
+
+#debug-info {
+  background-color: rgba(0, 0, 0, 0.7);
+  color: lime;
+  font-family: monospace;
+  font-size: 4px;
+  border-radius: 4px;
+  pointer-events: auto; /* enable interaction if needed */
+}
+
 .slider::before {
   position: absolute;
   content: "";

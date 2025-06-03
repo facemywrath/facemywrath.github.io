@@ -3,11 +3,48 @@ let damageTypeMultipliers = null;
 let skillsData = null;
 let unitsData = null;
 let talentsData = null;
+const debugLog = [];
+(function () {
+    const originalLog = console.log;
+    const originalWarn = console.warn;
+    const originalError = console.error;
+
+    function addToDebugLog(type, ...args) {
+        const timestamp = new Date().toISOString();
+        const entry = `[${type.toUpperCase()}]  ${timestamp}:  ${args.join(', ')}`;
+        debugLog.push(entry);
+    }
+
+    console.log = function (...args) {
+        addToDebugLog('log', ...args);
+        originalLog.apply(console, args);
+    };
+
+    console.warn = function (...args) {
+        addToDebugLog('warn', ...args);
+        originalWarn.apply(console, args);
+    };
+
+    console.error = function (...args) {
+        addToDebugLog('error', ...args);
+        originalError.apply(console, args);
+    };
+
+    window.addEventListener("error", function (event) {
+        addToDebugLog('global error', event.message, event.filename, event.lineno);
+    });
+
+    window.addEventListener("unhandledrejection", function (event) {
+        addToDebugLog('unhandled rejection', event.reason);
+    });
+})();
+
+
 Array.prototype.random = function() {
   return this[Math.floor(Math.random() * this.length)];
 };
-let loadFromGithub = false;
-let debugMode = true;
+let loadFromGithub = true;
+let runAnalysis = false;
 let hintData;
 const updateSpeed = 100;
 let skillToEquip = null; // temporarily holds a skill ID when "Equip" is clicked
@@ -33,37 +70,37 @@ const gearTypes = {
     slot: "head",
     oreRequired: 9,
     statBoosts: [
-      { stat: "lifestealMulti", weight: 1, multi: 1.04 },
-      { stat: "critChance", weight: 2, multi: 1.02 },
-      { stat: "lifestealChance", weight: 5, multi: 1.04 },
-      { stat: "hpRegen", weight: 2, multi: 1.06},
-      { stat: "maxSp", weight: 2, multi: 1.09 },
-      { stat: "damageTaken", weight: 2, multi: 0.96 }
+      { stat: "lifestealMulti", weight: 1, multi: 1.004 },
+      { stat: "critChance", weight: 2, multi: 1.002 },
+      { stat: "lifestealChance", weight: 5, multi: 1.004 },
+      { stat: "hpRegen", weight: 2, multi: 1.006},
+      { stat: "maxSp", weight: 2, multi: 1.009 },
+      { stat: "damageTaken", weight: 2, multi: 0.997 }
     ]
   },
   "Circlet": {
     slot: "head",
     oreRequired: 4,
     statBoosts: [
-      { stat: "critChance", weight: 1, multi: 1.04 },
-      { stat: "mpEfficiency", weight: 5, multi: 0.96 },
-      { stat: "cooldownReduction", weight: 2, multi: 0.97 },
-      { stat: "maxSp", weight: 3, multi: 1.06 },
-      { stat: "critMulti", weight: 3, multi: 1.04 },
-      { stat: "lifestealMulti", weight: 1, multi: 1.07 }
+      { stat: "critChance", weight: 1, multi: 1.01 },
+      { stat: "mpEfficiency", weight: 5, multi: 0.99 },
+      { stat: "maxSp", weight: 3, multi: 1.006 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.99 },
+      { stat: "critMulti", weight: 3, multi: 1.01 },
+      { stat: "lifestealMulti", weight: 1, multi: 1.007 }
     ]
   },
   "Spaulders": {
     slot: "torso",
     oreRequired: 8,
     statBoosts: [
-      { stat: "cooldownReduction", weight: 1, multi: 0.91 },
-      { stat: "critChance", weight: 2, multi: 1.04 },
-      { stat: "damageTaken", weight: 3, multi: 0.98 },
-      { stat: "maxHp", weight: 2, multi: 1.07 },
-      { stat: "hpRegen", weight: 2, multi: 1.02
+      { stat: "cooldownReduction", weight: 1, multi: 0.991 },
+      { stat: "critChance", weight: 2, multi: 1.004 },
+      { stat: "damageTaken", weight: 3, multi: 0.99 },
+      { stat: "maxHp", weight: 2, multi: 1.01 },
+      { stat: "hpRegen", weight: 2, multi: 1.01
       },
-      { stat: "evasionChance", weight: 5, multi: 1.04 }
+      { stat: "evasionChance", weight: 5, multi: 1.004 }
     ]
   },
   "Cuirass": {
@@ -72,215 +109,259 @@ const gearTypes = {
     statBoosts: [
       { stat: "maxMp", weight: 2, multi: 1.1 },
       { stat: "maxSp", weight: 5, multi: 1.01 },
-      { stat: "damageTaken", weight: 2, multi: 0.93 },
-      { stat: "lifestealMulti", weight: 3, multi: 1.08 },
-      { stat: "cooldownReduction", weight: 1, multi: 0.98 },
-      { stat: "hpRegen", weight: 2, multi: 1.05}
+      { stat: "damageTaken", weight: 2, multi: 0.993 },
+      { stat: "lifestealMulti", weight: 3, multi: 1.008 },
+      { stat: "cooldownReduction", weight: 1, multi: 0.998 },
+      { stat: "hpRegen", weight: 2, multi: 1.005}
     ]
   },
   "Bracers": {
     slot: "hands",
     oreRequired: 5,
     statBoosts: [
-      { stat: "critMulti", weight: 2, multi: 1.03 },
-      { stat: "mpEfficiency", weight: 2, multi: 0.94 },
-      { stat: "lifestealChance", weight: 1, multi: 1.06 },
-      { stat: "evasionChance", weight: 3, multi: 1.11 },
-      { stat: "maxMp", weight: 4, multi: 1.09 },
-      { stat: "xpGain", weight: 2, multi: 1.03 }
+      { stat: "critMulti", weight: 2, multi: 1.003 },
+      { stat: "mpEfficiency", weight: 2, multi: 0.994 },
+      { stat: "lifestealChance", weight: 1, multi: 1.006 },
+      { stat: "evasionChance", weight: 3, multi: 1.081 },
+      { stat: "maxMp", weight: 4, multi: 1.009 },
+      { stat: "xpGain", weight: 2, multi: 1.006 }
     ]
   },
   "Gloves": {
     slot: "hands",
     oreRequired: 6,
     statBoosts: [
-      { stat: "lifestealChance", weight: 2, multi: 1.1 },
-      { stat: "critMulti", weight: 2, multi: 1.09 },
-      { stat: "maxSp", weight: 3, multi: 1.05},
-      { stat: "cooldownReduction", weight: 3, multi: 0.91 },
-      { stat: "evasionChance", weight: 1, multi: 1.13 },
-      { stat: "damageTaken", weight: 2, multi: 0.98 }
+      { stat: "lifestealChance", weight: 2, multi: 1.01 },
+      { stat: "critMulti", weight: 2, multi: 1.008 },
+      { stat: "maxSp", weight: 3, multi: 1.005},
+      { stat: "cooldownReduction", weight: 3, multi: 0.991 },
+      { stat: "evasionChance", weight: 1, multi: 1.013 },
+      { stat: "damageTaken", weight: 2, multi: 0.998 }
     ]
   },
   "Gauntlets": {
     slot: "hands",
     oreRequired: 5,
     statBoosts: [
-      { stat: "maxSp", weight: 3, multi: 0.93 },
-      { stat: "spRegen", weight: 2, multi: 1.06},
-      { stat: "lifestealChance", weight: 2, multi: 0.92 },
-      { stat: "cooldownReduction", weight: 1, multi: 0.95 },
+      { stat: "maxSp", weight: 3, multi: 0.993 },
+      { stat: "spRegen", weight: 2, multi: 1.16},
+      { stat: "lifestealChance", weight: 2, multi: 1.02 },
+      { stat: "cooldownReduction", weight: 1, multi: 0.98 },
       { stat: "hpRegen", weight: 4, multi: 1.02},
-      { stat: "xpGain", weight: 2, multi: 1.05 }
+      { stat: "xpGain", weight: 2, multi: 1.02 }
     ]
   },
   "Belt": {
     slot: "waist",
     oreRequired: 7,
     statBoosts: [
-      { stat: "damageTaken", weight: 3, multi: 0.96 },
-      { stat: "hpRegen", weight: 3, multi: 1.04},
-      { stat: "maxHp", weight: 2, multi: 1.08 },
-      { stat: "evasionChance", weight: 4, multi: 1.1 },
-      { stat: "mpRegen", weight: 2, multi: 1.06 },
-      { stat: "cooldownReduction", weight: 2, multi: 0.94 }
+      { stat: "damageTaken", weight: 3, multi: 0.996 },
+      { stat: "hpRegen", weight: 3, multi: 1.02},
+      { stat: "maxHp", weight: 2, multi: 1.01 },
+      { stat: "evasionChance", weight: 4, multi: 1.02 },
+      { stat: "mpRegen", weight: 2, multi: 1.03 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.98 }
     ]
   },
   "Girdle": {
     slot: "waist",
     oreRequired: 9,
     statBoosts: [
-      { stat: "lifestealMulti", weight: 2, multi: 1.08 },
-      { stat: "hpRegen", weight: 3, multi: 1.04},
-      { stat: "critMulti", weight: 2, multi: 0.9 },
-      { stat: "evasionChance", weight: 2, multi: 1.12 },
-      { stat: "maxSp", weight: 2, multi: 1.03 },
-      { stat: "mpEfficiency", weight: 3, multi: 0.97 }
+      { stat: "lifestealMulti", weight: 2, multi: 1.008 },
+      { stat: "hpRegen", weight: 3, multi: 1.004},
+      { stat: "critMulti", weight: 2, multi: 1.009 },
+      { stat: "evasionChance", weight: 2, multi: 1.002 },
+      { stat: "maxSp", weight: 2, multi: 1.01 },
+      { stat: "mpEfficiency", weight: 3, multi: 0.995 }
     ]
   },
   "Greaves": {
     slot: "legs",
     oreRequired: 13,
     statBoosts: [
-      { stat: "maxSp", weight: 2, multi: 1.02 },
-      { stat: "evasionChance", weight: 2, multi: 1.1 },
-      { stat: "damageTaken", weight: 2, multi: 0.95 },
-      { stat: "spRegen", weight: 3, multi: 1.0 },
-      { stat: "cooldownReduction", weight: 2, multi: 0.92 },
-      { stat: "lifestealMulti", weight: 1, multi: 1.06 }
+      { stat: "maxSp", weight: 2, multi: 1.007 },
+      { stat: "evasionChance", weight: 2, multi: 1.006 },
+      { stat: "damageTaken", weight: 2, multi: 0.996 },
+      { stat: "spRegen", weight: 3, multi: 1.009},
+      { stat: "cooldownReduction", weight: 2, multi: 0.998 },
+      { stat: "lifestealMulti", weight: 1, multi: 1.02 }
     ]
   },
   "Pants": {
     slot: "legs",
     oreRequired: 11,
     statBoosts: [
-      { stat: "maxHp", weight: 2, multi: 1.09 },
-      { stat: "evasionChance", weight: 3, multi: 1.03 },
-      { stat: "damageTaken", weight: 2, multi: 0.93 },
-      { stat: "hpRegen", weight: 3, multi: 1.1 },
-      { stat: "critChance", weight: 2, multi: 1.04 },
-      { stat: "lifestealMulti", weight: 2, multi: 1.03 }
+      { stat: "maxHp", weight: 2, multi: 1.01 },
+      { stat: "evasionChance", weight: 3, multi: 1.006 },
+      { stat: "damageTaken", weight: 2, multi: 0.993 },
+      { stat: "hpRegen", weight: 3, multi: 1.004},
+      { stat: "critChance", weight: 2, multi: 1.004 },
+      { stat: "lifestealMulti", weight: 2, multi: 1.003 }
     ]
   },
   "Boots": {
     slot: "feet",
     oreRequired: 6,
     statBoosts: [
-      { stat: "critChance", weight: 1, multi: 1.06 },
-      { stat: "evasionChance", weight: 2, multi: 1.11 },
-      { stat: "cooldownReduction", weight: 2, multi: 0.93 },
-      { stat: "spRegen", weight: 2, multi: 1.1},
-      { stat: "lifestealChance", weight: 3, multi: 1.07 },
-      { stat: "damageTaken", weight: 3, multi: 0.97 }
+      { stat: "critChance", weight: 1, multi: 1.006 },
+      { stat: "evasionChance", weight: 2, multi: 1.091 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.993 },
+      { stat: "spRegen", weight: 2, multi: 1.01},
+      { stat: "lifestealChance", weight: 3, multi: 1.007 },
+      { stat: "damageTaken", weight: 3, multi: 0.997 }
     ]
   },
   "Ring": {
     slot: "hands",
     oreRequired: 1,
     statBoosts: [
-      { stat: "xpGain", weight: 2, multi: 1.3},
-      { stat: "mpRegen", weight: 2, multi: 1.15 },
-      { stat: "lifestealChance", weight: 2, multi: 1.15 },
-      { stat: "cooldownReduction", weight: 2, multi: 0.91 },
-      { stat: "lifestealMulti", weight: 2, multi: 1.2 },
-      { stat: "evasionChance", weight: 2, multi: 1.1 }
+      { stat: "xpGain", weight: 2, multi: 1.08},
+      { stat: "mpRegen", weight: 2, multi: 1.08},
+      { stat: "lifestealChance", weight: 2, multi: 1.1 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.951 },
+      { stat: "lifestealMulti", weight: 2, multi: 1.08 },
+      { stat: "evasionChance", weight: 2, multi: 1.05 }
     ]
   },
   "Towershield": {
     slot: "weapon",
     oreRequired: 15,
+    baseStatBoosts: [{
+      stat: "damageTaken", multi: 0.996
+    },
+    {
+      stat: "cooldownReduction", multi: 1.003
+    }],
     statBoosts: [
-      { stat: "damageTaken", weight: 2, multi: 0.9},
-      { stat: "damageAmp", weight: 3, multi: 1.1 },
-      { stat: "maxHp", weight: 2, multi: 1.12 },
-      { stat: "hpRegen", weight: 3, multi: 1.08 },
-      { stat: "critMulti", weight: 1, multi: 1.05 },
-      { stat: "cooldownReduction", weight: 2, multi: 0.98 }
+      { stat: "damageTaken", weight: 2, multi: 0.996},
+      { stat: "damageAmp", weight: 3, multi: 1.003 },
+      { stat: "maxHp", weight: 2, multi: 1.012 },
+      { stat: "hpRegen", weight: 3, multi: 1.008 },
+      { stat: "critMulti", weight: 1, multi: 1.005 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.998 }
     ]
   },
   "Shield": {
     slot: "weapon",
     oreRequired: 10,
+    baseStatBoosts: [{
+      stat: "damageTaken", multi: 0.998
+    },
+    {
+      stat: "cooldownReduction", multi: 1.001
+    }],
     statBoosts: [
-      { stat: "damageTaken", weight: 2, multi: 0.96 },
-      { stat: "damageAmp", weight: 3, multi: 1.05 },
-      { stat: "maxHp", weight: 2, multi: 1.05 },
-      { stat: "hpRegen", weight: 3, multi: 1.08 },
-      { stat: "critMulti", weight: 1, multi: 1.05 },
-      { stat: "cooldownReduction", weight: 2, multi: 0.96 }
+      { stat: "damageTaken", weight: 2, multi: 0.996 },
+      { stat: "damageAmp", weight: 3, multi: 1.005 },
+      { stat: "maxHp", weight: 2, multi: 1.005 },
+      { stat: "hpRegen", weight: 3, multi: 1.008 },
+      { stat: "critMulti", weight: 1, multi: 1.005 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.996 }
     ]
   },
   "Claws": {
     slot: "weapon",
     oreRequired: 11,
+    baseStatBoosts: [{
+      stat: "damageAmp", multi: 1.01
+    },
+    {
+      stat: "cooldownReduction", multi: 0.999
+    }],
     statBoosts: [
-      { stat: "maxMp", weight: 2, multi: 1.07 },
-      { stat: "mpEfficiency", weight: 3, multi: 0.95 },
-      { stat: "mpRegen", weight: 2, multi: 1.03},
-      { stat: "lifestealMulti", weight: 1, multi: 1.07 },
-      { stat: "lifestealChance", weight: 2, multi: 1.1 },
-      { stat: "critChance", weight: 1, multi: 1.06 }
+      { stat: "maxMp", weight: 2, multi: 1.007 },
+      { stat: "mpEfficiency", weight: 3, multi: 0.995 },
+      { stat: "mpRegen", weight: 2, multi: 1.003},
+      { stat: "lifestealMulti", weight: 1, multi: 1.007 },
+      { stat: "lifestealChance", weight: 2, multi: 1.011 },
+      { stat: "critChance", weight: 1, multi: 1.006 }
     ]
   },
   "Dagger": {
     slot: "weapon",
     oreRequired: 5,
-    damageAmp: 1.07,
+    baseStatBoosts: [{
+      stat: "damageAmp", multi: 1.01
+    },
+    {
+      stat: "critChance", multi: 1.003
+    }],
     statBoosts: [
-      { stat: "critChance", weight: 2, multi: 1.08 },
-      { stat: "cooldownReduction", weight: 1, multi: 0.97 },
-      { stat: "critMulti", weight: 2, multi: 1.05 },
-      { stat: "lifestealChance", weight: 3, multi: 1.05 },
-      { stat: "evasionChance", weight: 2, multi: 1.1 },
-      { stat: "xpGain", weight: 1, multi: 1.02 }
+      { stat: "critChance", weight: 2, multi: 1.008 },
+      { stat: "cooldownReduction", weight: 1, multi: 0.997 },
+      { stat: "critMulti", weight: 2, multi: 1.005 },
+      { stat: "lifestealChance", weight: 3, multi: 1.005 },
+      { stat: "evasionChance", weight: 2, multi: 1.011 },
+      { stat: "xpGain", weight: 1, multi: 1.002 }
     ]
   },
   "Sword": {
     slot: "weapon",
     oreRequired: 11,
+    baseStatBoosts: [{
+      stat: "damageAmp", multi: 1.02
+    }],
     statBoosts: [
-      { stat: "spRegen", weight: 2, multi: 1.07},
-      { stat: "critChance", weight: 3, multi: 1.03 },
-      { stat: "lifestealMulti", weight: 2, multi: 1.02 },
-      { stat: "cooldownReduction", weight: 2, multi: 0.92 },
-      { stat: "evasionChance", weight: 2, multi: 1.07 },
-      { stat: "damageTaken", weight: 2, multi: 0.88 }
+      { stat: "spRegen", weight: 2, multi: 1.006},
+      { stat: "critChance", weight: 3, multi: 1.003 },
+      { stat: "lifestealMulti", weight: 2, multi: 1.002 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.992 },
+      { stat: "evasionChance", weight: 2, multi: 1.007 },
+      { stat: "damageTaken", weight: 2, multi: 0.9988 }
     ]
   },
   "Axe": {
     slot: "weapon",
+    baseStatBoosts: [{
+      stat: "damageAmp", multi: 1.02
+    },
+    {
+      stat: "critMulti", multi: 1.007
+    }],
     oreRequired: 13,
     statBoosts: [
-      { stat: "lifestealMulti", weight: 3, multi: 1.09},
-      { stat: "critMulti", weight: 2, multi: 1.09 },
-      { stat: "hpRegen", weight: 2, multi: 1.04},
-      { stat: "damageTaken", weight: 1, multi: 0.98 },
-      { stat: "cooldownReduction", weight: 2, multi: 0.94 },
+      { stat: "lifestealMulti", weight: 3, multi: 1.009},
+      { stat: "critMulti", weight: 2, multi: 1.009 },
+      { stat: "hpRegen", weight: 2, multi: 1.004},
+      { stat: "damageTaken", weight: 1, multi: 0.998 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.994 },
       { stat: "xpGain", weight: 3, multi: 1.01 }
     ]
   },
   "Hammer": {
     slot: "weapon",
+    baseStatBoosts: [{
+      stat: "damageAmp", multi: 1.02
+    },
+    {
+      stat: "maxHp", multi: 1.001
+    }],
     oreRequired: 12,
     statBoosts: [
-      { stat: "maxSp", weight: 3, multi: 1.03 },
-      { stat: "damageTaken", weight: 3, multi: 0.97 },
-      { stat: "critMulti", weight: 2, multi: 1.07 },
-      { stat: "evasionChance", weight: 2, multi: 1.13 },
-      { stat: "hpRegen", weight: 2, multi: 1.1 },
-      { stat: "lifestealMulti", weight: 1, multi: 1.08 }
+      { stat: "maxSp", weight: 3, multi: 1.003 },
+      { stat: "damageTaken", weight: 3, multi: 0.997 },
+      { stat: "critMulti", weight: 2, multi: 1.007 },
+      { stat: "evasionChance", weight: 2, multi: 1.003 },
+      { stat: "hpRegen", weight: 2, multi: 1.02 },
+      { stat: "lifestealMulti", weight: 1, multi: 1.008 }
     ]
   },
   "Bow": {
     slot: "weapon",
+    baseStatBoosts: [{
+      stat: "damageAmp", multi: 1.01
+    },
+    {
+      stat: "evasionChance", multi: 1.01
+    }],
     oreRequired: 14,
     statBoosts: [
-      { stat: "critMulti", weight: 2, multi: 1.13 },
-      { stat: "spEfficiency", weight: 2, multi: 0.93 },
-      { stat: "critChance", weight: 3, multi: 1.06 },
-      { stat: "cooldownReduction", weight: 2, multi: 0.95 },
-      { stat: "xpGain", weight: 1, multi: 1.03 },
-      { stat: "evasionChance", weight: 2, multi: 1.11 }
+      { stat: "critMulti", weight: 2, multi: 1.013 },
+      { stat: "spEfficiency", weight: 2, multi: 0.993 },
+      { stat: "critChance", weight: 3, multi: 1.006 },
+      { stat: "cooldownReduction", weight: 2, multi: 0.995 },
+      { stat: "xpGain", weight: 1, multi: 1.003 },
+      { stat: "evasionChance", weight: 2, multi: 1.01 }
     ]
   }
 };
@@ -288,265 +369,496 @@ const gearWeights = Object.fromEntries(Object.entries(gearTypes).map(([k, v]) =>
 const oresData = {
   Runite: {
     tier: 0,
-    bonus: { stat: "xpGain", multi: 1.004 },
     resistances: { magic: 0.99995 }
   },
   Iron: {
     tier: 0,
-    bonus: { stat: "xpGain", multi: 1.004 },
     resistances: { physical: 0.99995 }
   },
   Ferrite: {
     tier: 1,
-    bonus: { stat: "damageTaken", multi: 0.993 },
-    resistances: { physical: 0.9995, blunt: 0.9998, force: 0.993, shock: 0.998 }
+    bonus: { stat: "damageTaken", multi: 0.9993 },
+    resistances: {
+      physical: 0.9995,
+      blunt: 0.9998,
+      force: 0.9990,
+      shock: 0.9991
+    }
   },
   Brawnite: {
     tier: 2,
     bonus: { stat: "critChance", multi: 1.007 },
-    resistances: { physical: 0.998, blunt: 0.99, force: 0.98, poison: 0.979, shock: 0.985 }
+    resistances: {
+      physical: 0.998,
+      blunt: 0.993,
+      force: 0.991,
+      poison: 0.992,
+      shock: 0.994
+    }
   },
   Mystarium: {
     tier: 1,
     bonus: { stat: "mpRegen", multi: 1.006 },
-    resistances: { magic: 0.9997, arcane: 0.999, psychic: 0.993 }
+    resistances: {
+      magic: 0.9997,
+      arcane: 0.9991,
+      psychic: 0.9992
+    }
   },
   Spellite: {
     tier: 2,
-    bonus: { stat: "cooldownReduction", multi: 0.996 },
-    resistances: { magic: 0.996, arcane: 0.99, spirit: 0.998, ethereal: 0.991 }
+    bonus: { stat: "cooldownReduction", multi: 0.9986 },
+    resistances: {
+      magic: 0.996,
+      arcane: 0.995,
+      spirit: 0.998,
+      ethereal: 0.991
+    }
   },
   Razorite: {
     tier: 1,
-    bonus: { stat: "spEfficiency", multi: 0.994 },
-    resistances: { slashing: 0.995, physical: 0.989, heat: 0.999, sonic: 0.996 }
+    bonus: { stat: "spEfficiency", multi: 0.9994 },
+    resistances: {
+      slashing: 0.995,
+      physical: 0.9990,
+      heat: 0.9991,
+      sonic: 0.9992
+    }
   },
   Cleavium: {
     tier: 2,
-    bonus: { stat: "critMulti", multi: 1.01 },
-    resistances: { slashing: 0.9, physical: 0.911, heat: 0.924, poison: 0.928 }
+    bonus: { stat: "critMulti", multi: 1.001 },
+    resistances: {
+      slashing: 0.991,
+      physical: 0.992,
+      heat: 0.994,
+      poison: 0.993
+    }
   },
   Needlite: {
     tier: 1,
     bonus: { stat: "evasionChance", multi: 1.007 },
-    resistances: { piercing: 0.995, shock: 0.999, force: 0.998 }
+    resistances: {
+      piercing: 0.9993,
+      shock: 0.9990,
+      force: 0.9992
+    }
   },
   Puncturine: {
     tier: 2,
     bonus: { stat: "lifestealChance", multi: 1.006 },
-    resistances: { piercing: 0.9, shock: 0.92, force: 0.916, gravity: 0.93 }
-  },
-  Cragsteel: {
+    resistances: {
+      piercing: 0.991,
+      shock: 0.992,
+      force: 0.993,
+      gravity: 0.994
+    }
+  },Cragsteel: {
     tier: 1,
     bonus: { stat: "maxHp", multi: 1.009 },
-    resistances: { blunt: 0.999, gravity: 0.99, physical: 0.996 }
+    resistances: {
+      blunt: 0.9990,
+      gravity: 0.9991,
+      physical: 0.9992
+    }
   },
   Smashite: {
     tier: 2,
     bonus: { stat: "lifestealMulti", multi: 1.008 },
-    resistances: { blunt: 0.9, gravity: 0.912, void: 0.924, poison: 0.919 }
+    resistances: {
+      blunt: 0.991,
+      gravity: 0.992,
+      void: 0.993,
+      poison: 0.994
+    }
   },
   Impactor: {
     tier: 1,
     bonus: { stat: "hpRegen", multi: 1.006 },
-    resistances: { force: 0.999, blunt: 0.993, physical: 0.988, shock: 0.996 }
+    resistances: {
+      force: 0.9992,
+      blunt: 0.9991,
+      physical: 0.9990,
+      shock: 0.9993
+    }
   },
   Pressanite: {
     tier: 2,
-    bonus: { stat: "maxMp", multi: 1.01 },
-    resistances: { force: 0.912, blunt: 0.907, physical: 0.9, sonic: 0.931 }
+    bonus: { stat: "maxMp", multi: 1.001 },
+    resistances: {
+      force: 0.991,
+      blunt: 0.992,
+      physical: 0.993,
+      sonic: 0.994
+    }
   },
   Vilecore: {
     tier: 1,
-    bonus: { stat: "mpEfficiency", multi: 0.993 },
-    resistances: { corrupt: 0.991, poison: 0.999, void: 0.994 }
+    bonus: { stat: "mpEfficiency", multi: 0.9993 },
+    resistances: {
+      corrupt: 0.9990,
+      poison: 0.9991,
+      void: 0.9992
+    }
   },
   Malformite: {
     tier: 2,
     bonus: { stat: "cooldownReduction", multi: 0.998 },
-    resistances: { corrupt: 0.9, poison: 0.912, void: 0.917, blood: 0.924, psychic: 0.931 }
+    resistances: {
+      corrupt: 0.991,
+      poison: 0.992,
+      void: 0.993,
+      blood: 0.994,
+      psychic: 0.995
+    }
   },
   Lumenite: {
     tier: 1,
     bonus: { stat: "maxSp", multi: 1.007 },
-    resistances: { holy: 0.999, radiant: 0.997, spirit: 0.994, arcane: 0.989 }
+    resistances: {
+      holy: 0.9991,
+      radiant: 0.9992,
+      spirit: 0.9993,
+      arcane: 0.9990
+    }
   },
   Haloite: {
     tier: 2,
     bonus: { stat: "spRegen", multi: 1.008 },
-    resistances: { holy: 0.919, radiant: 0.915, spirit: 0.928, blight: 0.9 }
+    resistances: {
+      holy: 0.991,
+      radiant: 0.992,
+      spirit: 0.993,
+      blight: 0.994
+    }
   },
   Arkanite: {
     tier: 1,
     bonus: { stat: "xpGain", multi: 1.009 },
-    resistances: { arcane: 0.999, magic: 0.995, psychic: 0.996 }
+    resistances: {
+      arcane: 0.9991,
+      magic: 0.9992,
+      psychic: 0.9993
+    }
   },
   Sigilstone: {
     tier: 2,
     bonus: { stat: "critChance", multi: 1.006 },
-    resistances: { arcane: 0.916, magic: 0.92, psychic: 0.93, ethereal: 0.9 }
+    resistances: {
+      arcane: 0.992,
+      magic: 0.993,
+      psychic: 0.994,
+      ethereal: 0.995
+    }
   },
   Prismite: {
     tier: 1,
     bonus: { stat: "mpRegen", multi: 1.009 },
-    resistances: { elemental: 0.9998, heat: 0.9972, cold: 0.996, shock: 0.9951 }
+    resistances: {
+      elemental: 0.9998,
+      heat: 0.9992,
+      cold: 0.9993,
+      shock: 0.9991
+    }
   },
   Essentium: {
     tier: 2,
     bonus: { stat: "lifestealMulti", multi: 1.007 },
-    resistances: { elemental: 0.9, heat: 0.916, cold: 0.92, shock: 0.91, water: 0.936 }
+    resistances: {
+      elemental: 0.992,
+      heat: 0.993,
+      cold: 0.994,
+      shock: 0.995,
+      water: 0.996
+    }
   },
   Sanguinite: {
     tier: 1,
     bonus: { stat: "lifestealChance", multi: 1.009 },
-    resistances: { blood: 0.996, corrupt: 0.999, water: 0.994 }
+    resistances: {
+      blood: 0.9991,
+      corrupt: 0.9993,
+      water: 0.9992
+    }
   },
   Hemalite: {
     tier: 2,
     bonus: { stat: "critMulti", multi: 1.009 },
-    resistances: { blood: 0.92, corrupt: 0.91, poison: 0.93, void: 0.9 }
+    resistances: {
+      blood: 0.992,
+      corrupt: 0.993,
+      poison: 0.994,
+      void: 0.995
+    }
   },
   Nullite: {
     tier: 1,
-    bonus: { stat: "maxHp", multi: 1.01 },
-    resistances: { void: 0.995, ethereal: 0.993, corrupt: 0.999 }
+    bonus: { stat: "maxHp", multi: 1.001 },
+    resistances: {
+      void: 0.9993,
+      ethereal: 0.9991,
+      corrupt: 0.9992
+    }
   },
   Abyssium: {
     tier: 2,
-    bonus: { stat: "damageTaken", multi: 0.991 },
-    resistances: { void: 0.911, ethereal: 0.9, corrupt: 0.921, gravity: 0.932 }
+    bonus: { stat: "damageTaken", multi: 0.99997 },
+    resistances: {
+      void: 0.996,
+      ethereal: 0.995,
+      corrupt: 0.994,
+      gravity: 0.993
+    }
   },
   Rotstone: {
     tier: 1,
     bonus: { stat: "maxSp", multi: 1.008 },
-    resistances: { blight: 0.996, poison: 0.994, blood: 0.999 }
+    resistances: {
+      blight: 0.9991,
+      poison: 0.9992,
+      blood: 0.9993
+    }
   },
   Festerite: {
     tier: 2,
     bonus: { stat: "spEfficiency", multi: 0.992 },
-    resistances: { blight: 0.91, poison: 0.92, blood: 0.93, nature: 0.9 }
+    resistances: {
+      blight: 0.993,
+      poison: 0.994,
+      blood: 0.995,
+      nature: 0.996
+    }
   },
   Ectrium: {
     tier: 1,
     bonus: { stat: "spRegen", multi: 1.006 },
-    resistances: { spirit: 0.999, ethereal: 0.996, holy: 0.993 }
+    resistances: {
+      spirit: 0.9991,
+      ethereal: 0.9992,
+      holy: 0.9993
+    }
   },
   Soulvein: {
     tier: 2,
     bonus: { stat: "mpEfficiency", multi: 0.994 },
-    resistances: { spirit: 0.9, ethereal: 0.907, holy: 0.912, radiant: 0.924 }
+    resistances: {
+      spirit: 0.996,
+      ethereal: 0.995,
+      holy: 0.994,
+      radiant: 0.993
+    }
   },
   Solarium: {
     tier: 1,
     bonus: { stat: "maxMp", multi: 1.009 },
-    resistances: { radiant: 0.999, light: 0.995, spirit: 0.996, arcane: 0.991 }
+    resistances: {
+      radiant: 0.9991,
+      light: 0.9992,
+      spirit: 0.9993,
+      arcane: 0.9990
+    }
   },
   Gleamite: {
     tier: 2,
-    bonus: { stat: "xpGain", multi: 1.01 },
-    resistances: { radiant: 0.92, holy: 0.93, arcane: 0.9, shock: 0.936 }
+    bonus: { stat: "xpGain", multi: 1.004 },
+    resistances: {
+      radiant: 0.993,
+      holy: 0.994,
+      arcane: 0.995,
+      shock: 0.996
+    }
   },
   Phasemite: {
     tier: 1,
     bonus: { stat: "evasionChance", multi: 1.008 },
-    resistances: { ethereal: 0.994, psychic: 0.996, magic: 0.999 }
+    resistances: {
+      ethereal: 0.9994,
+      psychic: 0.9991,
+      magic: 0.9992
+    }
   },
   Driftglass: {
     tier: 2,
     bonus: { stat: "lifestealMulti", multi: 1.009 },
-    resistances: { ethereal: 0.9, psychic: 0.916, magic: 0.91, sonic: 0.93 }
+    resistances: {
+      ethereal: 0.992,
+      psychic: 0.993,
+      magic: 0.994,
+      sonic: 0.995
+    }
   },
   Echoite: {
     tier: 1,
     bonus: { stat: "hpRegen", multi: 1.007 },
-    resistances: { sonic: 0.999, shock: 0.991, force: 0.994 }
+    resistances: {
+      sonic: 0.9991,
+      shock: 0.9992,
+      force: 0.9993
+    }
   },
   Resonium: {
     tier: 2,
     bonus: { stat: "cooldownReduction", multi: 0.997 },
-    resistances: { sonic: 0.912, shock: 0.9, force: 0.907, gravity: 0.931 }
+    resistances: {
+      sonic: 0.993,
+      shock: 0.992,
+      force: 0.991,
+      gravity: 0.994
+    }
   },
   Massium: {
     tier: 1,
     bonus: { stat: "maxHp", multi: 1.007 },
-    resistances: { gravity: 0.999, blunt: 0.996, force: 0.998 }
+    resistances: {
+      gravity: 0.9991,
+      blunt: 0.9992,
+      force: 0.9993
+    }
   },
   Gravitite: {
     tier: 2,
     bonus: { stat: "critMulti", multi: 1.008 },
-    resistances: { gravity: 0.912, blunt: 0.9, force: 0.923, cold: 0.935 }
+    resistances: {
+      gravity: 0.992,
+      blunt: 0.993,
+      force: 0.994,
+      cold: 0.995
+    }
   },
   Mindore: {
     tier: 1,
     bonus: { stat: "mpRegen", multi: 1.01 },
-    resistances: { psychic: 0.999, arcane: 0.996, spirit: 0.993 }
+    resistances: {
+      psychic: 0.9991,
+      arcane: 0.9992,
+      spirit: 0.9993
+    }
   },
   Noctite: {
     tier: 2,
     bonus: { stat: "damageTaken", multi: 0.99 },
-    resistances: { psychic: 0.917, arcane: 0.9, spirit: 0.911, void: 0.932 }
+    resistances: {
+      psychic: 0.991,
+      arcane: 0.992,
+      spirit: 0.993,
+      void: 0.994
+    }
   },
   Verdite: {
     tier: 1,
     bonus: { stat: "hpRegen", multi: 1.008 },
-    resistances: { nature: 0.999, poison: 0.996, water: 0.991 }
+    resistances: {
+      nature: 0.9991,
+      poison: 0.9992,
+      water: 0.9993
+    }
   },
   Floracite: {
     tier: 2,
     bonus: { stat: "lifestealChance", multi: 1.007 },
-    resistances: { nature: 0.92, poison: 0.91, water: 0.93, blight: 0.9 }
+    resistances: {
+      nature: 0.993,
+      poison: 0.994,
+      water: 0.995,
+      blight: 0.996
+    }
   },
   Aqualith: {
     tier: 1,
     bonus: { stat: "maxSp", multi: 1.009 },
-    resistances: { water: 0.996, cold: 0.992, nature: 0.999 }
+    resistances: {
+      water: 0.9991,
+      cold: 0.9992,
+      nature: 0.9993
+    }
   },
   Drownite: {
     tier: 2,
     bonus: { stat: "spEfficiency", multi: 0.991 },
-    resistances: { water: 0.92, cold: 0.916, nature: 0.93, poison: 0.9 }
+    resistances: {
+      water: 0.993,
+      cold: 0.994,
+      nature: 0.995,
+      poison: 0.996
+    }
   },
   Pyronite: {
     tier: 1,
     bonus: { stat: "maxMp", multi: 1.007 },
-    resistances: { heat: 0.996, elemental: 0.999, shock: 0.994 }
+    resistances: {
+      heat: 0.9991,
+      elemental: 0.9992,
+      shock: 0.9993
+    }
   },
   Embercore: {
     tier: 2,
     bonus: { stat: "mpEfficiency", multi: 0.992 },
-    resistances: { heat: 0.989, elemental: 0.997, shock: 0.993, cold: 0.99 }
+    resistances: {
+      heat: 0.993,
+      elemental: 0.994,
+      shock: 0.995,
+      cold: 0.996
+    }
   },
   Voltite: {
     tier: 1,
     bonus: { stat: "critChance", multi: 1.008 },
-    resistances: { shock: 0.999, sonic: 0.993, force: 0.991 }
+    resistances: {
+      shock: 0.9991,
+      sonic: 0.9992,
+      force: 0.9993
+    }
   },
   Sparksteel: {
     tier: 2,
     bonus: { stat: "evasionChance", multi: 1.01 },
-    resistances: { shock: 0.912, sonic: 0.9, force: 0.907, water: 0.931 }
+    resistances: {
+      shock: 0.993,
+      sonic: 0.994,
+      force: 0.995,
+      water: 0.996
+    }
   },
   Cryostone: {
     tier: 1,
     bonus: { stat: "cooldownReduction", multi: 0.995 },
-    resistances: { cold: 0.9986, water: 0.9982, heat: 0.997 }
+    resistances: {
+      cold: 0.9991,
+      water: 0.9992,
+      heat: 0.9993
+    }
   },
   Frostrine: {
     tier: 2,
     bonus: { stat: "xpGain", multi: 1.007 },
-    resistances: { cold: 0.99, water: 0.991, heat: 0.995, poison: 0.996 }
+    resistances: {
+      cold: 0.993,
+      water: 0.994,
+      heat: 0.995,
+      poison: 0.996
+    }
   },
   Venomite: {
     tier: 1,
     bonus: { stat: "lifestealMulti", multi: 1.01 },
-    resistances: { poison: 0.999, corrupt: 0.995, blight: 0.996 }
+    resistances: {
+      poison: 0.9991,
+      corrupt: 0.9992,
+      blight: 0.9993
+    }
   },
   Toxinite: {
     tier: 2,
     bonus: { stat: "damageTaken", multi: 0.992 },
-    resistances: { poison: 0.9, corrupt: 0.917, blight: 0.921, blood: 0.932 }
+    resistances: {
+      poison: 0.993,
+      corrupt: 0.994,
+      blight: 0.995,
+      blood: 0.996
+    }
   }
-}
+};
 const itemQualities = {
   rusty: "#AAAAAA",
   common: "#FFFFFF",       // Gray
@@ -709,6 +1021,7 @@ let settings = {
   friendlyFire: false,
   autoTimer: 5,
   autoTarget: true,
+  showDebug: false,
   hardReset: {
     lastClick: 0,
     clickCount: 0,
@@ -950,14 +1263,14 @@ player = {
     },
     maxMp: {
       display: "Max MP",
-      base: 55,
+      base: 40,
       scaling: [{
         target: "caster", stat: "intellect", scale: 1
       },
         {
-          target: "caster", stat: "willpower", scale: 1.02, effect: "multi"
+          target: "caster", stat: "willpower", scale: 1
         }],
-      value: 55
+      value: 40,
     },
     mpRegen: {
       display: "MP Regen",
@@ -1006,12 +1319,6 @@ player = {
     cooldownReduction: {
       display: "Cooldown Reduction",
       base: 1,
-      scaling: [{
-        target: "caster", stat: "dexterity", scale: 0.998, effect: "multi"
-      },
-        {
-          target: "caster", stat: "wisdom", scale: -0.001
-        }],
       value: 1
     },
     armorPenetration: {
@@ -1027,10 +1334,10 @@ player = {
       value: 1,
       base: 1,
       scaling: [{
-        target: "caster", stat: "intellect", scale: 0.005
+        target: "caster", stat: "intellect", scale: 0.003
       },
       {
-        target: "caster", stat: "wisdom", scale: 1.005, effect: "multi"
+        target: "caster", stat: "wisdom", scale: 0.003
       }
         ]
     }
@@ -1554,7 +1861,7 @@ function recalculateTotalResistances(unit) {
     }
     // Flatten gear-based resistances
     const gearBonuses = {};
-    if (player.inventory && player.inventory.equipped) {
+    if (unit == player && player.inventory && player.inventory.equipped) {
         Object.values(player.inventory.equipped).filter(i => i).forEach(item => {
           
             if (item?.totalResistances) {
@@ -2344,7 +2651,11 @@ zoneMenu.addEventListener("click", (e) => {
         <input type="checkbox" id="forceConfirmToggleBtn">
       <span class="slider"></span>
       </label>
-      </div>
+      <div style="margin-top: 0.5em;">Show Debug</div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="debug-toggle">
+      <span class="slider"></span>
+      </label>
       <div>Confirm before trashing items</div>
       <label class="toggle-switch">
         <input type="checkbox" id="forceConfirmTrashBtn">
@@ -2381,6 +2692,16 @@ zoneMenu.addEventListener("click", (e) => {
       trashToggle.checked = settings.confirmTrashItem;
       trashToggle.addEventListener("change", function () {
         settings.confirmTrashItem = trashToggle.checked;
+      });
+      debugToggle = document.getElementById("debug-toggle");
+      debugToggle.checked = settings.showDebug;
+      debugToggle.addEventListener("change", function () {
+        settings.showDebug = debugToggle.checked;
+        if(settings.showDebug){
+          document.getElementById("debug-overlay").classList.remove("hidden")
+        }else{
+          document.getElementById("debug-overlay").classList.add("hidden")
+        }
       });
       confirmToggle = document.getElementById("forceConfirmToggleBtn");
       confirmToggle.checked = settings.confirmLeaveCombat;
@@ -3869,7 +4190,7 @@ function buildUnitTable(member, isAlly, isPlayer) {
     class="bar-text"
     style="font-size: 8px; position: relative; z-index: 1; width: 100%; text-align: center;"
     id="bar-text-${member.id}-xp">
-    XP (${member.xp}/${member.maxXp})
+    XP (${member.xp.toFixed(0)}/${member.maxXp})
     </div>
     </div>
     `
@@ -4733,71 +5054,78 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
       cd);
   }
   function showItemPopup(item) {
+  const existingPopup = document.getElementById("popup-overlay");
+  if (existingPopup) existingPopup.remove();
 
-    // Close existing popup if present
-    const existingPopup = document.getElementById("popup-overlay");
-    if (existingPopup) existingPopup.remove();
+  const overlay = document.createElement("div");
+  overlay.id = "popup-overlay";
+  overlay.style.position = "fixed";
+  overlay.style.top = 0;
+  overlay.style.left = 0;
+  overlay.style.width = "100vw";
+  overlay.style.height = "100vh";
+  overlay.style.zIndex = 999;
+  overlay.style.background = "rgba(0,0,0,0.0)";
+  overlay.addEventListener("click", () => overlay.remove());
 
-    // Create overlay to close on click
-    const overlay = document.createElement("div");
-    overlay.id = "popup-overlay";
-    overlay.style.position = "fixed";
-    overlay.style.top = 0;
-    overlay.style.left = 0;
-    overlay.style.width = "100vw";
-    overlay.style.height = "100vh";
-    overlay.style.zIndex = 999;
-    overlay.style.background = "rgba(0,0,0,0.0)";
-    overlay.addEventListener("click", () => overlay.remove());
+  const popup = document.createElement("div");
+  popup.className = "popup";
+  popup.style.position = "absolute";
+  popup.style.left = "50%";
+  popup.style.top = "50%";
+  popup.style.transform = "translate(-50%, -50%)";
+  popup.style.zIndex = 1000;
+  popup.style.backgroundColor = "#111";
+  popup.style.color = "#fff";
+  popup.style.padding = "10px";
+  popup.style.border = "2px solid #444";
+  popup.style.borderRadius = "10px";
+  popup.style.maxWidth = "80vw";
+  popup.style.maxHeight = "80vh";
+  popup.style.overflowY = "auto";
+  popup.style.boxShadow = "0 0 10px #000";
 
-    // Create the popup
-    const popup = document.createElement("div");
-    popup.className = "popup";
-    popup.style.position = "absolute";
-    popup.style.left = "50%";
-    popup.style.top = "50%";
-    popup.style.transform = "translate(-50%, -50%)";
-    popup.style.zIndex = 1000;
-    popup.style.backgroundColor = "#111";
-    popup.style.color = "#fff";
-    popup.style.padding = "10px";
-    popup.style.border = "2px solid #444";
-    popup.style.borderRadius = "10px";
-    popup.style.maxWidth = "80vw";
-    popup.style.maxHeight = "80vh";
-    popup.style.overflowY = "auto";
-    popup.style.boxShadow = "0 0 10px #000";
+  let oreDiv = item.ores && item.ores.length > 0
+    ? `<div style="color: #aaa; margin-top: 6px;">Alloy: ${item.ores.map(obj => {
+        let key = Object.keys(obj)[0];
+        return `${key} (${obj[key]})`;
+      }).join(', ')}</div>`
+    : "";
 
-    // Fill with item content (same as in inventory)
-    let oreDiv = item.ores && item.ores.length > 0
-  ? `<div style="color: #aaa; margin-top: 6px;">Alloy: ${item.ores.map(obj => {
-      let key = Object.keys(obj)[0];
-      return `${key} (${obj[key]})`;
-    }).join(', ')}</div>`
-  : "";
-  
-  let bonusDiv = item.totalBonuses && item.totalBonuses.length > 0
-  ? `<div style="color: #8f8; margin-top: 6px;">Bonuses:<br>${item.totalBonuses.map(bonus => 
-      `- ${fromCamelCase(bonus.stat)}: ×${bonus.multi.toFixed(3)}`
-    ).join('<br>')}</div>`
-  : "";
+  let oreBonusDiv = item.oreBonuses && Object.keys(item.oreBonuses).length > 0
+    ? `<div style="color: #8cf; margin-top: 6px;">Alloy Bonuses:<br>${Object.entries(item.oreBonuses).map(
+        ([stat, multi]) => `- ${fromCamelCase(stat)}: ×${multi.toFixed(3)}`
+      ).join('<br>')}</div>`
+    : "";
+
+  let gearBonusDiv = item.gearBonuses && Object.keys(item.gearBonuses).length > 0
+    ? `<div style="color: #fc8; margin-top: 6px;">Gear Bonuses:<br>${Object.entries(item.gearBonuses).map(
+        ([stat, { multi, count }]) => {
+          const stars = "⭐".repeat(Math.max(0, count - 1));
+          return `- ${fromCamelCase(stat)}: ×${multi.toFixed(3)} ${stars}`;
+        }
+      ).join('<br>')}</div>`
+    : "";
+
   let resistanceDiv = item.totalResistances && Object.keys(item.totalResistances).length > 0
-  ? `<div style="color: #8d8; margin-top: 6px;">Resistances:<br>${Object.entries(item.totalResistances).map(
-      ([type, value]) => `- ${capitalize(type)} ${getDamageTypeIcon(type)}: ×${value.toFixed(3)}`
-    ).join('<br>')}</div>`
-  : "";
-    popup.innerHTML = `
-    <div style="color: ${itemQualities[item.quality || "common"]}; font-size: 18px; font-weight: bold;">${item.name} ${item.tier?"(T"+item.tier+")":""}</div>
-    <div style="color: #aaa; margin-top: 8px;">${item.quality?capitalize(item.quality) + " ":""}${item.type}</div>
-    <div style="color: #aaa; margin-top: 4px;">${item.type == "Gear"?"A wearable item":item.description || "This item has no description."}</div>
-    ${oreDiv}
-    ${bonusDiv}
-    ${resistanceDiv}
-    `;
+    ? `<div style="color: #8d8; margin-top: 6px;">Resistances:<br>${Object.entries(item.totalResistances).map(
+        ([type, value]) => `- ${capitalize(type)} ${getDamageTypeIcon(type)}: ×${value.toFixed(3)}`
+      ).join('<br>')}</div>`
+    : "";
 
-    overlay.appendChild(popup);
-    document.body.appendChild(overlay);
-  }
+  popup.innerHTML = `
+    <div style="color: ${itemQualities[item.quality || "common"]}; font-size: 18px; font-weight: bold;">${item.name} ${item.tier ? "(T" + item.tier + ")" : ""}</div>
+    <div style="color: #aaa; margin-top: 8px;">${item.quality ? capitalize(item.quality) + " " : ""}${item.type}</div>
+    <div style="color: #aaa; margin-top: 4px;">${item.type == "Gear" ? "A wearable item" : item.description || "This item has no description."}</div>
+    ${oreDiv}
+    ${oreBonusDiv}
+    ${gearBonusDiv}
+    ${resistanceDiv}
+  `;
+
+  overlay.appendChild(popup);
+  document.body.appendChild(overlay);
+}
   function getDirectParentBreakdownString(type) {
     const breakdownMap = damageTypeBreakdown
     type = type.toLowerCase();
@@ -5987,7 +6315,7 @@ function getAvailableSkills() {
     if (!player.discoveredEnemies) player.discoveredEnemies = [];
 
     defeated.forEach(unit => {
-      let xpModifier = (10 + unit.tier) / (10 + player.classData[player.class].level) * player.stats.xpGain.value;
+      let xpModifier = Math.min(2,(50 + unit.tier) / (50 + player.classData[player.class].level)) * player.stats.xpGain.value;
       let xpGained = Math.floor((unit.xp * unit.tier / 2 + unit.tier) * xpModifier);
 
       // XP gain
@@ -6036,10 +6364,10 @@ function getAvailableSkills() {
 
       // Discovery
       if (!player.discoveredEnemies.includes(unit.name)) {
-        let discoveryXp = unit.discoveryXp || 0;
+        let discoveryXp = unit.discoveryXp * xpModifier || 0;
         if (discoveryXp > 0) {
           messageDiv.innerHTML += `
-            <div><span style="color: #aa5">${unit.name} discovered! </span><span style="color: #d8a">${discoveryXp} xp!</span></div>`;
+            <div><span style="color: #aa5">${unit.name} discovered! </span><span style="color: #d8a">${discoveryXp.toFixed(1)} xp!</span></div>`;
         }
         xpGained += discoveryXp;
         player.discoveredEnemies.push(unit.name);
@@ -6968,17 +7296,23 @@ function backToCharSelect(){
 function selectCharacter(slot) {
   // Replace with your character loading logic
   console.log(`Character in slot ${slot} selected.`);
+  
+  
+  
   const key = `mythos-character-slot-${slot}`;
-    const data = localStorage.getItem(key);
-    const char = JSON.parse(data).playerData;
+    const data = JSON.parse(localStorage.getItem(key));
+    const char = data.playerData;
     player = char;
+    settings = data.settingsData
     
     document.getElementById("menu-content").classList.remove("hidden")
     
     document.getElementById("top-bar").style.display = "flex"
     document.getElementById("menu-buttons").classList.remove("hidden")
     showMenu("journey")
+    if(runAnalysis){
     planetAnalysis();
+    }
 }
 
 function deleteCharacter(slot) {
@@ -6990,6 +7324,7 @@ function deleteCharacter(slot) {
 
 function saveCharacter(){
   let saveData = {
+    settingsData: settings,
     playerData: player
   }
   localStorage.setItem(`mythos-character-slot-${player.characterId}`, JSON.stringify(saveData))
@@ -7126,34 +7461,52 @@ function showCharacterPopup(id) {
 }
 function buildGear(gearType, tier, quality, ores) {
   const gear = gearTypes[gearType];
-  const oreList = ores; // Array of { oreName: amount }
+  const oreList = ores;
   const qualityBonusCount = {
     rusty: 0, common: 1, uncommon: 2, rare: 3, epic: 4, legendary: 5,
     mythic: 6, artifact: 6, divine: 0, cursed: 0
   }[quality.toLowerCase()];
 
-  const statBonuses = {};
+  const oreBonuses = {};
+  const baseBonuses = {}; // 🧱 Static baseStatBoosts from gear type
+  const rolledBonuses = {}; // 🎲 Rolled gear bonuses (still separate from base)
   const resistances = {};
+  let rolledBonusCount = 0;
 
-  // Apply bonuses from ores
+  // --- Apply Ore Bonuses ---
   for (const oreEntry of oreList) {
     const [oreName, amount] = Object.entries(oreEntry)[0];
     const ore = oresData[oreName];
-    const stat = ore.bonus.stat;
-    const multi = ore.bonus.multi;
-    const adjusted = multi < 1 ? (1 / (1 + 0.0005 * tier)) : (1 + 0.0005 * tier);
-
-    if (!statBonuses[stat]) statBonuses[stat] = 1;
-    statBonuses[stat] *= Math.pow(multi * adjusted, amount);
-
-    for (const [res, resVal] of Object.entries(ore.resistances)) {
-      if (!resistances[res]) resistances[res] = 1;
-      resistances[res] *= Math.pow(resVal / (1 + 0.0005 * tier), amount);
+    if (ore.bonus) {
+      const stat = ore.bonus.stat;
+      const multi = ore.bonus.multi;
+      const adjusted = multi < 1 ? (1 / (1 + 0.0005 * tier)) : (1 + 0.0005 * tier);
+      if (!oreBonuses[stat]) oreBonuses[stat] = 1;
+      oreBonuses[stat] *= Math.pow(multi * adjusted, amount);
+    }
+    if (ore.resistances) {
+      for (const [res, resVal] of Object.entries(ore.resistances)) {
+        if (!resistances[res]) resistances[res] = 1;
+        resistances[res] *= Math.pow(resVal / (1 + 0.0005 * tier), amount);
+      }
     }
   }
 
-  // Helper to roll from weighted statBoosts
-  function rollWeightedStats(stats, count) {
+  // --- Apply Base Gear Bonuses (baseStatBoosts) ---
+  if (gear.baseStatBoosts) {
+    for (const boost of gear.baseStatBoosts) {
+      const stat = boost.stat;
+      const baseMulti = boost.multi;
+      const adjusted = baseMulti < 1 ? (1 / (1 + 0.001 * tier)) : (1 + 0.001 * tier);
+      baseBonuses[stat] = {
+        multi: baseMulti * adjusted,
+        count: 1
+      };
+    }
+  }
+
+  // --- Roll Weighted Bonuses ---
+  function rollWeightedStats(stats, rollCount) {
     const allStats = [];
     for (const s of stats) {
       for (let i = 0; i < s.weight; i++) {
@@ -7161,37 +7514,78 @@ function buildGear(gearType, tier, quality, ores) {
       }
     }
 
-    const selected = [];
-    const used = new Set();
+    for (let i = 0; i < rollCount; i++) {
+      const statEntry = allStats[Math.floor(Math.random() * allStats.length)];
+      const stat = statEntry.stat;
+      const baseMulti = statEntry.multi;
 
-    while (selected.length < count && allStats.length > 0) {
-      const stat = allStats[Math.floor(Math.random() * allStats.length)];
-      if (!used.has(stat.stat)) {
-        used.add(stat.stat);
-        const adjusted = stat.multi < 1 ? (1 / (1 + 0.001 * tier)) : (1 + 0.001 * tier);
-        if (!statBonuses[stat.stat]) statBonuses[stat.stat] = 1;
-        statBonuses[stat.stat] *= stat.multi * adjusted;
-        selected.push(stat.stat);
+      if (!rolledBonuses[stat]) {
+        const adjusted = baseMulti < 1 ? (1 / (1 + 0.001 * tier)) : (1 + 0.001 * tier);
+        rolledBonuses[stat] = {
+          multi: baseMulti * adjusted,
+          count: 1
+        };
+        rolledBonusCount++;
+      } else {
+        const enhancementMultiplier = 1.05 + (qualityBonusCount * 0.05);
+        let current = rolledBonuses[stat].multi;
+
+        if (current < 1) {
+          current = 1 / current;
+          current *= enhancementMultiplier;
+          rolledBonuses[stat].multi = 1 / current;
+        } else {
+          rolledBonuses[stat].multi = current * enhancementMultiplier;
+        }
+
+        rolledBonuses[stat].count += 1;
       }
     }
   }
 
-  // Add quality-based random stat bonuses
   rollWeightedStats(gear.statBoosts, qualityBonusCount);
 
-  // Build final gear object
+  // --- Merge baseBonuses + rolledBonuses into gearBonuses ---
+  const gearBonuses = {};
+  const allGearStats = new Set([...Object.keys(baseBonuses), ...Object.keys(rolledBonuses)]);
+
+  for (const stat of allGearStats) {
+    const base = baseBonuses[stat]?.multi || 1;
+    const roll = rolledBonuses[stat]?.multi || 1;
+    const count = (baseBonuses[stat]?.count || 0) + (rolledBonuses[stat]?.count || 0);
+
+    gearBonuses[stat] = {
+      multi: parseFloat((base * roll).toFixed(6)),
+      count: count
+    };
+  }
+
+  // --- Final totalBonuses = oreBonuses * gearBonuses ---
+  const totalBonuses = {};
+  const allStats = new Set([...Object.keys(oreBonuses), ...Object.keys(gearBonuses)]);
+  for (const stat of allStats) {
+    const ore = oreBonuses[stat] || 1;
+    const gear = gearBonuses[stat]?.multi || 1;
+    totalBonuses[stat] = parseFloat((ore * gear).toFixed(6));
+  }
+
   return {
     name: gearType,
     type: "Gear",
-    slot: gearTypes[gearType].slot,
+    slot: gear.slot,
     tier: tier,
     count: 1,
     quality: quality,
     ores: ores,
-    totalBonuses: Object.entries(statBonuses).map(([stat, multi]) => ({
-      stat,
-      multi: parseFloat(multi.toFixed(6))
-    })),
+    rolledBonusCount: rolledBonusCount,
+    oreBonuses: Object.fromEntries(Object.entries(oreBonuses).map(([s, m]) => [s, parseFloat(m.toFixed(6))])),
+    gearBonuses: Object.fromEntries(
+      Object.entries(gearBonuses).map(([stat, { multi, count }]) => [
+        stat,
+        { multi: parseFloat(multi.toFixed(6)), count }
+      ])
+    ),
+    totalBonuses: Object.entries(totalBonuses).map(([stat, multi]) => ({ stat, multi })),
     totalResistances: Object.fromEntries(
       Object.entries(resistances).map(([res, multi]) => [res, parseFloat(multi.toFixed(6))])
     )
@@ -7312,3 +7706,36 @@ function getRandomQuality(tier, maxQuality = 6) {
 
   return maxQuality; // Fallback
 }
+
+function showDebugPopup() {
+    let logText = ""
+    if(debugLog && debugLog.length > 0){
+      logText = debugLog.join('\n');
+    }else{
+      logText = "There is nothing here";
+    }
+    
+    const html = `
+        <div style="background: linear-gradient('#555','#222'); display: flex; flex-direction: column; width: 100%;">
+            <textarea readonly style="
+                width: 100%;
+                height: 300px;
+                resize: none;
+                overflow-y: scroll;
+                white-space: pre;
+                background: #f0f0f0;
+                color: #000;
+                padding: 10px;
+                border: 1px solid #ccc;
+                font-family: monospace;
+                font-size: 12px;
+            ">${logText}</textarea>
+            <button onclick="navigator.clipboard.writeText(\`${logText.replace(/`/g, '\\`')}\`)">
+                Copy to Clipboard
+            </button>
+        </div>
+    `;
+
+    setTimeout(() => showPopup(html), 1);
+}
+

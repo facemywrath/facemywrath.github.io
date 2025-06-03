@@ -205,12 +205,8 @@
         },
         "value": {
           "base": 0.9,
-          "scaling": [{
-            "target": "caster",
-            "stat": "willpower",
-            "effect": "multi",
-            "scale": 0.98
-          },
+          "min": 0.2,
+          "scaling": [
           {
             "target": "caster",
             "stat": "skillLevel",
@@ -270,11 +266,45 @@
       }
     ]
   },
+  "fireVolley": {
+    "name": "Fire Volley",
+    "flavorText": "{casterName} shoots a volley of fireballs at {targetName}!",
+    "cooldown": {
+      "base": 2,
+      "scaling": [{
+        "target": "caster",
+        "stat": "skillLevel",
+        "scale": -0.01
+      }]
+    },
+    "cost": { "mp": 150 },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "effects": [
+      { 
+        "type": "condition",
+        "name": "Burning",
+        "stacks": {
+          "base": 5,
+          "scaling": [{
+            "target": "caster",
+            "stat": "willpower",
+            "scale": 0.3
+          },
+          {
+            "target": "caster",
+            "stat": "skillLevel",
+            "scale": 6
+          }]
+        }
+      }
+    ]
+  },
   "flamewall": {
     "name": "Flamewall",
     "flavorText": "{casterName} creates a massive wall of fire through the battlefield!",
     "cost": {
-      "mp": 105
+      "mp": 500
     },
     "target": "allEnemies",
     "requiresTarget": false,
@@ -324,7 +354,7 @@
     "name": "Ember Stream",
     "flavorText": "{casterName} spews out a stream of embers into the chaos!",
     "cost": {
-      "mp": 3
+      "mp": 20
     },
     "target": "randomEnemy",
     "requiresTarget": false,
@@ -512,7 +542,7 @@
     "name": "Blazing Maelstrom",
     "flavorText": "{casterName} splits forth the ground, bringing forth magma to destroy their enemies.",
     "cost": {
-      "mp": 80
+      "mp": 160
     },
     "target": "allEnemies",
     "requiresTarget": false,
@@ -557,7 +587,7 @@
     "name": "Searing Shot",
     "flavorText": "{casterName} shoots a molten ember through {targetName}!",
     "cost": {
-      "mp": 5
+      "mp": 240
     },
     "target": "randomEnemy",
     "requiresTarget": false,
@@ -575,24 +605,34 @@
       {
         "type": "damage",
         "damageType": "heat",
-        "base": 6,
+        "base": 30,
         "scaling": [
           {
             "target": "caster",
-            "scale": 0.3,
+            "scale": 0.4,
             "stat": "intellect"
+          },
+          {
+            "target": "caster",
+            "scale": 5,
+            "stat": "skillLevel"
           }
         ]
       },
       {
         "type": "damage",
         "damageType": "piercing",
-        "base": 3,
+        "base": 15,
         "scaling": [
           {
             "target": "caster",
-            "scale": 1.5,
+            "scale": 2.5,
             "stat": "strength"
+          },
+          {
+            "target": "caster",
+            "scale": 2.5,
+            "stat": "skillLevel"
           }
         ]
       }
@@ -602,7 +642,7 @@
     "name": "Molten Bullet",
     "flavorText": "{casterName} shoots a bullet of molten iron at ${targetName}",
     "cost": {
-      "mp": 5
+      "mp": 350
     },
     "target": "randomEnemy",
     "requiresTarget": false,
@@ -647,7 +687,7 @@
     "initialCooldown": 6,
     "cooldown": {
       "base": 20,
-      "min": 3,
+      "min": 6,
       "scaling": [{
         "target":"caster",
         "stat":"skillLevel",
@@ -655,7 +695,7 @@
       }]
     },
     "cost": {
-      "mp": 50,
+      "mp": 120,
       "hp": 10
     },
     "target": "self",
@@ -668,12 +708,12 @@
         "effect": "multi",
         "value": {
           "base": 0.9,
+          "min": 0.4,
           "scaling": [{
             "target": "caster",
             "stat": "wisdom",
             "scale": 0.99,
-            "effect": "multi",
-            "min": 0.4
+            "effect": "multi"
           }]
         },
         "duration": {
@@ -694,12 +734,12 @@
         "effect": "multi",
         "value": {
           "base": 1.1,
+          "max": 2,
           "scaling": [{
             "target": "caster",
             "stat": "wisdom",
             "scale": 1.01,
-            "effect": "multi",
-            "max": 2
+            "effect": "multi"
           }]
         },
         "duration": {
@@ -1032,14 +1072,9 @@
     "target": "randomEnemy",
     "requiresTarget": false,
     "cooldown": {
-      "base": 6,
-      "min": 1,
+      "base": 10,
+      "min": 6,
       "scaling": [
-        {
-          "target": "caster",
-          "scale": -0.01,
-          "stat": "dexterity"
-        }
       ]
     },
     "effects": [
@@ -1070,24 +1105,24 @@
   "clawSlash": {
     "name": "Claw Slash",
     "cost": {
-      "sp": 15
+      "sp": 10
     },
     "target": "singleEnemy",
     "requiresTarget": true,
     "cooldown": {
-      "base": 20,
-      "min": 5,
+      "base": 6,
+      "min": 3,
       "scaling": []
     },
     "effects": [
       {
         "type": "damage",
         "damageType": "slashing",
-        "base": 3,
+        "base": 2,
         "scaling": [
           {
             "target": "caster",
-            "scale": 0.2,
+            "scale": 0.6,
             "stat": "strength"
           },
           {

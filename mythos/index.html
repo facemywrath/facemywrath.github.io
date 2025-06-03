@@ -8,7 +8,10 @@
 </head>
 <body>
 <div id="loading-screen">Loading Mythos...</div>
-
+<div id="debug-overlay" class="hidden">
+  <!-- Any debug info, buttons, UI etc. -->
+  <div id="debug-info"><button onclick="setTimeout(() => showDebugPopup(), 1)">Debug</button></div>
+</div>
   <!-- Top Bar -->
   <div id="top-bar">
     <div id="planet-name">Dreadthorn</div>
