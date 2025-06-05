@@ -43,7 +43,7 @@ const debugLog = [];
 Array.prototype.random = function() {
   return this[Math.floor(Math.random() * this.length)];
 };
-let loadFromGithub = true;
+let loadFromGithub = false;
 let runAnalysis = false;
 let hintData;
 const updateSpeed = 100;
@@ -1761,6 +1761,13 @@ function getRaceDamageType(race) {
 // Menu button listener
 function initializeMenuButtons() {
   document.querySelectorAll("#menu-buttons button").forEach(button => {
+    if(button.id == "skills-btn"){
+      button.style.position = "relative"
+      let spPip = document.createElement('div')
+      spPip.id = "skills-pip"
+      spPip.textContent="0"
+      button.appendChild(spPip)
+    }
     button.addEventListener("click", () => {
       const menu = button.dataset.menu;
       if (player.inCombat && settings.confirmLeaveCombat) {
@@ -6716,7 +6723,11 @@ function showClassDetails(className){
     updateMenuButton(document.getElementById("character-btn"), "linear-gradient(rgba(50,230,50,0.5),rgba(30,180,30,0.5))")
     if (getAvailableSkills().length > 0) {
       updateMenuButton(document.getElementById("skills-btn"), "linear-gradient(rgba(50,230,50,0.5),rgba(30,180,30,0.5))")
+      
     }
+    let spPip = document.getElementById('skills-pip');
+    let skillPoints = player.classData[player.class].skillPoints
+      spPip.textContent = skillPoints <100?skillPoints:""
     return 1+checkLevelUp();
   }
   function countdownAutoClick(button, text, durationInMs, onClick) {
@@ -7305,7 +7316,24 @@ function selectCharacter(slot) {
     const char = data.playerData;
     player = char;
     settings = data.settingsData
-    
+    let testGear = false;
+    if(testGear){
+    Object.keys(gearTypes).forEach(gt => {
+      let inputOres = []
+          for (let i = 0; i < gearTypes[gt].oreRequired; i++) {
+            const oreName = Object.keys(oresData)
+              .random();
+            const existing = inputOres.find(entry => Object.keys(entry)[0] === oreName);
+            if (existing) existing[oreName]++;
+            else inputOres.push({ [oreName]: 1 });
+          }
+
+      Object.keys(itemQualities).slice(0,6).forEach(quality => {
+
+        player.inventory.storage.push(buildGear(gt, 1, quality, inputOres))
+      })
+    })
+    }
     document.getElementById("menu-content").classList.remove("hidden")
     
     document.getElementById("top-bar").style.display = "flex"
@@ -7473,17 +7501,22 @@ function buildGear(gearType, tier, quality, ores) {
   const rolledBonuses = {}; // 🎲 Rolled gear bonuses (still separate from base)
   const resistances = {};
   let rolledBonusCount = 0;
-
   // --- Apply Ore Bonuses ---
   for (const oreEntry of oreList) {
+  
     const [oreName, amount] = Object.entries(oreEntry)[0];
     const ore = oresData[oreName];
+    console.log(oreName, "??")
     if (ore.bonus) {
+      console.log(oreName, ore.bonus)
       const stat = ore.bonus.stat;
       const multi = ore.bonus.multi;
       const adjusted = multi < 1 ? (1 / (1 + 0.0005 * tier)) : (1 + 0.0005 * tier);
       if (!oreBonuses[stat]) oreBonuses[stat] = 1;
       oreBonuses[stat] *= Math.pow(multi * adjusted, amount);
+    }
+    else{
+      console.log(oreName,"no ore bonus")
     }
     if (ore.resistances) {
       for (const [res, resVal] of Object.entries(ore.resistances)) {
