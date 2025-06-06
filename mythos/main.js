@@ -43,7 +43,7 @@ const debugLog = [];
 Array.prototype.random = function() {
   return this[Math.floor(Math.random() * this.length)];
 };
-let loadFromGithub = false;
+let loadFromGithub = true;
 let runAnalysis = false;
 let hintData;
 const updateSpeed = 100;
@@ -100,7 +100,7 @@ const gearTypes = {
       { stat: "maxHp", weight: 2, multi: 1.01 },
       { stat: "hpRegen", weight: 2, multi: 1.01
       },
-      { stat: "evasionChance", weight: 5, multi: 1.004 }
+      { stat: "evasion", weight: 5, multi: 1.004 }
     ]
   },
   "Cuirass": {
@@ -122,7 +122,7 @@ const gearTypes = {
       { stat: "critMulti", weight: 2, multi: 1.003 },
       { stat: "mpEfficiency", weight: 2, multi: 0.994 },
       { stat: "lifestealChance", weight: 1, multi: 1.006 },
-      { stat: "evasionChance", weight: 3, multi: 1.081 },
+      { stat: "evasion", weight: 3, multi: 1.081 },
       { stat: "maxMp", weight: 4, multi: 1.009 },
       { stat: "xpGain", weight: 2, multi: 1.006 }
     ]
@@ -135,7 +135,7 @@ const gearTypes = {
       { stat: "critMulti", weight: 2, multi: 1.008 },
       { stat: "maxSp", weight: 3, multi: 1.005},
       { stat: "cooldownReduction", weight: 3, multi: 0.991 },
-      { stat: "evasionChance", weight: 1, multi: 1.013 },
+      { stat: "evasion", weight: 1, multi: 1.013 },
       { stat: "damageTaken", weight: 2, multi: 0.998 }
     ]
   },
@@ -158,7 +158,7 @@ const gearTypes = {
       { stat: "damageTaken", weight: 3, multi: 0.996 },
       { stat: "hpRegen", weight: 3, multi: 1.02},
       { stat: "maxHp", weight: 2, multi: 1.01 },
-      { stat: "evasionChance", weight: 4, multi: 1.02 },
+      { stat: "evasion", weight: 4, multi: 1.02 },
       { stat: "mpRegen", weight: 2, multi: 1.03 },
       { stat: "cooldownReduction", weight: 2, multi: 0.98 }
     ]
@@ -170,7 +170,7 @@ const gearTypes = {
       { stat: "lifestealMulti", weight: 2, multi: 1.008 },
       { stat: "hpRegen", weight: 3, multi: 1.004},
       { stat: "critMulti", weight: 2, multi: 1.009 },
-      { stat: "evasionChance", weight: 2, multi: 1.002 },
+      { stat: "evasion", weight: 2, multi: 1.002 },
       { stat: "maxSp", weight: 2, multi: 1.01 },
       { stat: "mpEfficiency", weight: 3, multi: 0.995 }
     ]
@@ -180,7 +180,7 @@ const gearTypes = {
     oreRequired: 13,
     statBoosts: [
       { stat: "maxSp", weight: 2, multi: 1.007 },
-      { stat: "evasionChance", weight: 2, multi: 1.006 },
+      { stat: "evasion", weight: 2, multi: 1.006 },
       { stat: "damageTaken", weight: 2, multi: 0.996 },
       { stat: "spRegen", weight: 3, multi: 1.009},
       { stat: "cooldownReduction", weight: 2, multi: 0.998 },
@@ -192,7 +192,7 @@ const gearTypes = {
     oreRequired: 11,
     statBoosts: [
       { stat: "maxHp", weight: 2, multi: 1.01 },
-      { stat: "evasionChance", weight: 3, multi: 1.006 },
+      { stat: "evasion", weight: 3, multi: 1.006 },
       { stat: "damageTaken", weight: 2, multi: 0.993 },
       { stat: "hpRegen", weight: 3, multi: 1.004},
       { stat: "critChance", weight: 2, multi: 1.004 },
@@ -204,7 +204,7 @@ const gearTypes = {
     oreRequired: 6,
     statBoosts: [
       { stat: "critChance", weight: 1, multi: 1.006 },
-      { stat: "evasionChance", weight: 2, multi: 1.091 },
+      { stat: "evasion", weight: 2, multi: 1.091 },
       { stat: "cooldownReduction", weight: 2, multi: 0.993 },
       { stat: "spRegen", weight: 2, multi: 1.01},
       { stat: "lifestealChance", weight: 3, multi: 1.007 },
@@ -220,7 +220,7 @@ const gearTypes = {
       { stat: "lifestealChance", weight: 2, multi: 1.1 },
       { stat: "cooldownReduction", weight: 2, multi: 0.951 },
       { stat: "lifestealMulti", weight: 2, multi: 1.08 },
-      { stat: "evasionChance", weight: 2, multi: 1.05 }
+      { stat: "evasion", weight: 2, multi: 1.05 }
     ]
   },
   "Towershield": {
@@ -291,7 +291,7 @@ const gearTypes = {
       { stat: "cooldownReduction", weight: 1, multi: 0.997 },
       { stat: "critMulti", weight: 2, multi: 1.005 },
       { stat: "lifestealChance", weight: 3, multi: 1.005 },
-      { stat: "evasionChance", weight: 2, multi: 1.011 },
+      { stat: "evasion", weight: 2, multi: 1.011 },
       { stat: "xpGain", weight: 1, multi: 1.002 }
     ]
   },
@@ -306,7 +306,7 @@ const gearTypes = {
       { stat: "critChance", weight: 3, multi: 1.003 },
       { stat: "lifestealMulti", weight: 2, multi: 1.002 },
       { stat: "cooldownReduction", weight: 2, multi: 0.992 },
-      { stat: "evasionChance", weight: 2, multi: 1.007 },
+      { stat: "evasion", weight: 2, multi: 1.007 },
       { stat: "damageTaken", weight: 2, multi: 0.9988 }
     ]
   },
@@ -341,7 +341,7 @@ const gearTypes = {
       { stat: "maxSp", weight: 3, multi: 1.003 },
       { stat: "damageTaken", weight: 3, multi: 0.997 },
       { stat: "critMulti", weight: 2, multi: 1.007 },
-      { stat: "evasionChance", weight: 2, multi: 1.003 },
+      { stat: "evasion", weight: 2, multi: 1.003 },
       { stat: "hpRegen", weight: 2, multi: 1.02 },
       { stat: "lifestealMulti", weight: 1, multi: 1.008 }
     ]
@@ -352,7 +352,7 @@ const gearTypes = {
       stat: "damageAmp", multi: 1.01
     },
     {
-      stat: "evasionChance", multi: 1.01
+      stat: "evasion", multi: 1.01
     }],
     oreRequired: 14,
     statBoosts: [
@@ -361,7 +361,7 @@ const gearTypes = {
       { stat: "critChance", weight: 3, multi: 1.006 },
       { stat: "cooldownReduction", weight: 2, multi: 0.995 },
       { stat: "xpGain", weight: 1, multi: 1.003 },
-      { stat: "evasionChance", weight: 2, multi: 1.01 }
+      { stat: "evasion", weight: 2, multi: 1.01 }
     ]
   }
 };
@@ -437,7 +437,7 @@ const oresData = {
   },
   Needlite: {
     tier: 1,
-    bonus: { stat: "evasionChance", multi: 1.007 },
+    bonus: { stat: "evasion", multi: 1.007 },
     resistances: {
       piercing: 0.9993,
       shock: 0.9990,
@@ -670,7 +670,7 @@ const oresData = {
   },
   Phasemite: {
     tier: 1,
-    bonus: { stat: "evasionChance", multi: 1.008 },
+    bonus: { stat: "evasion", multi: 1.008 },
     resistances: {
       ethereal: 0.9994,
       psychic: 0.9991,
@@ -812,7 +812,7 @@ const oresData = {
   },
   Sparksteel: {
     tier: 2,
-    bonus: { stat: "evasionChance", multi: 1.01 },
+    bonus: { stat: "evasion", multi: 1.01 },
     resistances: {
       shock: 0.993,
       sonic: 0.994,
@@ -902,7 +902,9 @@ const statGroups = [{
         class: "combat",
         stats: [
             { label: "Cooldown Reduction", key: "cooldownReduction" },
-            { label: "Damage Taken", key: "damageTaken" }
+            { label: "Damage Taken", key: "damageTaken" },
+            { label: "Accuracy", key: "accuracy" },
+            { label: "Evasion", key: "evasion" }
 
         ]
     }, {
@@ -1305,9 +1307,25 @@ player = {
       display: "Critical Hit Damage Multiplier",
       base: 2
     },
-    evasionChance: {
-      display: "Evasion Chance",
-      value: 0
+    evasion: {
+      display: "Evasion",
+      value: 1,
+      base: 1,
+      scaling: [{
+        "target": "caster",
+        "stat": "wisdom",
+        "scale": 1
+      }]
+    },
+    accuracy: {
+      display: "Accuracy",
+      value: 1,
+      base: 1,
+      scaling: [{
+        "target": 'caster',
+        "stat": "dexterity",
+        "scale": 1
+      }]
     },
     lifestealMulti: {
       display: "Lifesteal Damage Percent",
@@ -4215,6 +4233,10 @@ function buildUnitTable(member, isAlly, isPlayer) {
         targetting = false;
         selectSkillTarget(unitToCast);
         document.querySelectorAll(".unit-box").forEach((box) => {
+          let hitChanceBox = document.getElementById(member.id + '-hitChance')
+          if(hitChanceBox){
+            hitChanceBox.remove();
+          }
           box.style.setProperty('--border-gradient', 'linear-gradient(to right, black, black)');
         });
       }
@@ -4423,6 +4445,22 @@ function updateProgressBar(skillId, member) {
       lastError = Date.now()
     }
   }
+      if(hasTarget){
+        let hitChanceDiv = document.getElementById(member.id + "-" + skillId + "-hitChance")
+        if(hitChanceDiv){
+      let caster = member;
+      let unit = findUnitById(skillData.target)
+      let evStat = unit.stats.evasion
+      let evasion = calculateEffectiveValue(evStat, unit, unit, undefined, undefined, undefined);
+      let acStat = caster.stats.accuracy;
+      let accuracy = calculateEffectiveValue(acStat, caster, caster, unit, undefined, undefined) ;
+
+      let hitChance = 1-getEvasionChance(accuracy, evasion);
+
+      hitChanceDiv.textContent = "Hit Chance: " + (hitChance*100).toFixed(2)+"%";
+      
+        }
+    }
   const now = Date.now(); // or Date.now(), but perf.now is higher resolution
   const elapsed = Math.max(0, now - lastUse)/1000;
   const pct = Math.min(1, elapsed / cooldown); // 0 to 1
@@ -4584,7 +4622,7 @@ function updateSkillUnitDisplay(skillId, member) {
       ? "linear-gradient(#4c4, #282)": !requiresTarget || (hasTarget && isTargetAlive)?"linear-gradient(#cb4,#863)": "linear-gradient(#c44, #844)";
     }
   };
-
+  
   skillDiv.appendChild(barContainer);
 
   // Bottom row with Target + Info button
@@ -4608,6 +4646,25 @@ function updateSkillUnitDisplay(skillId, member) {
     };
     bottomRow.appendChild(targetBtn);
   }
+          let hitChanceDiv = document.createElement("div");
+      hitChanceDiv.id = member.id + '-'+skillId+'-hitChance'
+      hitChanceDiv.style.fontSize = "0.7em"
+    if(hasTarget){
+      let caster = member;
+      let unit = findUnitById(skillData.target)
+      let evStat = unit.stats.evasion
+      let evasion = calculateEffectiveValue(evStat, unit, unit, undefined, undefined, undefined);
+      let acStat = caster.stats.accuracy;
+      let accuracy = calculateEffectiveValue(acStat, caster, caster, unit, undefined, undefined) ;
+
+      let hitChance = 1-getEvasionChance(accuracy, evasion);
+
+      hitChanceDiv.textContent = "Hit Chance: " + (hitChance*100).toFixed(2)+"%";
+      
+      
+    }
+    bottomRow.appendChild(hitChanceDiv)
+  
 
 
 
@@ -5843,19 +5900,32 @@ function passesTriggerConditions(effect, event, unit, talentId) {
   unit.talentListeners = [];
 }
   function damageUnit(caster, target, damageType, amount) {
-    if(!target.stats.evasionChance){
-      target.stats.evasionChance = {
-        value: 0,
-        base: 0
+    if(!target.stats.evasion){
+      target.stats.evasion = {
+        value: 1,
+        base: 1,
+        scaling: []
       }
     }
-    
-      let stat = target.stats.evasionChance
-      let val = stat.value;
-      if (caster && Math.floor(Math.random()*100) < val) {
+    if(caster && !caster.stats.accuracy){
+      caster.stats.accuracy = {
+        value: 1,
+        base: 1,
+        scaling: []
+      }
+    }
+    if(caster){
+      let evStat = target.stats.evasion
+      let evasion = calculateEffectiveValue(evStat, target, target, undefined, undefined, undefined);
+      let acStat = caster.stats.accuracy;
+      let accuracy = calculateEffectiveValue(acStat, caster, caster, target, undefined, undefined) ;
+
+      let evasionChance = getEvasionChance(accuracy, evasion);
+      if (Math.floor(Math.random()*100) < evasionChance) {
         updateCombatLog(`${target.name} evaded damage!`, caster, ["evasion", target.isAlly?"ally":"enemy"]);
         return 0;
       }
+    }
     
     recalculateTotalResistances(target);
     let resist = 1;
@@ -5973,6 +6043,10 @@ function passesTriggerConditions(effect, event, unit, talentId) {
     resetUnitSkillDisplays(unit)
     console.log(`Skill ${skillId} target set to ${findUnitById(targetUnitId).name} for ${unit.name}`);
     document.querySelectorAll('.unit-box').forEach(box => {
+      let hitChanceDiv = document.getElementById(unitId + '-hitChance')
+      if(hitChanceDiv){
+        hitChanceDiv.remove();
+      }
       box.style.border = '1px solid black';
     })
     targetting = false;
@@ -5999,19 +6073,34 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       unitToTarget = null;
       document.querySelectorAll('.unit-box').forEach(box => {
         let unitId = parseInt(box.id.match(/\d+/)[0]);
+        console.log("removing", unitId + '-hitChance')
+        document.getElementById(unitId + '-hitChance').remove();
         resetUnitBorder(unitId);
       })
+      
       return;
     }
     skillToTarget = skillId;
     unitToCast = casterId;
-
+    let caster = findUnitById(casterId)
     let potentialTargets = getPotentialTargets(findUnitById(casterId), skillsData[skillId].target)
     document.querySelectorAll('.unit-box').forEach(box => {
       let unitId = parseInt(box.id.match(/\d+/)[0]);
       let unit = findUnitById(unitId);
       if (unit.isAlive) {
         if (settings.friendlyFire || potentialTargets.includes(unit)) {
+          let evStat = unit.stats.evasion
+      let evasion = calculateEffectiveValue(evStat, unit, unit, undefined, undefined, undefined);
+      let acStat = caster.stats.accuracy;
+      let accuracy = calculateEffectiveValue(acStat, caster, caster, unit, undefined, undefined) ;
+
+      let hitChance = 1-getEvasionChance(accuracy, evasion);
+      let hitChanceDiv = document.createElement("div");
+      hitChanceDiv.id = unitId + '-hitChance'
+      hitChanceDiv.textContent = "Hit Chance: " + (hitChance*100).toFixed(2)+"%";
+      hitChanceDiv.style.fontSize = "0.7em"
+      console.log("adding", hitChanceDiv.id)
+      box.appendChild(hitChanceDiv)
           box.style.setProperty('--border-gradient', 'linear-gradient(to right, #99f, #66a)');
         }
       } else {
@@ -6730,6 +6819,8 @@ function showClassDetails(className){
       spPip.textContent = skillPoints <100?skillPoints:""
     return 1+checkLevelUp();
   }
+  
+  
   function countdownAutoClick(button, text, durationInMs, onClick) {
     const bar = button.querySelector('.progress-fill');
     const label = button.querySelector('.label');
@@ -6785,7 +6876,7 @@ function showClassDetails(className){
         maxXp += 20;
       }
 
-      textElement.textContent = currentXp.toLocaleString();
+      textElement.textContent = currentXp.toFixed(2);
       barElement.style.width = `${percentage}%`;
 
       if (progress < 1) {
@@ -6813,7 +6904,19 @@ function showClassDetails(className){
 
     requestAnimationFrame(update);
   }
+function getEvasionChance(attackerAccuracy, targetEvasion, K = 9, x = 1) {
+  
+  const hitChance = Math.pow(targetEvasion, x) / 
+                    (Math.pow(targetEvasion, x) + Math.pow(attackerAccuracy, x) * K);
 
+  const evasionChance = hitChance;
+
+  // Optional clamp to keep values between 0% and 99%
+  if(evasionChance == NaN){
+    evasionChance = 0.01;
+  }
+  return Math.max(0.01, Math.min(0.95, evasionChance));
+}
   function calculateEffectiveValue(block, parentObject, caster, target, skillLevel, skillContext) {
     if (!block) {
       console.error("No block defined", new Error().stack);
@@ -7308,7 +7411,6 @@ function backToCharSelect(){
 function selectCharacter(slot) {
   // Replace with your character loading logic
   console.log(`Character in slot ${slot} selected.`);
-  
   
   
   const key = `mythos-character-slot-${slot}`;

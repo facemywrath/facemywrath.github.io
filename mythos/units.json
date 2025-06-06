@@ -1,3043 +1,3511 @@
 [
   {
-  "name": "Scorch Maw",
-  "race": "Beast",
-  "damageType": "heat",
-  "planet": "Cinderrift",
-  "discoveryXp": 30,
-  "xp": 20,
-  "attributes": {
-    "strength": 4,
-    "dexterity": 1,
-    "constitution": 5,
-    "intellect": 2,
-    "wisdom": 2,
-    "willpower": 4
-  },
-  "attributesPerLevel": {
-    "strength": 3,
-    "dexterity": 0.5,
-    "constitution": 2.5,
-    "intellect": 1,
-    "wisdom": 1,
-    "willpower": 1
-  },
-  "stats": {
-    "hp": {
-      "display": "Hp",
-      "value": 100
+    "name": "Scorch Maw",
+    "race": "Beast",
+    "damageType": "heat",
+    "planet": "Cinderrift",
+    "discoveryXp": 30,
+    "xp": 20,
+    "attributes": {
+      "strength": 4,
+      "dexterity": 1,
+      "constitution": 5,
+      "intellect": 2,
+      "wisdom": 2,
+      "willpower": 4
     },
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 100,
-      "value": 100,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 8,
-          "stat": "constitution"
-        }
-      ]
+    "attributesPerLevel": {
+      "strength": 3,
+      "dexterity": 0.5,
+      "constitution": 2.5,
+      "intellect": 1,
+      "wisdom": 1,
+      "willpower": 1
     },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 0,
-      "value": 0
-    },
-    "sp": {
-      "display": "Sp",
-      "base": 20,
-      "value": 20
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 20,
-      "value": 20,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 3,
-          "stat": "strength"
-        }
-      ]
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 0,
-      "value": 0,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 0.1,
-          "stat": "dexterity"
-        }
-      ]
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "mp": {
-      "display": "Mp",
-      "base": 20,
-      "value": 20
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 20,
-      "value": 20,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 0.8,
-          "stat": "willpower"
-        }
-      ]
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 1,
-      "value": 1,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 0.05,
-          "stat": "wisdom"
-        }
-      ]
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "attackPower": {
-      "display": "Attack Power",
-      "base": 0,
-      "value": 0
-    },
-    "spellPower": {
-      "display": "Spell Power",
-      "base": 0,
-      "value": 0
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 0,
-      "value": 0
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 0.9,
-      "value": 1
-    },
-    "armorPenetration": {
-      "display": "Armor Penetration",
-      "base": 0,
-      "value": 0
-    },
-    "magicPenetration": {
-      "display": "Magic Penetration",
-      "base": 0,
-      "value": 0
-    }
-  },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
-    },
-    "equipped": [
-      {
-        "id": "flameBreath",
-        "level": 1
+    "stats": {
+      "hp": {
+        "display": "Hp",
+        "value": 100
       },
-      {
-        "id": "hotBite",
-        "level": 1
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 100,
+        "value": 100,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 8,
+            "stat": "constitution"
+          }
+        ]
       },
-      {
-        "id": "heatwaveRoar",
-        "level": 1
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 0,
+        "value": 0
+      },
+      "sp": {
+        "display": "Sp",
+        "base": 20,
+        "value": 20
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 20,
+        "value": 20,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 3,
+            "stat": "strength"
+          }
+        ]
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 0,
+        "value": 0,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.1,
+            "stat": "dexterity"
+          }
+        ]
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "mp": {
+        "display": "Mp",
+        "base": 20,
+        "value": 20
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 20,
+        "value": 20,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.8,
+            "stat": "willpower"
+          }
+        ]
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.05,
+            "stat": "wisdom"
+          }
+        ]
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "attackPower": {
+        "display": "Attack Power",
+        "base": 0,
+        "value": 0
+      },
+      "spellPower": {
+        "display": "Spell Power",
+        "base": 0,
+        "value": 0
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 0,
+        "value": 0
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 0.9,
+        "value": 1
+      },
+      "armorPenetration": {
+        "display": "Armor Penetration",
+        "base": 0,
+        "value": 0
+      },
+      "magicPenetration": {
+        "display": "Magic Penetration",
+        "base": 0,
+        "value": 0
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
       }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Blaze Crawler",
-  "race": "Beast",
-  "damageType": "heat",
-  "planet": "Cinderrift",
-  "discoveryXp": 15,
-  "xp": 10,
-  "attributes": {
-    "strength": 1,
-    "dexterity": 2,
-    "constitution": 3,
-    "intellect": 2,
-    "wisdom": 2,
-    "willpower": 3
-  },
-  "attributesPerLevel": {
-    "strength": 1.1,
-    "dexterity": 0.85,
-    "constitution": 2,
-    "intellect": 4.5,
-    "wisdom": 1,
-    "willpower": 1.4
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 35,
-      "value": 35,
-      "scaling": [
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
         {
-          "target": "caster",
-          "scale": 6,
-          "stat": "constitution"
+          "id": "flameBreath",
+          "level": 1
+        },
+        {
+          "id": "hotBite",
+          "level": 1
+        },
+        {
+          "id": "heatwaveRoar",
+          "level": 1
         }
       ]
     },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 0,
-      "value": 0
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 10,
-      "value": 10,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 1,
-          "stat": "dexterity"
-        }
-      ]
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 1,
-      "value": 1
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 20,
-      "value": 20,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 5,
-          "stat": "willpower"
-        }
-      ]
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 1,
-      "value": 1,
-      "scaling": [{
-        "target": "caster",
-        "scale": 0.2,
-        "stat": "willpower"
-      }]
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "attackPower": {
-      "display": "Attack Power",
-      "base": 0,
-      "value": 0
-    },
-    "spellPower": {
-      "display": "Spell Power",
-      "base": 0,
-      "value": 0
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 0,
-      "value": 0
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 1,
-      "value": 1
-    },
-    "armorPenetration": {
-      "display": "Armor Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "magicPenetration": {
-      "display": "Magic Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "hp": {
-      "value": 40
-    },
-    "mp": {
-      "value": 80
-    },
-    "sp": {
-      "value": 10
-    }
+    "talents": []
   },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
+  {
+    "name": "Blaze Crawler",
+    "race": "Beast",
+    "damageType": "heat",
+    "planet": "Cinderrift",
+    "discoveryXp": 15,
+    "xp": 10,
+    "attributes": {
+      "strength": 1,
+      "dexterity": 2,
+      "constitution": 3,
+      "intellect": 2,
+      "wisdom": 2,
+      "willpower": 3
     },
-    "equipped": [
-      {
-        "id": "emberStream",
-        "level": 1
+    "attributesPerLevel": {
+      "strength": 1.1,
+      "dexterity": 0.85,
+      "constitution": 2,
+      "intellect": 4.5,
+      "wisdom": 1,
+      "willpower": 1.4
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 35,
+        "value": 35,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 6,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 0,
+        "value": 0
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 10,
+        "value": 10,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 1,
+            "stat": "dexterity"
+          }
+        ]
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 1,
+        "value": 1
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 40,
+        "value": 40,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 5,
+            "stat": "willpower"
+          }
+        ]
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 3,
+        "value": 3,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.3,
+            "stat": "willpower"
+          }
+        ]
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "attackPower": {
+        "display": "Attack Power",
+        "base": 0,
+        "value": 0
+      },
+      "spellPower": {
+        "display": "Spell Power",
+        "base": 0,
+        "value": 0
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 0,
+        "value": 0
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "armorPenetration": {
+        "display": "Armor Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "magicPenetration": {
+        "display": "Magic Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 40
+      },
+      "mp": {
+        "value": 80
+      },
+      "sp": {
+        "value": 10
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
       }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Ashen Fang",
-  "race": "Beast",
-  "damageType": "Heat",
-  "planet": "Cinderrift",
-  "discoveryXp": 30,
-  "xp": 15,
-  "attributes": {
-    "strength": 2,
-    "dexterity": 2,
-    "constitution": 2,
-    "intellect": 1,
-    "wisdom": 1,
-    "willpower": 1
-  },
-  "attributesPerLevel": {
-    "strength": 2.5,
-    "dexterity": 1.5,
-    "constitution": 1.5,
-    "intellect": 0.7,
-    "wisdom": 0.9,
-    "willpower": 1.5
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 50,
-      "value": 50,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 7,
-          "stat": "constitution"
-        }
-      ]
     },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 1,
-      "value": 1
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 5,
-      "value": 5,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 2,
-          "stat": "dexterity"
-        }
-      ]
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 3,
-      "value": 3,
-      "scaling": [{
-        "target": "caster",
-        "stat": "dexterity",
-        "scale": 0.2
-      }]
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 5,
-      "value": 5,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 0.5,
-          "stat": "willpower"
-        }
-      ]
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 0.25,
-      "value": 0.25
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "attackPower": {
-      "display": "Attack Power",
-      "base": 0,
-      "value": 0
-    },
-    "spellPower": {
-      "display": "Spell Power",
-      "base": 0,
-      "value": 0
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 1,
-      "value": 1
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 2,
-      "value": 2
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 1,
-      "value": 1
-    },
-    "armorPenetration": {
-      "display": "Armor Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "magicPenetration": {
-      "display": "Magic Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "hp": {
-      "value": 50
-    },
-    "mp": {
-      "value": 5
-    },
-    "sp": {
-      "value": 25
-    }
-  },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
-    },
-    "equipped": [
-      {
-        "id": "clawSlash",
-        "level": 1
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
       },
-      {
-        "id": "hotBite",
-        "level": 1
+      "equipped": [
+        {
+          "id": "emberStream",
+          "level": 1
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
+    "name": "Ashen Fang",
+    "race": "Beast",
+    "damageType": "Heat",
+    "planet": "Cinderrift",
+    "discoveryXp": 30,
+    "xp": 15,
+    "attributes": {
+      "strength": 2,
+      "dexterity": 2,
+      "constitution": 2,
+      "intellect": 1,
+      "wisdom": 1,
+      "willpower": 1
+    },
+    "attributesPerLevel": {
+      "strength": 2.5,
+      "dexterity": 1.5,
+      "constitution": 1.5,
+      "intellect": 0.7,
+      "wisdom": 0.9,
+      "willpower": 1.5
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 50,
+        "value": 50,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 7,
+            "stat": "constitution"
+          }
+        ]
       },
-      {
-        "id": "tailWhip",
-        "level": 1
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 1,
+        "value": 1
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 5,
+        "value": 5,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 2,
+            "stat": "dexterity"
+          }
+        ]
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 3,
+        "value": 3,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 0.2
+          }
+        ]
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 5,
+        "value": 5,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.5,
+            "stat": "willpower"
+          }
+        ]
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 0.25,
+        "value": 0.25
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "attackPower": {
+        "display": "Attack Power",
+        "base": 0,
+        "value": 0
+      },
+      "spellPower": {
+        "display": "Spell Power",
+        "base": 0,
+        "value": 0
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 1,
+        "value": 1
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 2,
+        "value": 2
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "armorPenetration": {
+        "display": "Armor Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "magicPenetration": {
+        "display": "Magic Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 50
+      },
+      "mp": {
+        "value": 5
+      },
+      "sp": {
+        "value": 25
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
       }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Maghthorn",
-  "race": "Beast",
-  "damageType": "Heat",
-  "planet": "Cinderrift",
-  "discoveryXp": 40,
-  "xp": 25,
-  "attributes": {
-    "strength": 3,
-    "dexterity": 2,
-    "constitution": 5,
-    "intellect": 1,
-    "wisdom": 2,
-    "willpower": 2
-  },
-  "attributesPerLevel": {
-    "strength": 1.8,
-    "dexterity": 1.2,
-    "constitution": 2,
-    "intellect": 0.7,
-    "wisdom": 1,
-    "willpower": 1
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 100,
-      "value": 100,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 10,
-          "stat": "constitution"
-        }
-      ]
     },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 0,
-      "value": 0,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 0.01,
-          "stat": "maxHp"
-        }
-      ]
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 0,
-      "value": 0,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 4,
-          "stat": "constitution"
-        }
-      ]
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 1,
-      "value": 1,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 0.05,
-          "stat": "strength"
-        }
-      ]
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 10,
-      "value": 10,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 1,
-          "stat": "willpower"
-        }
-      ]
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 0.5,
-      "value": 0.5
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "attackPower": {
-      "display": "Attack Power",
-      "base": 0,
-      "value": 0
-    },
-    "spellPower": {
-      "display": "Spell Power",
-      "base": 0,
-      "value": 0
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 0,
-      "value": 0
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 1,
-      "value": 1
-    },
-    "armorPenetration": {
-      "display": "Armor Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "magicPenetration": {
-      "display": "Magic Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "hp": {
-      "value": 100
-    },
-    "mp": {
-      "value": 10
-    },
-    "sp": {
-      "value": 0
-    }
-  },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
-    },
-    "equipped": [
-      {
-        "id": "fireStomp",
-        "level": 1
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
       },
-      {
-        "id": "earthquake",
-        "level": 1
+      "equipped": [
+        {
+          "id": "clawSlash",
+          "level": 1
+        },
+        {
+          "id": "hotBite",
+          "level": 1
+        },
+        {
+          "id": "tailWhip",
+          "level": 1
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
+    "name": "Maghthorn",
+    "race": "Beast",
+    "damageType": "Heat",
+    "planet": "Cinderrift",
+    "discoveryXp": 40,
+    "xp": 25,
+    "attributes": {
+      "strength": 3,
+      "dexterity": 2,
+      "constitution": 5,
+      "intellect": 1,
+      "wisdom": 2,
+      "willpower": 2
+    },
+    "attributesPerLevel": {
+      "strength": 1.8,
+      "dexterity": 1.2,
+      "constitution": 2,
+      "intellect": 0.7,
+      "wisdom": 1,
+      "willpower": 1
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 100,
+        "value": 100,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 10,
+            "stat": "constitution"
+          }
+        ]
       },
-      {
-        "id": "hotBite",
-        "level": 1
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 0,
+        "value": 0,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.01,
+            "stat": "maxHp"
+          }
+        ]
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 0,
+        "value": 0,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 4,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.05,
+            "stat": "strength"
+          }
+        ]
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 10,
+        "value": 10,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 1,
+            "stat": "willpower"
+          }
+        ]
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 0.5,
+        "value": 0.5
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "attackPower": {
+        "display": "Attack Power",
+        "base": 0,
+        "value": 0
+      },
+      "spellPower": {
+        "display": "Spell Power",
+        "base": 0,
+        "value": 0
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 0,
+        "value": 0
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "armorPenetration": {
+        "display": "Armor Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "magicPenetration": {
+        "display": "Magic Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 100
+      },
+      "mp": {
+        "value": 10
+      },
+      "sp": {
+        "value": 0
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
       }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Pyrite",
-  "race": "Elemental",
-  "damageType": "Heat",
-  "planet": "Cinderrift",
-  "discoveryXp": 30,
-  "xp": 18,
-  "attributes": {
-    "strength": 1,
-    "dexterity": 2,
-    "constitution": 1,
-    "intellect": 3,
-    "wisdom": 4,
-    "willpower": 5
-  },
-  "attributesPerLevel": {
-    "strength": 0.2,
-    "dexterity": 0.85,
-    "constitution": 1.2,
-    "intellect": 3.4,
-    "wisdom": 2,
-    "willpower": 2.25
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 10,
-      "value": 10,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 5,
-          "stat": "constitution"
-        }
-      ]
     },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 0.5,
-      "value": 0.5
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 10,
-      "value": 10,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 1,
-          "stat": "dexterity"
-        }
-      ]
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 1,
-      "value": 1
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 80,
-      "value": 80,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 5,
-          "stat": "willpower"
-        }
-      ]
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 1,
-      "value": 1,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 0.08,
-          "stat": "wisdom"
-        }
-      ]
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "attackPower": {
-      "display": "Attack Power",
-      "base": 0,
-      "value": 0
-    },
-    "spellPower": {
-      "display": "Spell Power",
-      "base": 0,
-      "value": 0
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 1,
-      "value": 1
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 2,
-      "value": 2
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 1,
-      "value": 1
-    },
-    "armorPenetration": {
-      "display": "Armor Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "magicPenetration": {
-      "display": "Magic Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "hp": {
-      "value": 10
-    },
-    "mp": {
-      "value": 80
-    },
-    "sp": {
-      "value": 10
-    }
-  },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
-    },
-    "equipped": [
-      {
-        "id": "heatFloes",
-        "level": 1
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
       },
-      {
-        "id": "fireball",
-        "level": 1
+      "equipped": [
+        {
+          "id": "fireStomp",
+          "level": 1
+        },
+        {
+          "id": "earthquake",
+          "level": 1
+        },
+        {
+          "id": "hotBite",
+          "level": 1
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
+    "name": "Pyrite",
+    "race": "Elemental",
+    "damageType": "Heat",
+    "planet": "Cinderrift",
+    "discoveryXp": 30,
+    "xp": 18,
+    "attributes": {
+      "strength": 1,
+      "dexterity": 2,
+      "constitution": 1,
+      "intellect": 3,
+      "wisdom": 4,
+      "willpower": 5
+    },
+    "attributesPerLevel": {
+      "strength": 0.2,
+      "dexterity": 0.85,
+      "constitution": 1.2,
+      "intellect": 3.4,
+      "wisdom": 2,
+      "willpower": 2.25
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 10,
+        "value": 10,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 5,
+            "stat": "constitution"
+          }
+        ]
       },
-      {
-        "id": "pyroblast",
-        "level": 1
-      }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Slagwurm",
-  "race": "Beast",
-  "damageType": "Heat",
-  "planet": "Cinderrift",
-  "discoveryXp": 30,
-  "xp": 20,
-  "attributes": {
-    "strength": 1,
-    "dexterity": 1,
-    "constitution": 4,
-    "intellect": 3,
-    "wisdom": 3,
-    "willpower": 4
-  },
-  "attributesPerLevel": {
-    "strength": 1.2,
-    "dexterity": 1.2,
-    "constitution": 2.8,
-    "intellect": 1.5,
-    "wisdom": 2.5,
-    "willpower": 2
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 100,
-      "value": 100,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 10,
-          "stat": "constitution"
-        }
-      ]
-    },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 2,
-      "value": 2
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 15,
-      "value": 15,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 2,
-          "stat": "strength"
-        }
-      ]
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 1,
-      "value": 1
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 10,
-      "value": 10,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 1,
-          "stat": "willpower"
-        }
-      ]
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 0.5,
-      "value": 0.5
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "attackPower": {
-      "display": "Attack Power",
-      "base": 0,
-      "value": 0
-    },
-    "spellPower": {
-      "display": "Spell Power",
-      "base": 0,
-      "value": 0
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 0,
-      "value": 0
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 1,
-      "value": 1
-    },
-    "armorPenetration": {
-      "display": "Armor Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "magicPenetration": {
-      "display": "Magic Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "hp": {
-      "value": 100
-    },
-    "mp": {
-      "value": 10
-    },
-    "sp": {
-      "value": 15
-    }
-  },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
-    },
-    "equipped": [
-      {
-        "id": "spewMagma",
-        "level": 1
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 0.5,
+        "value": 0.5
       },
-      {
-        "id": "hardenShell",
-        "level": 1
-      }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Sharptooth",
-  "race": "Beast",
-  "damageType": "Slashing",
-  "planet": "Cinderrift",
-  "discoveryXp": 20,
-  "xp": 10,
-  "attributes": {
-    "strength": 2,
-    "dexterity": 3,
-    "constitution": 2,
-    "intellect": 1,
-    "wisdom": 1,
-    "willpower": 1
-  },
-  "attributesPerLevel": {
-    "strength": 2.5,
-    "dexterity": 2,
-    "constitution": 1.5,
-    "intellect": 0.7,
-    "wisdom": 0.9,
-    "willpower": 1.5
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 25,
-      "value": 25,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 6,
-          "stat": "constitution"
-        }
-      ]
-    },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 1,
-      "value": 1
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 25,
-      "value": 25,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 4,
-          "stat": "dexterity"
-        }
-      ]
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 2,
-      "value": 2
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 5,
-      "value": 5,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 0.5,
-          "stat": "willpower"
-        }
-      ]
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 0.25,
-      "value": 0.25
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "attackPower": {
-      "display": "Attack Power",
-      "base": 0,
-      "value": 0
-    },
-    "spellPower": {
-      "display": "Spell Power",
-      "base": 0,
-      "value": 0
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 1,
-      "value": 1
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 2,
-      "value": 2
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 0.9,
-      "value": 0.9,
-      "min": 0.75,
-      "scaling": [{
-        "target": "caster",
-        "stat": "tier",
-        "scale": -0.005
-      }]
-    },
-    "armorPenetration": {
-      "display": "Armor Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "magicPenetration": {
-      "display": "Magic Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "hp": {
-      "value": 50
-    },
-    "mp": {
-      "value": 5
-    },
-    "sp": {
-      "value": 25
-    }
-  },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
-    },
-    "equipped": [
-      {
-        "id": "tailWhip",
-        "level": 1
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 10,
+        "value": 10,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 1,
+            "stat": "dexterity"
+          }
+        ]
       },
-      {
-        "id": "clawSlash",
-        "level": 1
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 1,
+        "value": 1
       },
-      {
-        "id": "fierceSwipe",
-        "level": 1,
-        "tierRequired": 61
-      }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Treant",
-  "race": "Plant",
-  "damageType": "Nature",
-  "planet": "Cinderrift",
-  "discoveryXp": 30,
-  "xp": 20,
-  "attributes": {
-    "strength": 3,
-    "dexterity": 2,
-    "constitution": 5,
-    "intellect": 1,
-    "wisdom": 3,
-    "willpower": 3
-  },
-  "attributesPerLevel": {
-    "strength": 1,
-    "dexterity": 1,
-    "constitution": 3.3,
-    "intellect": 0.7,
-    "wisdom": 1,
-    "willpower": 1
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 100,
-      "value": 100,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 10,
-          "stat": "constitution"
-        }
-      ]
-    },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 2,
-      "value": 2
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 15,
-      "value": 15,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 2,
-          "stat": "strength"
-        }
-      ]
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 1,
-      "value": 1
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 10,
-      "value": 10,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 5,
-          "stat": "willpower"
-        }
-      ]
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 3,
-      "value": 3
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "attackPower": {
-      "display": "Attack Power",
-      "base": 0,
-      "value": 0
-    },
-    "spellPower": {
-      "display": "Spell Power",
-      "base": 0,
-      "value": 0
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 0,
-      "value": 0
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 1,
-      "value": 1
-    },
-    "armorPenetration": {
-      "display": "Armor Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "magicPenetration": {
-      "display": "Magic Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "hp": {
-      "value": 100
-    },
-    "mp": {
-      "value": 10
-    },
-    "sp": {
-      "value": 15
-    }
-  },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
-    },
-    "equipped": [
-      {
-        "id": "entangle",
-        "level": 1
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 0,
+        "value": 0
       },
-      {
-        "id": "thornWhip",
-        "level": 1
-      }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Grove Druid",
-  "race": "Gnoll",
-  "damageType": "Nature",
-  "planet": "Cinderrift",
-  "discoveryXp": 20,
-  "xp": 15,
-  "attributes": {
-    "strength": 1,
-    "dexterity": 2,
-    "constitution": 1,
-    "intellect": 3,
-    "wisdom": 4,
-    "willpower": 5
-  },
-  "attributesPerLevel": {
-    "strength": 0.2,
-    "dexterity": 0.85,
-    "constitution": 0.8,
-    "intellect": 3.4,
-    "wisdom": 2,
-    "willpower": 2.25
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 40,
-      "value": 40,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 4,
-          "stat": "constitution"
-        }
-      ]
-    },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 0.5,
-      "value": 0.5
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 10,
-      "value": 10,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 1,
-          "stat": "dexterity"
-        }
-      ]
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 1,
-      "value": 1
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 80,
-      "value": 80,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 5,
-          "stat": "willpower"
-        }
-      ]
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 5,
-      "value": 5
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "attackPower": {
-      "display": "Attack Power",
-      "base": 0,
-      "value": 0
-    },
-    "spellPower": {
-      "display": "Spell Power",
-      "base": 0,
-      "value": 0
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 0,
-      "value": 0
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 1,
-      "value": 1
-    },
-    "armorPenetration": {
-      "display": "Armor Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "magicPenetration": {
-      "display": "Magic Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "hp": {
-      "value": 40
-    },
-    "mp": {
-      "value": 80
-    },
-    "sp": {
-      "value": 10
-    }
-  },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
-    },
-    "equipped": [
-      {
-        "id": "vigorousGrowth",
-        "level": 1
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 80,
+        "value": 80,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 5,
+            "stat": "willpower"
+          }
+        ]
       },
-      {
-        "id": "summonVine",
-        "level": 1
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.08,
+            "stat": "wisdom"
+          }
+        ]
       },
-      {
-        "id": "summonWolf",
-        "level": 1
-      }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Monstrous Vine",
-  "race": "Plant",
-  "damageType": "Nature",
-  "planet": "Cinderrift",
-  "discoveryXp": 0,
-  "xp": 0,
-  "attributes": {
-    "strength": 2,
-    "dexterity": 4,
-    "constitution": 2,
-    "intellect": 1,
-    "wisdom": 1,
-    "willpower": 1
-  },
-  "attributesPerLevel": {
-    "strength": 2.5,
-    "dexterity": 3.5,
-    "constitution": 1,
-    "intellect": 0.7,
-    "wisdom": 0.9,
-    "willpower": 1.5
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 10,
-      "value": 10,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 1,
-          "stat": "constitution"
-        }
-      ]
-    },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 1,
-      "value": 1
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 25,
-      "value": 25,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 4,
-          "stat": "dexterity"
-        }
-      ]
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 2,
-      "value": 2
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 5,
-      "value": 5,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 0.5,
-          "stat": "willpower"
-        }
-      ]
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 0.25,
-      "value": 0.25
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "attackPower": {
-      "display": "Attack Power",
-      "base": 0,
-      "value": 0
-    },
-    "spellPower": {
-      "display": "Spell Power",
-      "base": 0,
-      "value": 0
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 1,
-      "value": 1
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 2,
-      "value": 2
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 1,
-      "value": 1
-    },
-    "armorPenetration": {
-      "display": "Armor Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "magicPenetration": {
-      "display": "Magic Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "hp": {
-      "value": 10
-    },
-    "mp": {
-      "value": 5
-    },
-    "sp": {
-      "value": 25
-    }
-  },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
-    },
-    "equipped": [
-      {
-        "id": "thornWhip",
-        "level": 1
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 0,
+        "value": 0
       },
-      {
-        "id": "vineLegSweep",
-        "level": 1,
-        "tierRequired": 100
-      }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Forest Wasp",
-  "race": "Insect",
-  "damageType": "poison",
-  "planet": "Cinderrift",
-  "xp": 25,
-  "discoveryXp": 40,
-  "attributes": {
-    "strength": 3,
-    "dexterity": 5,
-    "constitution": 2,
-    "intellect": 2,
-    "wisdom": 1,
-    "willpower": 1
-  },
-  "attributesPerLevel": {
-    "strength": 0.3,
-    "dexterity": 0.5,
-    "constitution": 0.2,
-    "intellect": 0.2,
-    "wisdom": 0.1,
-    "willpower": 0.1
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 25,
-      "value": 25,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 5,
-          "stat": "constitution"
-        }
-      ]
-    },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 1,
-      "value": 1
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 25,
-      "value": 25
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 7,
-      "value": 7
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 1,
-      "value": 1
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 10,
-      "value": 10
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 1,
-      "value": 1
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 1,
-      "value": 1
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 0,
-      "value": 0
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 1,
-      "value": 1
-    },
-    "armorPenetration": {
-      "display": "Armor Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "magicPenetration": {
-      "display": "Magic Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "hp": {
-      "value": 25
-    },
-    "mp": {
-      "value": 10
-    },
-    "sp": {
-      "value": 25
-    }
-  },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
-    },
-    "equipped": [{
-      "id": "poisonSting",
-      "level": 1
-    },{
-      "id": "evasiveFlight",
-      "level": 1
-    }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Ancient Treant",
-  "race": "Plant",
-  "damageType": "nature",
-  "planet": "Cinderrift",
-  "xp": 30,
-  "attributes": {
-    "strength": 3,
-    "dexterity": 2,
-    "constitution": 5,
-    "intellect": 4,
-    "wisdom": 3,
-    "willpower": 4
-  },
-  "attributesPerLevel": {
-    "strength": 0.3,
-    "dexterity": 0.2,
-    "constitution": 0.5,
-    "intellect": 0.4,
-    "wisdom": 0.3,
-    "willpower": 0.4
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 100,
-      "value": 100,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 8,
-          "stat": "constitution"
-        }
-      ]
-    },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 2,
-      "value": 2
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 25,
-      "value": 25
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 7,
-      "value": 7
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 50,
-      "value": 50
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 7,
-      "value": 7
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 0,
-      "value": 0
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 1,
-      "value": 1
-    },
-    "armorPenetration": {
-      "display": "Armor Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "magicPenetration": {
-      "display": "Magic Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "hp": {
-      "value": 100
-    },
-    "mp": {
-      "value": 50
-    },
-    "sp": {
-      "value": 25
-    }
-  },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
-    },
-    "equipped": [{
-      
-      "id": "summonVine",
-      "level": 1
-    },{
-      "id": "entangle",
-      "level": 1
-    },{
-      "id": "thornWhip",
-      "level": 1
-    }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Grove Queen",
-  "race": "Gnoll (Boss)",
-  "damageType": "nature",
-  "planet": "Cinderrift",
-  "xp": 45,
-  "attributes": {
-    "strength": 1,
-    "dexterity": 1,
-    "constitution": 2,
-    "intellect": 5,
-    "wisdom": 5,
-    "willpower": 5
-  },
-  "attributesPerLevel": {
-    "strength": 0.1,
-    "dexterity": 0.1,
-    "constitution": 0.2,
-    "intellect": 0.5,
-    "wisdom": 0.5,
-    "willpower": 0.5
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 200,
-      "value": 200,
-      "scaling": [{
-        "target": "caster",
-        "stat": "constitution",
-        "scale": 5
-      }]
-    },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 1,
-      "value": 1
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 10,
-      "value": 10
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 3,
-      "value": 3
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 50,
-      "value": 50
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 7,
-      "value": 7
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 0,
-      "value": 0
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 1,
-      "value": 1
-    },
-    "armorPenetration": {
-      "display": "Armor Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "magicPenetration": {
-      "display": "Magic Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "hp": {
-      "value": 20
-    },
-    "mp": {
-      "value": 50
-    },
-    "sp": {
-      "value": 10
-    }
-  },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
-    },
-    "equipped": [
-      {
-      "id": "gnollWarCry",
-      "level": 1
-      },{
-      "id": "rallyingBoost",
-      "level": 1,
-      "tierRequired": 100
-      },{
-      
-      "id": "thornWhip",
-      "level": 1
-      }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Dragonlord",
-  "race": "Dragon (Boss)",
-  "damageType": "heat",
-  "planet": "Cinderrift",
-  "xp": 50,
-  "attributes": {
-    "strength": 3,
-    "dexterity": 2,
-    "constitution": 5,
-    "intellect": 4,
-    "wisdom": 3,
-    "willpower": 4
-  },
-  "attributesPerLevel": {
-    "strength": 2,
-    "dexterity": 2,
-    "constitution": 2.5,
-    "intellect": 2,
-    "wisdom": 2.5,
-    "willpower": 1
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 200,
-      "value": 200,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 5,
-          "stat": "constitution"
-        }
-      ]
-    },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 5,
-      "value": 5,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 0.1,
-          "stat": "wisdom"
-        }
-      ]
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 25,
-      "value": 25,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 0.5,
-          "stat": "dexterity"
-        }
-      ]
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 2,
-      "value": 2,
-      "scaling": [
-
-      ]
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 100,
-      "value": 100,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 1,
-          "stat": "willpower"
-        }
-      ]
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 7,
-      "value": 7,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 0.2,
-          "stat": "wisdom"
-        }
-      ]
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 0,
-      "value": 0
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 0.08,
-      "value": 0.08
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 3,
-      "value": 3
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 1,
-      "value": 1
-    },
-    "armorPenetration": {
-      "display": "Armor Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "magicPenetration": {
-      "display": "Magic Penetration",
-      "base": 1,
-      "value": 1
-    },
-    "hp": {
-      "value": 200
-    },
-    "mp": {
-      "value": 100
-    },
-    "sp": {
-      "value": 25
-    }
-  },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
-    },
-    "equipped": [{
-      "id": "flameBreath",
-      "level": 1},
-      {
-      "id": "tailWhip",
-      "level": 1},
-      {
-      "id": "soar",
-      "level": 1},
-      {
-        "id": "hotBite",
-        "level": 1
-      }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Yetin",
-  "race": "Yetin",
-  "damageType": "physical",
-  "planet": "Cinderrift",
-  "discoveryXp": 30,
-  "xp": 20,
-  "attributes": {
-    "strength": 4,
-    "dexterity": 1,
-    "constitution": 4,
-    "intellect": 1,
-    "wisdom": 1,
-    "willpower": 1
-  },
-  "attributesPerLevel": {
-    "strength": 2.25,
-    "dexterity": 1,
-    "constitution": 3.6,
-    "intellect": 1,
-    "wisdom": 1,
-    "willpower": 1
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 100,
-      "value": 100,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 15,
-          "stat": "constitution"
-        }
-      ]
-    },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 0,
-      "value": 0
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 50,
-      "value": 50
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 3,
-      "value": 3
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 1,
-      "value": 1
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 10,
-      "value": 10
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 1,
-      "value": 1
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 1,
-      "value": 1
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 0,
-      "value": 0
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 1.5,
-      "value": 1.5
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 1,
-      "value": 1
-    },
-    "hp": {
-      "value": 100
-    },
-    "mp": {
-      "value": 10
-    },
-    "sp": {
-      "value": 50
-    }
-  },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
-    },
-    "equipped": [{
-      "id": "yetinSmash",
-      "level": 1
-    },
-    {"id": "ragebornRoar",
-    "level": 1,
-    "tierRequired": 30
-    }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Noctishade",
-  "race": "Spirit",
-  "discoveryXp": 15,
-  "damageType": "spirit",
-  "planet": "Cinderrift",
-  "xp": 15,
-  "attributes": {
-    "strength": 2,
-    "dexterity": 4,
-    "constitution": 2,
-    "intellect": 1,
-    "wisdom": 1,
-    "willpower": 1
-  },
-  "attributesPerLevel": {
-    "strength": 1,
-    "dexterity": 3,
-    "constitution": 1.5,
-    "intellect": 1,
-    "wisdom": 1,
-    "willpower": 1
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 15,
-      "value": 15,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 5,
-          "stat": "constitution"
-        }
-      ]
-    },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 0,
-      "value": 0
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 100,
-      "value": 100
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 3,
-      "value": 3
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 1,
-      "value": 1,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 0.99,
-          "effect": "multi",
-          "stat": "dexterity"
-        }
-      ]
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 10,
-      "value": 10
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 1,
-      "value": 1
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 1,
-      "value": 1
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 2,
-      "value": 2,
-      "scaling": [{
-        "target": "caster",
-        "stat": "tier",
-        "effect": "multi",
-        "scale": 1.1
-      }]
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 3,
-      "value": 3
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0.25,
-      "scaling": [{
-        "target": "caster",
-        "stat": "willpower",
-        "scale": 1.05,
-        "effect": "multi"
-      }],
-      "value": 0.25
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 20,
-      "max": 100,
-      "value": 20,
-      "scaling": [
-        {
-          "target": "caster",
-          "stat": "tier",
-          "scale": 0.35
-        }]
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 1,
-      "value": 1
-    },
-    "hp": {
-      "value": 15
-    },
-    "mp": {
-      "value": 10
-    },
-    "sp": {
-      "value": 100
-    }
-  },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
-    },
-    "equipped": [{
-      "id": "umbralSlice",
-      "level": 1
-    },{
-    "id": "mistForm",
-    "level": 1,
-    "tierRequired": 40
-    }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Icy Wisp",
-  "race": "Wisp",
-  "damageType": "cold",
-  "planet": "Cinderrift",
-  "xp": 10,
-  "discoveryXp": 15,
-  "attributes": {
-    "strength": 1,
-    "dexterity": 1,
-    "constitution": 2,
-    "intellect": 3,
-    "wisdom": 5,
-    "willpower": 5
-  },
-  "attributesPerLevel": {
-    "strength": 0.1,
-    "dexterity": 0.1,
-    "constitution": 1.7,
-    "intellect": 1.5,
-    "wisdom": 1.5,
-    "willpower": 1.7
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 5,
-      "value": 5,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 8,
-          "stat": "constitution"
-        }
-      ]
-    },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 1,
-      "value": 1,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 0.35,
-          "stat": "constitution"
-        }
-      ]
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 10,
-      "value": 10
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 3,
-      "value": 3
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 1,
-      "value": 1
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 50,
-      "value": 50
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 7,
-      "value": 7
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 1,
-      "value": 1
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 0,
-      "value": 0
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 1,
-      "value": 1,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 0.999,
-          "effect": "multi",
-          "stat": "wisdom"
-        }
-      ]
-    },
-    "hp": {
-      "value": 20
-    },
-    "mp": {
-      "value": 50
-    },
-    "sp": {
-      "value": 10
-    }
-  },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
-    },
-    "equipped": [{
-      "id":  "chillingPresence",
-      "level": 1,
-      "tierRequired": 1
-    },{
-      "id": "mistForm",
-      "level": 1,
-      "tierRequired": 10
-    }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Wolf Familiar",
-  "race": "Beast",
-  "damageType": "slashing",
-  "planet": "Cinderrift",
-  "xp": 15,
-  "attributes": {
-    "strength": 5,
-    "dexterity": 3,
-    "constitution": 2,
-    "intellect": 2,
-    "wisdom": 1,
-    "willpower": 1
-  },
-  "attributesPerLevel": {
-    "strength": 0.4,
-    "dexterity": 0.35,
-    "constitution": 0.2,
-    "intellect": 0.2,
-    "wisdom": 0.1,
-    "willpower": 0.1
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 50,
-      "value": 50,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 5,
-          "stat": "constitution"
-        }
-      ]
-    },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 0.5,
-      "value": 0.5
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 25,
-      "value": 25
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 3,
-      "value": 3
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 0.9,
-      "value": 0.9
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 1,
-      "value": 1
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 0,
-      "value": 0
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 1,
-      "value": 1
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 5,
-      "value": 5,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 0.1,
-          "stat": "dexterity"
-        }
-      ]
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 1,
-      "value": 1,
-      "scaling": [
-        {
-          "target": "caster",
-          "scale": 0.025,
-          "stat": "strength"
-        }
-      ]
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 1,
-      "value": 1
-    },
-    "hp": {
-      "value": 50
-    },
-    "mp": {
-      "value": 1
-    },
-    "sp": {
-      "value": 25
-    }
-  },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
-    },
-    "equipped": [
-      { 
-      "id": "fierceSwipe",
-      "level": 1
-      },{
-      "id": "lockjaw",
-      "level": 1
+      "attackPower": {
+        "display": "Attack Power",
+        "base": 0,
+        "value": 0
       },
-      {
-        "id": "bloodlust",
-        "level": 1,
-        "tierRequired": 50
-      }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Delveling",
-  "race": "Kobold",
-  "damageType": "blunt",
-  "planet": "Cinderrift",
-  "xp": 15,
-  "attributes": {
-    "strength": 1,
-    "dexterity": 5,
-    "constitution": 2,
-    "intellect": 1,
-    "wisdom": 1,
-    "willpower": 1
-  },
-  "attributesPerLevel": {
-    "strength": 0.1,
-    "dexterity": 3.5,
-    "constitution": 1,
-    "intellect": 0.5,
-    "wisdom": 0.5,
-    "willpower": 0.5
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 25,
-      "value": 25
-    },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 0,
-      "value": 0
-    },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 25,
-      "value": 25
-    },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 3,
-      "value": 3
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 1,
-      "value": 1
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 1,
-      "value": 1
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 0,
-      "value": 0
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 1,
-      "value": 1
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 0,
-      "value": 0
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 1,
-      "value": 1
-    },
-    "hp": {
-      "value": 25
-    },
-    "mp": {
-      "value": 1
-    },
-    "sp": {
-      "value": 25
-    }
-  },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
-    },
-    "equipped": [
-      {
-      "id": "sling",
-      "level": 1
+      "spellPower": {
+        "display": "Spell Power",
+        "base": 0,
+        "value": 0
       },
-      {
-      "id": "stab",
-      "level": 1
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 1,
+        "value": 1
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 2,
+        "value": 2
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "armorPenetration": {
+        "display": "Armor Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "magicPenetration": {
+        "display": "Magic Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 10
+      },
+      "mp": {
+        "value": 80
+      },
+      "sp": {
+        "value": 10
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
       }
-    ]
-  },
-  "talents": []
-},
-{
-  "name": "Hatchling",
-  "race": "Dragon (Baby)",
-  "damageType": "heat",
-  "planet": "Cinderrift",
-  "xp": 10,
-  "attributes": {
-    "strength": 2,
-    "dexterity": 2,
-    "constitution": 2,
-    "intellect": 1,
-    "wisdom": 1,
-    "willpower": 1
-  },
-  "attributesPerLevel": {
-    "strength": 1.5,
-    "dexterity": 1.5,
-    "constitution": 1.5,
-    "intellect": 0.5,
-    "wisdom": 0.5,
-    "willpower": 0.5
-  },
-  "stats": {
-    "maxHp": {
-      "display": "Max Hp",
-      "base": 30,
-      "value": 30,
-      "scaling": [
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
         {
-          "target": "caster",
-          "scale": 5,
-          "stat": "constitution"
+          "id": "heatFloes",
+          "level": 1
+        },
+        {
+          "id": "fireball",
+          "level": 1
+        },
+        {
+          "id": "pyroblast",
+          "level": 1
         }
       ]
     },
-    "hpRegen": {
-      "display": "Hp Regen",
-      "base": 2,
-      "value": 2
+    "talents": []
+  },
+  {
+    "name": "Slagwurm",
+    "race": "Beast",
+    "damageType": "Heat",
+    "planet": "Cinderrift",
+    "discoveryXp": 30,
+    "xp": 20,
+    "attributes": {
+      "strength": 1,
+      "dexterity": 1,
+      "constitution": 4,
+      "intellect": 3,
+      "wisdom": 3,
+      "willpower": 4
     },
-    "maxSp": {
-      "display": "Max Sp",
-      "base": 25,
-      "value": 25,
-      "scaling": [
+    "attributesPerLevel": {
+      "strength": 1.2,
+      "dexterity": 1.2,
+      "constitution": 2.8,
+      "intellect": 1.5,
+      "wisdom": 2.5,
+      "willpower": 2
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 100,
+        "value": 100,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 10,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 2,
+        "value": 2
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 15,
+        "value": 15,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 2,
+            "stat": "strength"
+          }
+        ]
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 1,
+        "value": 1
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 10,
+        "value": 10,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 1,
+            "stat": "willpower"
+          }
+        ]
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 0.5,
+        "value": 0.5
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "attackPower": {
+        "display": "Attack Power",
+        "base": 0,
+        "value": 0
+      },
+      "spellPower": {
+        "display": "Spell Power",
+        "base": 0,
+        "value": 0
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 0,
+        "value": 0
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "armorPenetration": {
+        "display": "Armor Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "magicPenetration": {
+        "display": "Magic Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 100
+      },
+      "mp": {
+        "value": 10
+      },
+      "sp": {
+        "value": 15
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
         {
-          "target": "caster",
-          "scale": 1,
-          "stat": "strength"
+          "id": "spewMagma",
+          "level": 1
+        },
+        {
+          "id": "hardenShell",
+          "level": 1
         }
       ]
     },
-    "spRegen": {
-      "display": "Sp Regen",
-      "base": 3,
-      "value": 3
-    },
-    "spEfficiency": {
-      "display": "Sp Efficiency",
-      "base": 1,
-      "value": 1
-    },
-    "maxMp": {
-      "display": "Max Mp",
-      "base": 10,
-      "value": 10
-    },
-    "mpRegen": {
-      "display": "Mp Regen",
-      "base": 3,
-      "value": 3
-    },
-    "mpEfficiency": {
-      "display": "Mp Efficiency",
-      "base": 1,
-      "value": 1
-    },
-    "critChance": {
-      "display": "Crit Chance",
-      "base": 0,
-      "value": 0
-    },
-    "critMulti": {
-      "display": "Crit Multi",
-      "base": 1.5,
-      "value": 1.5
-    },
-    "lifestealMulti": {
-      "display": "Lifesteal Multi",
-      "base": 0,
-      "value": 0
-    },
-    "lifestealChance": {
-      "display": "Lifesteal Chance",
-      "base": 0,
-      "value": 0
-    },
-    "cooldownReduction": {
-      "display": "Cooldown Reduction",
-      "base": 0.8,
-      "value": 0.8,
-      "min": 0.3,
-      "scaling": [
-        {
-          "target": "caster",
-          "stat": "tier",
-          "scale": 0.98,
-          "effect": "multi"
-        }]
-    },
-    "armorPenetration": {
-      "display": "Armor Penetration",
-      "base": 0,
-      "value": 0
-    },
-    "magicPenetration": {
-      "display": "Magic Penetration",
-      "base": 0,
-      "value": 0
-    },
-    "hp": {
-      "value": 30
-    },
-    "mp": {
-      "value": 10
-    },
-    "sp": {
-      "value": 25
-    }
+    "talents": []
   },
-  "skills": {
-    "combatData": {
-      "targets": {},
-      "lastUsed": {}
+  {
+    "name": "Sharptooth",
+    "race": "Beast",
+    "damageType": "Slashing",
+    "planet": "Cinderrift",
+    "discoveryXp": 20,
+    "xp": 10,
+    "attributes": {
+      "strength": 2,
+      "dexterity": 3,
+      "constitution": 2,
+      "intellect": 1,
+      "wisdom": 1,
+      "willpower": 1
     },
-    "equipped": [
-      {
-      "id": "hotBite",
-      "level": 1
+    "attributesPerLevel": {
+      "strength": 2.5,
+      "dexterity": 2,
+      "constitution": 1.5,
+      "intellect": 0.7,
+      "wisdom": 0.9,
+      "willpower": 1.5
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 25,
+        "value": 25,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 6,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 1,
+        "value": 1
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 25,
+        "value": 25,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 4,
+            "stat": "dexterity"
+          }
+        ]
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 2,
+        "value": 2
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 5,
+        "value": 5,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.5,
+            "stat": "willpower"
+          }
+        ]
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 0.25,
+        "value": 0.25
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "attackPower": {
+        "display": "Attack Power",
+        "base": 0,
+        "value": 0
+      },
+      "spellPower": {
+        "display": "Spell Power",
+        "base": 0,
+        "value": 0
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 1,
+        "value": 1
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 2,
+        "value": 2
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 0.9,
+        "value": 0.9,
+        "min": 0.75,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "tier",
+            "scale": -0.005
+          }
+        ]
+      },
+      "armorPenetration": {
+        "display": "Armor Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "magicPenetration": {
+        "display": "Magic Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 50
+      },
+      "mp": {
+        "value": 5
+      },
+      "sp": {
+        "value": 25
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
       }
-    ]
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "tailWhip",
+          "level": 1
+        },
+        {
+          "id": "clawSlash",
+          "level": 1
+        },
+        {
+          "id": "fierceSwipe",
+          "level": 1,
+          "tierRequired": 61
+        }
+      ]
+    },
+    "talents": []
   },
-  "talents": []
-}
+  {
+    "name": "Treant",
+    "race": "Plant",
+    "damageType": "Nature",
+    "planet": "Cinderrift",
+    "discoveryXp": 30,
+    "xp": 20,
+    "attributes": {
+      "strength": 3,
+      "dexterity": 2,
+      "constitution": 5,
+      "intellect": 1,
+      "wisdom": 3,
+      "willpower": 3
+    },
+    "attributesPerLevel": {
+      "strength": 1,
+      "dexterity": 1,
+      "constitution": 3.3,
+      "intellect": 0.7,
+      "wisdom": 1,
+      "willpower": 1
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 100,
+        "value": 100,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 10,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 2,
+        "value": 2
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 15,
+        "value": 15,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 2,
+            "stat": "strength"
+          }
+        ]
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 1,
+        "value": 1
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 10,
+        "value": 10,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 5,
+            "stat": "willpower"
+          }
+        ]
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 3,
+        "value": 3
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "attackPower": {
+        "display": "Attack Power",
+        "base": 0,
+        "value": 0
+      },
+      "spellPower": {
+        "display": "Spell Power",
+        "base": 0,
+        "value": 0
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 0,
+        "value": 0
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "armorPenetration": {
+        "display": "Armor Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "magicPenetration": {
+        "display": "Magic Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 100
+      },
+      "mp": {
+        "value": 10
+      },
+      "sp": {
+        "value": 15
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "entangle",
+          "level": 1
+        },
+        {
+          "id": "thornWhip",
+          "level": 1
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
+    "name": "Grove Druid",
+    "race": "Gnoll",
+    "damageType": "Nature",
+    "planet": "Cinderrift",
+    "discoveryXp": 20,
+    "xp": 15,
+    "attributes": {
+      "strength": 1,
+      "dexterity": 2,
+      "constitution": 1,
+      "intellect": 3,
+      "wisdom": 4,
+      "willpower": 5
+    },
+    "attributesPerLevel": {
+      "strength": 0.2,
+      "dexterity": 0.85,
+      "constitution": 0.8,
+      "intellect": 3.4,
+      "wisdom": 2,
+      "willpower": 2.25
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 40,
+        "value": 40,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 4,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 0.5,
+        "value": 0.5
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 10,
+        "value": 10,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 1,
+            "stat": "dexterity"
+          }
+        ]
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 1,
+        "value": 1
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 80,
+        "value": 80,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 5,
+            "stat": "willpower"
+          }
+        ]
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 5,
+        "value": 5
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "attackPower": {
+        "display": "Attack Power",
+        "base": 0,
+        "value": 0
+      },
+      "spellPower": {
+        "display": "Spell Power",
+        "base": 0,
+        "value": 0
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 0,
+        "value": 0
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "armorPenetration": {
+        "display": "Armor Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "magicPenetration": {
+        "display": "Magic Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 40
+      },
+      "mp": {
+        "value": 80
+      },
+      "sp": {
+        "value": 10
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "vigorousGrowth",
+          "level": 1
+        },
+        {
+          "id": "summonVine",
+          "level": 1
+        },
+        {
+          "id": "summonWolf",
+          "level": 1
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
+    "name": "Monstrous Vine",
+    "race": "Plant",
+    "damageType": "Nature",
+    "planet": "Cinderrift",
+    "discoveryXp": 0,
+    "xp": 0,
+    "attributes": {
+      "strength": 2,
+      "dexterity": 4,
+      "constitution": 2,
+      "intellect": 1,
+      "wisdom": 1,
+      "willpower": 1
+    },
+    "attributesPerLevel": {
+      "strength": 2.5,
+      "dexterity": 3.5,
+      "constitution": 1,
+      "intellect": 0.7,
+      "wisdom": 0.9,
+      "willpower": 1.5
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 10,
+        "value": 10,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 1,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 1,
+        "value": 1
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 25,
+        "value": 25,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 4,
+            "stat": "dexterity"
+          }
+        ]
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 2,
+        "value": 2
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 5,
+        "value": 5,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.5,
+            "stat": "willpower"
+          }
+        ]
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 0.25,
+        "value": 0.25
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "attackPower": {
+        "display": "Attack Power",
+        "base": 0,
+        "value": 0
+      },
+      "spellPower": {
+        "display": "Spell Power",
+        "base": 0,
+        "value": 0
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 1,
+        "value": 1
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 2,
+        "value": 2
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "armorPenetration": {
+        "display": "Armor Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "magicPenetration": {
+        "display": "Magic Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 10
+      },
+      "mp": {
+        "value": 5
+      },
+      "sp": {
+        "value": 25
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "thornWhip",
+          "level": 1
+        },
+        {
+          "id": "vineLegSweep",
+          "level": 1,
+          "tierRequired": 100
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
+    "name": "Forest Wasp",
+    "race": "Insect",
+    "damageType": "poison",
+    "planet": "Cinderrift",
+    "xp": 25,
+    "discoveryXp": 40,
+    "attributes": {
+      "strength": 3,
+      "dexterity": 5,
+      "constitution": 2,
+      "intellect": 2,
+      "wisdom": 1,
+      "willpower": 1
+    },
+    "attributesPerLevel": {
+      "strength": 0.3,
+      "dexterity": 0.5,
+      "constitution": 0.2,
+      "intellect": 0.2,
+      "wisdom": 0.1,
+      "willpower": 0.1
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 25,
+        "value": 25,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 5,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 1,
+        "value": 1
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 25,
+        "value": 25
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 7,
+        "value": 7
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 10,
+        "value": 10
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 1,
+        "value": 1
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 0,
+        "value": 0
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "armorPenetration": {
+        "display": "Armor Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "magicPenetration": {
+        "display": "Magic Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 25
+      },
+      "mp": {
+        "value": 10
+      },
+      "sp": {
+        "value": 25
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "poisonSting",
+          "level": 1
+        },
+        {
+          "id": "evasiveFlight",
+          "level": 1
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
+    "name": "Ancient Treant",
+    "race": "Plant",
+    "damageType": "nature",
+    "planet": "Cinderrift",
+    "xp": 30,
+    "attributes": {
+      "strength": 3,
+      "dexterity": 2,
+      "constitution": 5,
+      "intellect": 4,
+      "wisdom": 3,
+      "willpower": 4
+    },
+    "attributesPerLevel": {
+      "strength": 0.3,
+      "dexterity": 0.2,
+      "constitution": 0.5,
+      "intellect": 0.4,
+      "wisdom": 0.3,
+      "willpower": 0.4
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 100,
+        "value": 100,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 8,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 2,
+        "value": 2
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 25,
+        "value": 25
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 7,
+        "value": 7
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 50,
+        "value": 50
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 7,
+        "value": 7
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 0,
+        "value": 0
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "armorPenetration": {
+        "display": "Armor Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "magicPenetration": {
+        "display": "Magic Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 100
+      },
+      "mp": {
+        "value": 50
+      },
+      "sp": {
+        "value": 25
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "summonVine",
+          "level": 1
+        },
+        {
+          "id": "entangle",
+          "level": 1
+        },
+        {
+          "id": "thornWhip",
+          "level": 1
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
+    "name": "Grove Queen",
+    "race": "Gnoll (Boss)",
+    "damageType": "nature",
+    "planet": "Cinderrift",
+    "xp": 45,
+    "attributes": {
+      "strength": 1,
+      "dexterity": 1,
+      "constitution": 2,
+      "intellect": 5,
+      "wisdom": 5,
+      "willpower": 5
+    },
+    "attributesPerLevel": {
+      "strength": 0.1,
+      "dexterity": 0.1,
+      "constitution": 0.2,
+      "intellect": 0.5,
+      "wisdom": 0.5,
+      "willpower": 0.5
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 200,
+        "value": 200,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "constitution",
+            "scale": 5
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 1,
+        "value": 1
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 10,
+        "value": 10
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 3,
+        "value": 3
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 50,
+        "value": 50
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 7,
+        "value": 7
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 0,
+        "value": 0
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "armorPenetration": {
+        "display": "Armor Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "magicPenetration": {
+        "display": "Magic Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 20
+      },
+      "mp": {
+        "value": 50
+      },
+      "sp": {
+        "value": 10
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "gnollWarCry",
+          "level": 1
+        },
+        {
+          "id": "rallyingBoost",
+          "level": 1,
+          "tierRequired": 100
+        },
+        {
+          "id": "thornWhip",
+          "level": 1
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
+    "name": "Dragonlord",
+    "race": "Dragon (Boss)",
+    "damageType": "heat",
+    "planet": "Cinderrift",
+    "xp": 50,
+    "attributes": {
+      "strength": 3,
+      "dexterity": 2,
+      "constitution": 5,
+      "intellect": 4,
+      "wisdom": 3,
+      "willpower": 4
+    },
+    "attributesPerLevel": {
+      "strength": 2,
+      "dexterity": 2,
+      "constitution": 2.5,
+      "intellect": 2,
+      "wisdom": 2.5,
+      "willpower": 1
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 200,
+        "value": 200,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 5,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 5,
+        "value": 5,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.1,
+            "stat": "wisdom"
+          }
+        ]
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 25,
+        "value": 25,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.5,
+            "stat": "dexterity"
+          }
+        ]
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 2,
+        "value": 2,
+        "scaling": []
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 100,
+        "value": 100,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 1,
+            "stat": "willpower"
+          }
+        ]
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 7,
+        "value": 7,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.2,
+            "stat": "wisdom"
+          }
+        ]
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 0,
+        "value": 0
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 0.08,
+        "value": 0.08
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 3,
+        "value": 3
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "armorPenetration": {
+        "display": "Armor Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "magicPenetration": {
+        "display": "Magic Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 200
+      },
+      "mp": {
+        "value": 100
+      },
+      "sp": {
+        "value": 25
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "flameBreath",
+          "level": 1
+        },
+        {
+          "id": "tailWhip",
+          "level": 1
+        },
+        {
+          "id": "soar",
+          "level": 1
+        },
+        {
+          "id": "hotBite",
+          "level": 1
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
+    "name": "Yetin",
+    "race": "Yetin",
+    "damageType": "physical",
+    "planet": "Cinderrift",
+    "discoveryXp": 30,
+    "xp": 20,
+    "attributes": {
+      "strength": 4,
+      "dexterity": 1,
+      "constitution": 4,
+      "intellect": 1,
+      "wisdom": 1,
+      "willpower": 1
+    },
+    "attributesPerLevel": {
+      "strength": 2.25,
+      "dexterity": 1,
+      "constitution": 3.6,
+      "intellect": 1,
+      "wisdom": 1,
+      "willpower": 1
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 100,
+        "value": 100,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 15,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 0,
+        "value": 0
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 50,
+        "value": 50
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 3,
+        "value": 3
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 10,
+        "value": 10
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 1,
+        "value": 1
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 0,
+        "value": 0
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 1.5,
+        "value": 1.5
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 100
+      },
+      "mp": {
+        "value": 10
+      },
+      "sp": {
+        "value": 50
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "yetinSmash",
+          "level": 1
+        },
+        {
+          "id": "ragebornRoar",
+          "level": 1,
+          "tierRequired": 30
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
+    "name": "Noctishade",
+    "race": "Spirit",
+    "discoveryXp": 15,
+    "damageType": "spirit",
+    "planet": "Cinderrift",
+    "xp": 15,
+    "attributes": {
+      "strength": 2,
+      "dexterity": 4,
+      "constitution": 2,
+      "intellect": 1,
+      "wisdom": 1,
+      "willpower": 1
+    },
+    "attributesPerLevel": {
+      "strength": 1,
+      "dexterity": 3,
+      "constitution": 1.5,
+      "intellect": 1,
+      "wisdom": 1,
+      "willpower": 1
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 15,
+        "value": 15,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 5,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 0,
+        "value": 0
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 100,
+        "value": 100
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 3,
+        "value": 3
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.99,
+            "effect": "multi",
+            "stat": "dexterity"
+          }
+        ]
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 10,
+        "value": 10
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 1,
+        "value": 1
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 2,
+        "value": 2,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "tier",
+            "effect": "multi",
+            "scale": 1.1
+          }
+        ]
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 3,
+        "value": 3
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0.25,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "willpower",
+            "scale": 1.05,
+            "effect": "multi"
+          }
+        ],
+        "value": 0.25
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 20,
+        "max": 100,
+        "value": 20,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "tier",
+            "scale": 0.35
+          }
+        ]
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 15
+      },
+      "mp": {
+        "value": 10
+      },
+      "sp": {
+        "value": 100
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "umbralSlice",
+          "level": 1
+        },
+        {
+          "id": "mistForm",
+          "level": 1,
+          "tierRequired": 40
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
+    "name": "Icy Wisp",
+    "race": "Wisp",
+    "damageType": "cold",
+    "planet": "Cinderrift",
+    "xp": 10,
+    "discoveryXp": 15,
+    "attributes": {
+      "strength": 1,
+      "dexterity": 1,
+      "constitution": 2,
+      "intellect": 3,
+      "wisdom": 5,
+      "willpower": 5
+    },
+    "attributesPerLevel": {
+      "strength": 0.1,
+      "dexterity": 0.1,
+      "constitution": 1.7,
+      "intellect": 1.5,
+      "wisdom": 1.5,
+      "willpower": 1.7
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 5,
+        "value": 5,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 8,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.35,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 10,
+        "value": 10
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 3,
+        "value": 3
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 50,
+        "value": 50
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 7,
+        "value": 7
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 0,
+        "value": 0
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.999,
+            "effect": "multi",
+            "stat": "wisdom"
+          }
+        ]
+      },
+      "hp": {
+        "value": 20
+      },
+      "mp": {
+        "value": 50
+      },
+      "sp": {
+        "value": 10
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "chillingPresence",
+          "level": 1,
+          "tierRequired": 1
+        },
+        {
+          "id": "mistForm",
+          "level": 1,
+          "tierRequired": 10
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
+    "name": "Wolf Familiar",
+    "race": "Beast",
+    "damageType": "slashing",
+    "planet": "Cinderrift",
+    "xp": 15,
+    "attributes": {
+      "strength": 5,
+      "dexterity": 3,
+      "constitution": 2,
+      "intellect": 2,
+      "wisdom": 1,
+      "willpower": 1
+    },
+    "attributesPerLevel": {
+      "strength": 0.4,
+      "dexterity": 0.35,
+      "constitution": 0.2,
+      "intellect": 0.2,
+      "wisdom": 0.1,
+      "willpower": 0.1
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 50,
+        "value": 50,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 5,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 0.5,
+        "value": 0.5
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 25,
+        "value": 25
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 3,
+        "value": 3
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 0.9,
+        "value": 0.9
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 1,
+        "value": 1
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 0,
+        "value": 0
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 5,
+        "value": 5,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.1,
+            "stat": "dexterity"
+          }
+        ]
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.025,
+            "stat": "strength"
+          }
+        ]
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 50
+      },
+      "mp": {
+        "value": 1
+      },
+      "sp": {
+        "value": 25
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "fierceSwipe",
+          "level": 1
+        },
+        {
+          "id": "lockjaw",
+          "level": 1
+        },
+        {
+          "id": "bloodlust",
+          "level": 1,
+          "tierRequired": 50
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
+    "name": "Delveling",
+    "race": "Kobold",
+    "damageType": "blunt",
+    "planet": "Cinderrift",
+    "xp": 15,
+    "attributes": {
+      "strength": 1,
+      "dexterity": 5,
+      "constitution": 2,
+      "intellect": 1,
+      "wisdom": 1,
+      "willpower": 1
+    },
+    "attributesPerLevel": {
+      "strength": 0.1,
+      "dexterity": 3.5,
+      "constitution": 1,
+      "intellect": 0.5,
+      "wisdom": 0.5,
+      "willpower": 0.5
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 25,
+        "value": 25
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 0,
+        "value": 0
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 25,
+        "value": 25
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 3,
+        "value": 3
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 1,
+        "value": 1
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 0,
+        "value": 0
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 0,
+        "value": 0
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 25
+      },
+      "mp": {
+        "value": 1
+      },
+      "sp": {
+        "value": 25
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "sling",
+          "level": 1
+        },
+        {
+          "id": "stab",
+          "level": 1
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
+    "name": "Hatchling",
+    "race": "Dragon (Baby)",
+    "damageType": "heat",
+    "planet": "Cinderrift",
+    "xp": 10,
+    "attributes": {
+      "strength": 2,
+      "dexterity": 2,
+      "constitution": 2,
+      "intellect": 1,
+      "wisdom": 1,
+      "willpower": 1
+    },
+    "attributesPerLevel": {
+      "strength": 1.5,
+      "dexterity": 1.5,
+      "constitution": 1.5,
+      "intellect": 0.5,
+      "wisdom": 0.5,
+      "willpower": 0.5
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 30,
+        "value": 30,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 5,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 2,
+        "value": 2
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 25,
+        "value": 25,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 1,
+            "stat": "strength"
+          }
+        ]
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 3,
+        "value": 3
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 10,
+        "value": 10
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 3,
+        "value": 3
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 0,
+        "value": 0
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 1.5,
+        "value": 1.5
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 0.8,
+        "value": 0.8,
+        "min": 0.3,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "tier",
+            "scale": 0.98,
+            "effect": "multi"
+          }
+        ]
+      },
+      "armorPenetration": {
+        "display": "Armor Penetration",
+        "base": 0,
+        "value": 0
+      },
+      "magicPenetration": {
+        "display": "Magic Penetration",
+        "base": 0,
+        "value": 0
+      },
+      "hp": {
+        "value": 30
+      },
+      "mp": {
+        "value": 10
+      },
+      "sp": {
+        "value": 25
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "hotBite",
+          "level": 1
+        }
+      ]
+    },
+    "talents": []
+  }
 ]

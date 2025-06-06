@@ -266,7 +266,7 @@
           "cost": 2,
           "unlockCost": 2,
           "maxLevel": 50,
-          "previousSkill": "pyrowisboost1",
+          "previousSkill": "heatShield",
           "previousSkillLevelRequired": 2
         },
         {
@@ -293,7 +293,7 @@
           "cost": 1,
           "unlockCost": 1,
           "maxLevel": 50,
-          "previousSkill": "boilingBlood",
+          "previousSkill": "pyrowisboost1",
           "previousSkillLevelRequired": 1
         },
         {
