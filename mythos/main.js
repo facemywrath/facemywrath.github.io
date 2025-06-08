@@ -1,4 +1,8 @@
 let gameVersion = "0.91.x";
+let gameVerDiv = document.getElementById("game-ver")
+if(gameVerDiv){
+  gameVerDiv.textContent = gameVersion;
+}
 let loreDataCache = null;
 let damageTypeMultipliers = null;
 let skillsData = null;
@@ -7298,7 +7302,7 @@ function getEvasionChance(attackerAccuracy, targetEvasion, K = 9, x = 1) {
   // Example usage:
 
   // Create an event type
-  const oDamageEvent = new EventType("onDamage");
+  const onDamageEvent = new EventType("onDamage");
   const statusStartEvent = new EventType("statusStart");
   const statusEndEvent = new EventType("statusEnd");
   const applyEffectEvent = new EventType("applyEffect");
