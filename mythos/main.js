@@ -1296,7 +1296,7 @@ player = {
       value: 1
     },
     damageTaken: {
-      display: "Damage Reduction",
+      display: "Damage Taken",
       base: 1,
       value: 1
     },
@@ -5975,7 +5975,16 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       damageAmp = calculateEffectiveValue(caster.stats.damageAmp, caster, caster, target, undefined, undefined, skillContext) ;
       }
     }
-    let damageTaken = calculateEffectiveValue(target.stats.damageTaken, target, target, caster, undefined, undefined, undefined) ;
+    let damageTaken 1;
+          if(target.stats && !target.stats.damageTaken){
+      target.stats.damageTaken = {
+        display: "Damage Taken",
+        value: 1,
+        base: 1,
+        scaling: []
+      }
+      damageTaken = calculateEffectiveValue(target.stats.damageTaken, target, target, caster, undefined, undefined, undefined) ;
+      }
     const total = amount * resist * damageTaken * damageAmp;
    // console.log(target.name, damageType, total, amount, resist)
     let lsChance = calculateEffectiveValue(caster.stats.lifestealChance, caster, caster, target, undefined, undefined, skillContext) ;
@@ -7289,7 +7298,7 @@ function getEvasionChance(attackerAccuracy, targetEvasion, K = 9, x = 1) {
   // Example usage:
 
   // Create an event type
-  const onDamageEvent = new EventType("onDamage");
+  const oDamageEvent = new EventType("onDamage");
   const statusStartEvent = new EventType("statusStart");
   const statusEndEvent = new EventType("statusEnd");
   const applyEffectEvent = new EventType("applyEffect");
