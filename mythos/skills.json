@@ -2064,6 +2064,7 @@
          "target": "caster",
          "stat": "dexterity", 
          "scale": 1
+        }]
         },
       {
         "type": "debuff",
