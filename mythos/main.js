@@ -5975,7 +5975,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       damageAmp = calculateEffectiveValue(caster.stats.damageAmp, caster, caster, target, undefined, undefined, skillContext) ;
       }
     }
-    let damageTaken 1;
+    let damageTaken = 1;
           if(target.stats && !target.stats.damageTaken){
       target.stats.damageTaken = {
         display: "Damage Taken",
