@@ -5975,7 +5975,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       damageAmp = calculateEffectiveValue(caster.stats.damageAmp, caster, caster, target, undefined, undefined, skillContext) ;
       }
     }
-    let damageTaken = calculateEffectiveValue(target.stats.damageTaken.value, target, target, caster, undefined, undefined, undefined) ;
+    let damageTaken = calculateEffectiveValue(target.stats.damageTaken, target, target, caster, undefined, undefined, undefined) ;
     const total = amount * resist * damageTaken * damageAmp;
    // console.log(target.name, damageType, total, amount, resist)
     let lsChance = calculateEffectiveValue(caster.stats.lifestealChance, caster, caster, target, undefined, undefined, skillContext) ;
