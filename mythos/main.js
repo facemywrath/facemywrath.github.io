@@ -4456,7 +4456,7 @@ function updateProgressBar(skillId, member) {
       let unit = findUnitById(skillData.target)
       let evStat = unit.stats.evasion
       let evasion = calculateEffectiveValue(evStat, unit, unit, undefined, undefined, undefined);
-      let acStat = statBonuses.accuracy;
+      let acStat = caster.stats.accuracy;
       let accuracy = calculateEffectiveValue(acStat, caster, caster, unit, undefined, undefined) ;
 
       let hitChance = 1-getEvasionChance(accuracy, evasion);
@@ -4658,7 +4658,7 @@ function updateSkillUnitDisplay(skillId, member) {
       let unit = findUnitById(skillData.target)
       let evStat = unit.stats.evasion
       let evasion = calculateEffectiveValue(evStat, unit, unit, undefined, undefined, undefined);
-      let acStat = statBonuses.accuracy;
+      let acStat = caster.stats.accuracy;
       let accuracy = calculateEffectiveValue(acStat, caster, caster, unit, undefined, undefined) ;
 
       let hitChance = 1-getEvasionChance(accuracy, evasion);
