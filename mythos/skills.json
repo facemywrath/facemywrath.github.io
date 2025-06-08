@@ -174,7 +174,7 @@
         }
     }]
   },
-    "moltenShell": {
+  "moltenShell": {
     "name": "Molten Shell",
     "flavorText": "{casterName} encases themselves in molten rock.",
     "initialCooldown": 3,
@@ -1564,7 +1564,7 @@
       }
     ]
   },
-    "summonVine": {
+  "summonVine": {
     "name": "Summon Vine",
     "cost": {
       "mp": 30
@@ -1872,7 +1872,7 @@
       }
     ]
   },
-   "umbralSlice": {
+  "umbralSlice": {
     "name": "Umbral Slice",
     "cooldown": {
       "base": 2,
@@ -1895,7 +1895,7 @@
       }
     ]
   },
-    "soulRend": {
+  "soulRend": {
     "name": "Soul Rend",
     "cooldown": {
       "base": 5.6,
