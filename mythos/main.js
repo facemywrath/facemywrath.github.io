@@ -7016,14 +7016,7 @@ function getEvasionChance(attackerAccuracy, targetEvasion, K = 9, x = 1) {
         value *= Math.pow(scale, statValue);
       }
     }
-    }
-    if (typeof block.min === "number") {
-    value = Math.max(value, block.min);
-    }
-    if (typeof block.max === "number") {
-      value = Math.min(value, block.max);
-    }
-    if(statType == "Stat"){
+        if(statType == "Stat"){
       if(skillContext.statBonuses){
           if(skillContext.statBonuses[stat]){
             let statBonus = skillContext.statBonuses[stat];
@@ -7038,6 +7031,14 @@ function getEvasionChance(attackerAccuracy, targetEvasion, K = 9, x = 1) {
           }
         }
     }
+    }
+    if (typeof block.min === "number") {
+    value = Math.max(value, block.min);
+    }
+    if (typeof block.max === "number") {
+      value = Math.min(value, block.max);
+    }
+
     return value;
   }
   
