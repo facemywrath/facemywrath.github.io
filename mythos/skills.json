@@ -12,6 +12,13 @@
         "scale": -0.02
       }]
     },
+    "statBonuses": [
+      "critChance": {
+        "value": {
+          "base": 75
+        },
+        "effect": "override"
+      }],
     "cost": { "mp": 13 },
     "target": "singleEnemy",
     "requiresTarget": true,
@@ -227,6 +234,7 @@
         "scale": -0.04
       }]
     },
+    
     "cost": { "mp": 50 },
     "target": "singleEnemy",
     "requiresTarget": true,
@@ -1536,7 +1544,7 @@
       {
         "type": "buff",
         "statType": "stat",
-        "stat": "damageResistance",
+        "stat": "damageTaken",
         "duration": {
           "base": 3000,
           "scaling": [
@@ -1561,6 +1569,43 @@
           "stat": "maxHp",
           "scale": 0.1
         }]
+      }
+    ]
+  },
+  "thickHide": {
+    "name": "Thick Hide",
+    "cost": {
+      "sp": 10
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "initialCooldown": 4,
+    "cooldown": {
+      "base": 15,
+      "min": 2,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "buff",
+        "statType": "stat",
+        "stat": "damageTaken",
+        "duration": {
+          "base": 3000,
+          "max": 10000,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 50,
+              "stat": "constitution"
+            }
+          ]
+        },
+        "effect": "multi",
+        "value": {
+          "base": 1.3,
+          "scaling": []
+        }
       }
     ]
   },
@@ -1996,6 +2041,52 @@
       }
     ]
   },
+  "hamstring": {
+    "name": "Hamstring",
+    "cost": {
+      "sp": 20
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "cooldown": {
+      "base": 15,
+      "min": 10,
+      "scaling": []
+    },
+    "effects": [
+      { 
+        "type": "damage",
+        "target": "singleEnemy", 
+        "base": 15,
+        "damageType": "slashing",
+        "scaling": [{
+         "target": "caster",
+         "stat": "dexterity", 
+         "scale": 1
+        },
+      {
+        "type": "debuff",
+        "statType": "stat",
+        "stat": "cooldownReduction",
+        "duration": {
+          "base": 3000,
+          "max": 7500,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 20,
+              "stat": "intellect"
+            }
+          ]
+        },
+        "effect": "multi",
+        "value": {
+          "base": 0.85,
+          "scaling": []
+        }
+      }
+    ]
+  },
   "mistForm": {
     "name": "Mist Form",
     "flavorText": "{casterName} evaporates into mist!",
@@ -2028,6 +2119,61 @@
             "scale": 2
           }]
         }
+      }
+    ]
+  },
+  "hibernate": {
+    "name": "Hibernate",
+    "flavorText": "{casterName} takes a deep nap. Yawn!",
+    "cost": {
+      "sp": 1
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "initialCooldown": 25,
+    "cooldown": {
+      "base": 20,
+      "min": 15,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "buff",
+        "stat": "damageTaken",
+        "statType": "stat",
+        "duration": {
+          "base": 10000,
+          "max": 10000,
+          "scaling": [
+          ]
+        },
+        "effect": "multiply",
+        "value": {
+          "base": 0.1,
+          "scaling": []
+        }
+      },
+      {
+        "type": "buff",
+        "statType": "stat",
+        "stat": "spRegen",
+        "duration": {
+          "base": 10000,
+          "max": 10000,
+          "scaling": [
+          ]
+        },
+        "effect": "add",
+        "value": {
+          "base": 15,
+          "scaling": []
+        }
+      },
+      {
+        "type": "interrupt",
+        "base": 10000,
+        "scaling": [],
+        "overrideCooldown": true
       }
     ]
   },

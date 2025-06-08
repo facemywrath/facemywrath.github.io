@@ -43,16 +43,6 @@ const debugLog = [];
 Array.prototype.random = function() {
   return this[Math.floor(Math.random() * this.length)];
 };
-for (let sheet of document.styleSheets) {
-  try {
-    console.log(`Stylesheet: ${sheet.href}`);
-    for (let rule of sheet.cssRules) {
-      console.log(rule.cssText);
-    }
-  } catch (err) {
-    console.warn('Cannot access stylesheet:', sheet.href, err);
-  }
-}
 let loadFromGithub = true;
 let runAnalysis = true;
 let hintData;
@@ -1481,7 +1471,7 @@ async function getLoreData() {
     return loreDataCache;
 
   } catch (e) {
-    console.error(e.stack)
+    console.error(e.stack, e)
     menuContent.textContent = e.stack;
   }
 }
@@ -4466,7 +4456,7 @@ function updateProgressBar(skillId, member) {
       let unit = findUnitById(skillData.target)
       let evStat = unit.stats.evasion
       let evasion = calculateEffectiveValue(evStat, unit, unit, undefined, undefined, undefined);
-      let acStat = caster.stats.accuracy;
+      let acStat = statBonuses.accuracy;
       let accuracy = calculateEffectiveValue(acStat, caster, caster, unit, undefined, undefined) ;
 
       let hitChance = 1-getEvasionChance(accuracy, evasion);
@@ -4668,7 +4658,7 @@ function updateSkillUnitDisplay(skillId, member) {
       let unit = findUnitById(skillData.target)
       let evStat = unit.stats.evasion
       let evasion = calculateEffectiveValue(evStat, unit, unit, undefined, undefined, undefined);
-      let acStat = caster.stats.accuracy;
+      let acStat = statBonuses.accuracy;
       let accuracy = calculateEffectiveValue(acStat, caster, caster, unit, undefined, undefined) ;
 
       let hitChance = 1-getEvasionChance(accuracy, evasion);
@@ -5654,6 +5644,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
     }
     let sign = "";
     let value = ""
+
     // Apply effect to each target in the array
     for (let unit of Array.isArray(target)?target: [target]) {
       if (!unit) {
@@ -5661,13 +5652,14 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       }
       switch (effect.type) {
       case "damage":
-        let critChance = caster.stats.critChance.value || 0;
-        let critMulti = 1;
+
+        let critChance = calculateEffectiveValue(caster.stats.critChance, caster, caster, target, undefined, undefined, skillContext) ;
+        let critMulti = 1
         if(Math.random()*100 < critChance){
-          critMulti = caster.stats.critMulti.value || 1
+          critMulti = calculateEffectiveValue(caster.stats.critMulti, caster, caster, target, undefined, undefined, skillContext) ;
         }
         let total = critMulti*calculateEffectiveValue(effect, skillId, caster, unit, skillLevel, skillContext)
-        let finalDamage = damageUnit(caster, unit, effect.damageType, total)
+        let finalDamage = damageUnit(caster, unit, effect.damageType, total, skillContext)
 
 
         updateCombatLog(`${critMulti > 1? "CRITICAL HIT! ":""}${caster.name} deals ${finalDamage.toFixed(2)} ${getDamageTypeIcon(effect.damageType)} damage to ${unit.name}`, caster, ["damage", caster.isAlly?"ally":"enemy"]);
@@ -5936,7 +5928,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
   }
   unit.talentListeners = [];
 }
-  function damageUnit(caster, target, damageType, amount) {
+  function damageUnit(caster, target, damageType, amount, skillContext) {
     if(!target.stats.evasion){
       target.stats.evasion = {
         value: 1,
@@ -5953,11 +5945,11 @@ function passesTriggerConditions(effect, event, unit, talentId) {
     }
     if(caster){
       let evStat = target.stats.evasion
-      let evasion = calculateEffectiveValue(evStat, target, target, undefined, undefined, undefined);
+      let evasion = calculateEffectiveValue(evStat, target, target, undefined, undefined, undefined, skillContext);
       let acStat = caster.stats.accuracy;
-      let accuracy = calculateEffectiveValue(acStat, caster, caster, target, undefined, undefined) ;
+      let accuracy = calculateEffectiveValue(acStat, caster, caster, target, undefined, undefined, skillContext) ;
 
-      let evasionChance = getEvasionChance(accuracy, evasion);
+      let evasionChance = getEvasionChance(accuracy, evasion)*100;
       if (Math.floor(Math.random()*100) < evasionChance) {
         updateCombatLog(`${target.name} evaded damage!`, caster, ["evasion", target.isAlly?"ally":"enemy"]);
         return 0;
@@ -5976,16 +5968,17 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       caster.stats.damageAmp = {
         display: "Damage Amplifier",
         value: 1,
-        base: 1
+        base: 1,
+        scaling: []
       }
-      damageAmp = caster.stats.damageAmp.value || 1;
+      damageAmp = calculateEffectiveValue(caster.stats.damageAmp, caster, caster, target, undefined, undefined, skillContext) ;
       }
     }
-    let damageTaken = target.stats.damageTaken?.value || 1;
+    let damageTaken = calculateEffectiveValue(target.stats.damageTaken.value, target, target, caster, undefined, undefined, undefined) ;
     const total = amount * resist * damageTaken * damageAmp;
    // console.log(target.name, damageType, total, amount, resist)
-    let lsChance = caster?.stats?.lifestealChance?.value || 0;
-    let lsMulti = caster?.stats?.lifestealMulti?.value || 0;
+    let lsChance = calculateEffectiveValue(caster.stats.lifestealChance, caster, caster, target, undefined, undefined, skillContext) ;
+    let lsMulti = calculateEffectiveValue(caster.stats.lifestealMulti, caster, caster, target, undefined, undefined, skillContext) ;
     if(lsChance && lsMulti && caster.isAlive){
       let rand = Math.random()*100;
       if(rand < lsChance){
@@ -6128,7 +6121,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         if (settings.friendlyFire || potentialTargets.includes(unit)) {
           let evStat = unit.stats.evasion
       let evasion = calculateEffectiveValue(evStat, unit, unit, undefined, undefined, undefined);
-      let acStat = caster.stats.accuracy;
+      let acStat = statBonuses.accuracy;
       let accuracy = calculateEffectiveValue(acStat, caster, caster, unit, undefined, undefined) ;
 
       let hitChance = 1-getEvasionChance(accuracy, evasion);
@@ -6985,12 +6978,15 @@ function getEvasionChance(attackerAccuracy, targetEvasion, K = 9, x = 1) {
       const scale = scaleEntry.scale;
       const effect = scaleEntry.effect || "add";
       let statValue = 0;
-      
+      let statType = "";
       for(let entity of target){
       if (entity.attributes?.[stat] !== undefined) {
+        statType = "Attribute"
         statValue = entity.attributes[stat];
       } else if (entity.stats?.[stat]?.value !== undefined) {
+        statType="Stat"
         statValue = entity.stats[stat].value;
+
       } else if(conditionsData[stat]){
         statValue = entity.conditions[stat]?.stacks || 0;
       } else if (stat === "skillLevel") {
@@ -7026,6 +7022,21 @@ function getEvasionChance(attackerAccuracy, targetEvasion, K = 9, x = 1) {
     }
     if (typeof block.max === "number") {
       value = Math.min(value, block.max);
+    }
+    if(statType == "Stat"){
+      if(skillContext.statBonuses){
+          if(skillContext.statBonuses[stat]){
+            let statBonus = skillContext.statBonuses[stat];
+            let value = calculateEffectiveValue(statBonus.value, skillContext, caster, target, skillLevel, undefined)
+            if(statBonus.effect = "multi"){
+              statValue *= value
+            }else if(statBonus.effect = "override"){
+              statValue = value;
+            }else{
+              statValue += value;
+            }
+          }
+        }
     }
     return value;
   }
