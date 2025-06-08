@@ -5310,7 +5310,7 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
     }
     caster.skills.combatData.perCombat[skillId]++;
     
-    //let statBonuses = skill.statBonuses;
+    let statBonuses = skill.statBonuses;
 
     spendResources(caster, skill.cost);
     
