@@ -1,4 +1,4 @@
-let gameVersion = "0.9.x";
+let gameVersion = "0.91.x";
 let loreDataCache = null;
 let damageTypeMultipliers = null;
 let skillsData = null;
