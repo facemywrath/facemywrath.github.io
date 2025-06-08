@@ -43,8 +43,18 @@ const debugLog = [];
 Array.prototype.random = function() {
   return this[Math.floor(Math.random() * this.length)];
 };
+for (let sheet of document.styleSheets) {
+  try {
+    console.log(`Stylesheet: ${sheet.href}`);
+    for (let rule of sheet.cssRules) {
+      console.log(rule.cssText);
+    }
+  } catch (err) {
+    console.warn('Cannot access stylesheet:', sheet.href, err);
+  }
+}
 let loadFromGithub = true;
-let runAnalysis = false;
+let runAnalysis = true;
 let hintData;
 const updateSpeed = 100;
 let skillToEquip = null; // temporarily holds a skill ID when "Equip" is clicked
@@ -1471,6 +1481,7 @@ async function getLoreData() {
     return loreDataCache;
 
   } catch (e) {
+    console.error(e.stack)
     menuContent.textContent = e.stack;
   }
 }
@@ -2988,6 +2999,7 @@ function startCombat(force) {
   if(player.inCombat){
     return;
   }
+  
   let main = document.getElementById("main-area")
   let menuContent = document.getElementById("menu-content");
   menuContent.innerHTML = "";
@@ -3006,8 +3018,6 @@ function startCombat(force) {
   // Example crew renng
   updateEncounterBar();
   player.inCombat = true
-  resetBuffData(player);
-  resetUnitStatCaps(player);
   resetIntervals();
   removeTalentListeners(player)
   initializeTalentListeners(player)
@@ -3024,8 +3034,12 @@ function startCombat(force) {
       enemyContainer.appendChild(unitTable)
     }
     unit.isAlive = true
+    if(unit.skills.combatData.perCombat){
+      delete unit.skills.combatData.perCombat
+    }
     recalculateDerivedStats(unit);
     recalculateTotalResistances(unit);
+    resetBuffData(unit);
     resetUnitStatCaps(unit);
     updateCombatBar(unit, "hp")
     updateCombatBar(unit, "sp")
@@ -5283,8 +5297,30 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
       console.log("Cant Afford Skill", caster.name, skillId);
       return;
     } 
+    let skillFound = caster.skills.equipped.find(s => s && s.id == skillId);
+    if(!skillFound){
+      skillFound = caster.skills.learned.find(s => s && s.id == skillId);
+    }
+    if(!caster.skills.combatData.perCombat){
+      caster.skills.combatData.perCombat = {
+        [skillId]: 0
+      }
+    }
+    let castAmount = caster.skills.combatData.perCombat[skillId];
+    if(castAmount === undefined){
+      caster.skills.combatData.perCombat[skillId] = 0;
+      castAmount = 0;
+    }
+    let perCombatMax = 0;
+    if(skill.perCombatMax){
+      perCombatMax = calculateEffectiveValue(skill.perCombatMax, skill, caster, undefined, skillFound.level)
+    }
+    if(perCombatMax && perCombatMax <= castAmount){
+      return;
+    }
+    caster.skills.combatData.perCombat[skillId]++;
     
-    
+    //let statBonuses = skill.statBonuses;
 
     spendResources(caster, skill.cost);
     
@@ -5300,7 +5336,8 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
       let skillContext = {
         target: target,
         caster: caster,
-        id: skillId
+        id: skillId,
+        statBonuses: statBonuses
       }
       for (const effect of skill.effects) {
         if (effect)

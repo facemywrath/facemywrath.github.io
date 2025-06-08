@@ -2551,6 +2551,298 @@
     "talents": []
   },
   {
+    "name": "Yetin Trapper",
+    "race": "Yetin",
+    "damageType": "physical",
+    "planet": "Cinderrift",
+    "discoveryXp": 30,
+    "xp": 20,
+    "attributes": {
+      "strength": 2,
+      "dexterity": 4,
+      "constitution": 3,
+      "intellect": 4,
+      "wisdom": 4,
+      "willpower": 1
+    },
+    "attributesPerLevel": {
+      "strength": 1,
+      "dexterity": 2.2,
+      "constitution": 1.7,
+      "intellect": 2,
+      "wisdom": 2,
+      "willpower": 1
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 100,
+        "value": 100,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 10,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 0,
+        "value": 0
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 50,
+        "value": 50
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 6,
+        "value": 6
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 10,
+        "value": 10
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 1,
+        "value": 1
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 0,
+        "value": 0
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 1.5,
+        "value": 1.5
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 100
+      },
+      "mp": {
+        "value": 10
+      },
+      "sp": {
+        "value": 50
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "hamstring",
+          "level": 1
+        },
+        {
+          "id": "exposeWeakness",
+          "level": 1
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
+    "name": "Yetin Mystic",
+    "race": "Yetin",
+    "damageType": "physical",
+    "planet": "Cinderrift",
+    "discoveryXp": 30,
+    "xp": 20,
+    "attributes": {
+      "strength": 2,
+      "dexterity": 1,
+      "constitution": 3,
+      "intellect": 5,
+      "wisdom": 5,
+      "willpower": 6
+    },
+    "attributesPerLevel": {
+      "strength": 1,
+      "dexterity": 1,
+      "constitution": 1.8,
+      "intellect": 2.8,
+      "wisdom": 2.7,
+      "willpower": 3
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 50,
+        "value": 50,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 7,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 3,
+        "value": 3
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 20,
+        "value": 20
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 3,
+        "value": 3
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 100,
+        "value": 100
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 6,
+        "value": 6
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 0,
+        "value": 0
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 1.5,
+        "value": 1.5
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 2,
+        "value": 2
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0.5,
+        "value": 0.5
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 100
+      },
+      "mp": {
+        "value": 10
+      },
+      "sp": {
+        "value": 50
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "bloodSiphon",
+          "level": 1
+        },
+        {
+          "id": "insanguinate",
+          "level": 1
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
     "name": "Yetin",
     "race": "Yetin",
     "damageType": "physical",
@@ -3196,6 +3488,170 @@
         },
         {
           "id": "bloodlust",
+          "level": 1,
+          "tierRequired": 50
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
+    "name": "Bear Familiar",
+    "race": "Beast",
+    "damageType": "slashing",
+    "planet": "Cinderrift",
+    "xp": 20,
+    "attributes": {
+      "strength": 3,
+      "dexterity": 1,
+      "constitution": 5,
+      "intellect": 1,
+      "wisdom": 1,
+      "willpower": 1
+    },
+    "attributesPerLevel": {
+      "strength": 1.5,
+      "dexterity": 0.7,
+      "constitution": 2.4,
+      "intellect": 0.2,
+      "wisdom": 0.1,
+      "willpower": 0.1
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 50,
+        "value": 50,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 5,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 0.5,
+        "value": 0.5
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 80,
+        "value": 80
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 3,
+        "value": 3
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 0.9,
+        "value": 0.9
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 1,
+        "value": 1
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 0,
+        "value": 0
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 5,
+        "value": 5,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.1,
+            "stat": "dexterity"
+          }
+        ]
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.025,
+            "stat": "strength"
+          }
+        ]
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 50
+      },
+      "mp": {
+        "value": 1
+      },
+      "sp": {
+        "value": 25
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "fierceSwipe",
+          "level": 1
+        },
+        {
+          "id": "thickHide",
+          "level": 1
+        },
+        {
+          "id": "hibernate",
           "level": 1,
           "tierRequired": 50
         }
