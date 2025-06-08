@@ -12,13 +12,14 @@
         "scale": -0.02
       }]
     },
-    "statBonuses": [
+    "statBonuses": {
       "critChance": {
         "value": {
           "base": 75
         },
         "effect": "override"
-      }],
+      }
+    },
     "cost": { "mp": 13 },
     "target": "singleEnemy",
     "requiresTarget": true,
