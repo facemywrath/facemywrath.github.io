@@ -1,3 +1,4 @@
+let gameVersion = "0.9.x";
 let loreDataCache = null;
 let damageTypeMultipliers = null;
 let skillsData = null;
@@ -1427,7 +1428,7 @@ async function getLoreData() {
         fetch(baseURL + "units.json"),
         fetch(baseURL + "talents.json")
       ]);
-
+      console.log("GAME VERSION: "+gameVersion)
       console.log("fetching loredata");
       loreDataCache = await loreRes.json();
       console.log("fetching skillsdata");
@@ -5476,7 +5477,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
     let additiveBuff = 0;
     let multiplierBuff = 1;
 
-    let additiveDebuff = 0;
+    let additivDebuff = 0;
     let multiplierDebuff = 1;
 
     const now = Date.now();
