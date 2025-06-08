@@ -1188,12 +1188,12 @@
       },
       "maxSp": {
         "display": "Max Sp",
-        "base": 25,
-        "value": 25,
+        "base": 5,
+        "value": 5,
         "scaling": [
           {
             "target": "caster",
-            "scale": 4,
+            "scale": 3,
             "stat": "dexterity"
           }
         ]
