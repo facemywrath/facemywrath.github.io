@@ -5658,10 +5658,10 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       switch (effect.type) {
       case "damage":
 
-        let critChance = calculateEffectiveValue(caster.stats.critChance, caster, caster, target, undefined, undefined, skillContext) ;
+        let critChance = getStatValue("critChance", caster.stats.critChance, caster, target, undefined, undefined, skillContext) ;
         let critMulti = 1
         if(Math.random()*100 < critChance){
-          critMulti = calculateEffectiveValue(caster.stats.critMulti, caster, caster, target, undefined, undefined, skillContext) ;
+          critMulti = getStatValue("critMulti", caster.stats.critMulti, caster, target, undefined, undefined, skillContext) ;
         }
         let total = critMulti*calculateEffectiveValue(effect, skillId, caster, unit, skillLevel, skillContext)
         let finalDamage = damageUnit(caster, unit, effect.damageType, total, skillContext)
