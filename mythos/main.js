@@ -1,4 +1,4 @@
-let gameVersion = "0.92.x";
+let gameVersion = "0.93.x";
 let gameVerDiv = document.getElementById("version-bar")
 if(gameVerDiv){
   gameVerDiv.textContent = "Version: "+ gameVersion;
@@ -6968,13 +6968,13 @@ function getEvasionChance(attackerAccuracy, targetEvasion, K = 9, x = 1) {
 function getStatValue(statName, block, caster, target, skillLevel, skillContext){
   let statValue = calculateEffectiveValue(block, statName, caster, target, skillLevel, skillContext);
         if(skillContext && skillContext.statBonuses){
-          console.log("1Bonusing " + statName, skillContext.statBonuses)
+          console.log("1Bonusing " + statName, JSON.stringify(skillContext.statBonuses, null, 2))
           if(skillContext.statBonuses[statName]){
             let statBonus = skillContext.statBonuses[statName];
             let value = calculateEffectiveValue(statBonus.value, skillContext, caster, target, skillLevel, undefined)
-            if(statBonus.effect = "multi"){
+            if(statBonus.effect == "multi"){
               statValue *= value
-            }else if(statBonus.effect = "override"){
+            }else if(statBonus.effect == "override"){
               statValue = value;
             }else{
               statValue += value;
