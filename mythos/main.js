@@ -6981,7 +6981,6 @@ function getStatValue(statName, block, caster, target, skillLevel, skillContext)
   return statValue;
 }
   function calculateEffectiveValue(block, parentObject, caster, target, skillLevel, skillContext) {
-    console.log("make this take a stattype for calculating statBonuses")
     if (!block) {
       console.error("No block defined", new Error().stack);
       return null;
