@@ -5483,7 +5483,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
     let additiveBuff = 0;
     let multiplierBuff = 1;
 
-    let additivDebuff = 0;
+    let additiveDebuff = 0;
     let multiplierDebuff = 1;
 
     const now = Date.now();
