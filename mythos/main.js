@@ -3685,6 +3685,9 @@ function levelUpSkill(skillId, cost) {
   }
   showSkillDetails(skill, player.classData[player.class].skillPoints >= cost && learned.level < skill.maxLevel)
   updateAllSkillDisplays(); // re-render to update display
+let spPip = document.getElementById('skills-pip');
+    let skillPoints = player.classData[player.class].skillPoints
+      spPip.textContent = skillPoints <100?skillPoints:""
 }
 function updateAllSkillDisplays() {
   const skillTree = loreDataCache.classes[player.class].skillTree;
