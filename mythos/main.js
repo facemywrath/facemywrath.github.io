@@ -7947,7 +7947,8 @@ function showDebugPopup() {
                 font-family: monospace;
                 font-size: 7px;
             ">${logText}</textarea>
-            <button onclick="navigator.clipboard.writeText(\`${logText.replace(/`/g, '\\`')}\`)">
+            <button onclick="event.stopPropagation();
+            navigator.clipboard.writeText(\`${logText.replace(/`/g, '\\`')}\`)">
                 Copy to Clipboard
             </button>
         </div>
