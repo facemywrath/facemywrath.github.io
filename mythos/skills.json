@@ -1679,6 +1679,102 @@
       }
     ]
   },
+  "insanguinate": {
+    "name": "Insanguinate",
+    "cost": {
+      "mp": 25,
+      "hp": 5,
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "cooldown": {
+      "base": 15,
+      "min": 6,
+    },
+    "statBonuses": {
+      "lifestealChance": {
+        "value": {
+          "base": 100
+        }
+        "effect": "override"
+      },
+      "lifestealMulti": {
+          "value": {
+            "base": 1,
+            "max": 3
+            "scaling": [
+              {
+                "target": "caster",
+                "stat": "tier",
+                "scale": 0.01
+              }]
+          },
+          "effect": "override"
+        }
+      }
+    }
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "blood",
+        "base": 10,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.2,
+            "stat": "intellect"
+          },
+          {
+            "target": "caster",
+            "scale": 0.2,
+            "stat": "willpower"
+          },
+          {
+            "target": "caster",
+            "scale": 0.5,
+            "stat": "wisdom"
+          }
+        ]
+      }
+    ]
+  },
+  "bloodWhip": {
+    "name": "Blood Whip",
+    "cost": {
+      "mp": 15,
+      "hp": 5,
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "cooldown": {
+      "base": 6,
+      "min": 3
+    },
+    "effects": [
+      {
+        "type": "damage",
+        "damageType": "blood",
+        "base": 20,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.2,
+            "stat": "intellect"
+          },
+          {
+            "target": "caster",
+            "scale": 0.2,
+            "stat": "willpower"
+          },
+          {
+            "target": "caster",
+            "scale": 0.5,
+            "stat": "wisdom"
+          }
+        ]
+      }
+    ]
+  },
   "thornWhip": {
     "name": "Thorn Whip",
     "cost": {
@@ -2044,6 +2140,106 @@
         "value": {
           "base": 0.95,
           "scaling": []
+        }
+      }
+    ]
+  },
+  "trickshot": {
+    "name": "Trickshot",
+    "cost": {
+      "sp": 5,
+      "mp": 1
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "cooldown": {
+      "base": 6,
+      "min": 2,
+      "scaling": []
+    },
+    "statBonuses": {
+      "critChance": {
+        "value": {
+          "base": 2,
+          "scaling": 0.01,
+          "stat": "tier",
+          "max": 4
+        },
+        "effect": "multi"
+      }
+      "critMulti": {
+        "value": {
+          "base": 1,
+          "scaling": 0.01,
+          "stat": "tier",
+          "max": 2
+        },
+        "effect": "add"
+      }
+    }
+    "effects": [
+      { 
+        "type": "damage",
+        "target": "singleEnemy", 
+        "base": 10,
+        "damageType": "slashing",
+        "scaling": [{
+         "target": "caster",
+         "stat": "dexterity", 
+         "scale": 1
+        }]
+        }
+    ]
+  },
+  "exposeWeakness": {
+    "name": "Expose Weakness",
+    "cost": {
+      "sp": 10,
+      "mp": 5
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "cooldown": {
+      "base": 13,
+      "min": 10,
+      "scaling": []
+    },
+    "effects": [
+      { 
+        "type": "damage",
+        "target": "singleEnemy", 
+        "base": 10,
+        "damageType": "slashing",
+        "scaling": [{
+         "target": "caster",
+         "stat": "dexterity", 
+         "scale": 1
+        }]
+        },
+      {
+        "type": "debuff",
+        "statType": "stat",
+        "stat": "damageTaken",
+        "duration": {
+          "base": 1000,
+          "max": 7500,
+          "scaling": [
+            {
+              "target": "caster",
+              "scale": 40,
+              "stat": "intellect"
+            }
+          ]
+        },
+        "effect": "multi",
+        "value": {
+          "base": 1.1,
+          "max": 1.4,
+          "scaling": [{
+            "target": "caster",
+            "stat": "tier",
+            "scale": 0.01
+          }]
         }
       }
     ]

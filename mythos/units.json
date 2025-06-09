@@ -2628,7 +2628,7 @@
       },
       "critChance": {
         "display": "Crit Chance",
-        "base": 0,
+        "base": 10,
         "value": 0
       },
       "critMulti": {
@@ -2695,6 +2695,10 @@
         },
         {
           "id": "exposeWeakness",
+          "level": 1
+        },
+        {
+          "id": "trickshot",
           "level": 1
         }
       ]
@@ -2836,7 +2840,11 @@
       },
       "equipped": [
         {
-          "id": "bloodSiphon",
+          "id": "bloodWhip",
+          "level": 1
+        },
+        {
+          "id": "boilingBlood",
           "level": 1
         },
         {
