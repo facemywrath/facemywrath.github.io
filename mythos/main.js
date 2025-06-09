@@ -4460,9 +4460,9 @@ function updateProgressBar(skillId, member) {
       let caster = member;
       let unit = findUnitById(skillData.target)
       let evStat = unit.stats.evasion
-      let evasion = calculateEffectiveValue(evStat, unit, unit, undefined, undefined, undefined);
+      let evasion = getStatValue("evasion", evStat, unit, undefined, undefined, undefined);
       let acStat = caster.stats.accuracy;
-      let accuracy = calculateEffectiveValue(acStat, caster, caster, unit, undefined, undefined) ;
+      let accuracy = getStatValue("accuracy", acStat, caster, unit, undefined, undefined) ;
 
       let hitChance = 1-getEvasionChance(accuracy, evasion);
 
@@ -4662,9 +4662,9 @@ function updateSkillUnitDisplay(skillId, member) {
       let caster = member;
       let unit = findUnitById(skillData.target)
       let evStat = unit.stats.evasion
-      let evasion = calculateEffectiveValue(evStat, unit, unit, undefined, undefined, undefined);
+      let evasion = getStatValue("evasion", evStat, unit, undefined, undefined, undefined);
       let acStat = caster.stats.accuracy;
-      let accuracy = calculateEffectiveValue(acStat, caster, caster, unit, undefined, undefined) ;
+      let accuracy = getStatValue('accuracy', acStat, caster, unit, undefined, undefined) ;
 
       let hitChance = 1-getEvasionChance(accuracy, evasion);
 
@@ -5950,9 +5950,9 @@ function passesTriggerConditions(effect, event, unit, talentId) {
     }
     if(caster){
       let evStat = target.stats.evasion
-      let evasion = calculateEffectiveValue(evStat, target, target, undefined, undefined, undefined, skillContext);
+      let evasion = getStatValue("evasion", evStat, target, undefined, undefined, undefined, skillContext);
       let acStat = caster.stats.accuracy;
-      let accuracy = calculateEffectiveValue(acStat, caster, caster, target, undefined, undefined, skillContext) ;
+      let accuracy = getStatValue("accuracy", acStat, caster, target, undefined, undefined, skillContext) ;
 
       let evasionChance = getEvasionChance(accuracy, evasion)*100;
       if (Math.floor(Math.random()*100) < evasionChance) {
@@ -5976,7 +5976,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         base: 1,
         scaling: []
       }
-      damageAmp = calculateEffectiveValue(caster.stats.damageAmp, caster, caster, target, undefined, undefined, skillContext) ;
+      damageAmp = getStatValue("damageAmp", caster.stats.damageAmp, caster, target, undefined, undefined, skillContext) ;
       }
     }
     let damageTaken = 1;
@@ -5987,12 +5987,12 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         base: 1,
         scaling: []
       }
-      damageTaken = calculateEffectiveValue(target.stats.damageTaken, target, target, caster, undefined, undefined, undefined) ;
+      damageTaken = getStatValue("damageTaken", target.stats.damageTaken, target, caster, undefined, undefined, undefined) ;
       }
     const total = amount * resist * damageTaken * damageAmp;
    // console.log(target.name, damageType, total, amount, resist)
-    let lsChance = calculateEffectiveValue(caster.stats.lifestealChance, caster, caster, target, undefined, undefined, skillContext) ;
-    let lsMulti = calculateEffectiveValue(caster.stats.lifestealMulti, caster, caster, target, undefined, undefined, skillContext) ;
+    let lsChance = getStatValue("lifestealChance", caster.stats.lifestealChance, caster, target, undefined, undefined, skillContext) ;
+    let lsMulti = getStatValue("lifestealMulti", caster.stats.lifestealMulti, caster, target, undefined, undefined, skillContext) ;
     if(lsChance && lsMulti && caster.isAlive){
       let rand = Math.random()*100;
       if(rand < lsChance){
@@ -6134,9 +6134,9 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       if (unit.isAlive) {
         if (settings.friendlyFire || potentialTargets.includes(unit)) {
       let evStat = unit.stats.evasion
-      let evasion = calculateEffectiveValue(evStat, unit, unit, undefined, undefined, undefined);
+      let evasion = getStatValue("evasion", evStat, unit, undefined, undefined, undefined);
       let acStat = caster.stats.accuracy;
-      let accuracy = calculateEffectiveValue(acStat, caster, caster, unit, undefined, undefined) ;
+      let accuracy = getStatValue("accuracy", acStat, caster, unit, undefined, undefined) ;
 
       let hitChance = 1-getEvasionChance(accuracy, evasion);
       let hitChanceDiv = document.createElement("div");
@@ -6961,7 +6961,27 @@ function getEvasionChance(attackerAccuracy, targetEvasion, K = 9, x = 1) {
   }
   return Math.max(0.01, Math.min(0.95, evasionChance));
 }
+
+function getStatValue(statName, block, caster, target, skillLevel, skillContext){
+  let statValue = calculateEffectiveValue(block, statName, caster, target, skillLevel, skillContext);
+        if(skillContext.statBonuses){
+          if(skillContext.statBonuses[stat]){
+            let statBonus = skillContext.statBonuses[stat];
+            let value = calculateEffectiveValue(statBonus.value, skillContext, caster, target, skillLevel, undefined)
+            if(statBonus.effect = "multi"){
+              statValue *= value
+            }else if(statBonus.effect = "override"){
+              statValue = value;
+            }else{
+              statValue += value;
+            }
+          }
+          
+        }
+  return statValue;
+}
   function calculateEffectiveValue(block, parentObject, caster, target, skillLevel, skillContext) {
+    console.log("make this take a stattype for calculating statBonuses")
     if (!block) {
       console.error("No block defined", new Error().stack);
       return null;
@@ -7030,21 +7050,9 @@ function getEvasionChance(attackerAccuracy, targetEvasion, K = 9, x = 1) {
         value *= Math.pow(scale, statValue);
       }
     }
-        if(statType == "Stat"){
-      if(skillContext.statBonuses){
-          if(skillContext.statBonuses[stat]){
-            let statBonus = skillContext.statBonuses[stat];
-            let value = calculateEffectiveValue(statBonus.value, skillContext, caster, target, skillLevel, undefined)
-            if(statBonus.effect = "multi"){
-              statValue *= value
-            }else if(statBonus.effect = "override"){
-              statValue = value;
-            }else{
-              statValue += value;
-            }
-          }
-        }
-    }
+      
+
+    
     }
     if (typeof block.min === "number") {
     value = Math.max(value, block.min);
