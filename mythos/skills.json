@@ -1711,7 +1711,6 @@
           },
           "effect": "override"
         }
-      }
     },
     "effects": [
       {
@@ -2176,7 +2175,7 @@
         },
         "effect": "add"
       }
-    }
+    },
     "effects": [
       { 
         "type": "damage",
