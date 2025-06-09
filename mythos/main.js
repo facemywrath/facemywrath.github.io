@@ -6964,7 +6964,7 @@ function getEvasionChance(attackerAccuracy, targetEvasion, K = 9, x = 1) {
 
 function getStatValue(statName, block, caster, target, skillLevel, skillContext){
   let statValue = calculateEffectiveValue(block, statName, caster, target, skillLevel, skillContext);
-        if(skillContext.statBonuses){
+        if(skillContext && skillContext.statBonuses){
           if(skillContext.statBonuses[stat]){
             let statBonus = skillContext.statBonuses[stat];
             let value = calculateEffectiveValue(statBonus.value, skillContext, caster, target, skillLevel, undefined)
