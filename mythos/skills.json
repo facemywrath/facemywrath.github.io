@@ -18,6 +18,12 @@
           "base": 75
         },
         "effect": "override"
+      },
+      "lifestealMulti": {
+        "value": {
+          "base": 2
+        },
+        "effect": "override"
       }
     },
     "cost": { "mp": 13 },
