@@ -1393,7 +1393,7 @@
       {
         "type": "damage",
         "damageType": "force",
-        "base": 15,
+        "base": 25,
         "scaling": [
           {
             "target": "caster",
@@ -1404,7 +1404,7 @@
       },
       {
         "type": "interrupt",
-        "base": 0.5
+        "base": 3
       }
     ]
   },

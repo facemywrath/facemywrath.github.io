@@ -2856,6 +2856,150 @@
     "talents": []
   },
   {
+    "name": "Gargantua",
+    "race": "Yetin",
+    "damageType": "physical",
+    "planet": "Cinderrift",
+    "discoveryXp": 50,
+    "xp": 20,
+    "attributes": {
+      "strength": 4,
+      "dexterity": 1,
+      "constitution": 8,
+      "intellect": 1,
+      "wisdom": 1,
+      "willpower": 1
+    },
+    "attributesPerLevel": {
+      "strength": 2.25,
+      "dexterity": 1,
+      "constitution": 6,
+      "intellect": 1,
+      "wisdom": 1,
+      "willpower": 1
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 100,
+        "value": 100,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 17,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 5,
+        "value": 5
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 50,
+        "value": 50
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 5,
+        "value": 5
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 10,
+        "value": 10
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 1,
+        "value": 1
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 0,
+        "value": 0
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 1.5,
+        "value": 1.5
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 100
+      },
+      "mp": {
+        "value": 10
+      },
+      "sp": {
+        "value": 50
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 1
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "yetinSmash",
+          "level": 1
+        },
+        {
+          "id": "ragebornRoar",
+          "level": 1
+        },{
+          "id": "earthquake",
+          "level": 1
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
     "name": "Yetin",
     "race": "Yetin",
     "damageType": "physical",
