@@ -1,4 +1,4 @@
-let gameVersion = "0.91.x";
+let gameVersion = "0.92.x";
 let gameVerDiv = document.getElementById("version-bar")
 if(gameVerDiv){
   gameVerDiv.textContent = "Version: "+ gameVersion;
@@ -4460,9 +4460,9 @@ function updateProgressBar(skillId, member) {
       let caster = member;
       let unit = findUnitById(skillData.target)
       let evStat = unit.stats.evasion
-      let evasion = getStatValue("evasion", evStat, unit, undefined, undefined, undefined);
+      let evasion = getStatValue("evasion", evStat, unit, undefined, undefined);
       let acStat = caster.stats.accuracy;
-      let accuracy = getStatValue("accuracy", acStat, caster, unit, undefined, undefined) ;
+      let accuracy = getStatValue("accuracy", acStat, caster, unit, undefined) ;
 
       let hitChance = 1-getEvasionChance(accuracy, evasion);
 
@@ -4662,9 +4662,9 @@ function updateSkillUnitDisplay(skillId, member) {
       let caster = member;
       let unit = findUnitById(skillData.target)
       let evStat = unit.stats.evasion
-      let evasion = getStatValue("evasion", evStat, unit, undefined, undefined, undefined);
+      let evasion = getStatValue("evasion", evStat, unit, undefined, undefined);
       let acStat = caster.stats.accuracy;
-      let accuracy = getStatValue('accuracy', acStat, caster, unit, undefined, undefined) ;
+      let accuracy = getStatValue('accuracy', acStat, caster, unit, undefined) ;
 
       let hitChance = 1-getEvasionChance(accuracy, evasion);
 
@@ -5659,10 +5659,10 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         if(skillContext && skillContext.statBonuses){
           console.log(skillId, JSON.stringify(skillContext.statBonuses, null, 2))
         }
-        let critChance = getStatValue("critChance", caster.stats.critChance, caster, target, undefined, undefined, skillContext) ;
+        let critChance = getStatValue("critChance", caster.stats.critChance, caster, target, undefined, skillContext) ;
         let critMulti = 1
         if(Math.random()*100 < critChance){
-          critMulti = getStatValue("critMulti", caster.stats.critMulti, caster, target, undefined, undefined, skillContext) ;
+          critMulti = getStatValue("critMulti", caster.stats.critMulti, caster, target, undefined, skillContext) ;
         }
         let total = critMulti*calculateEffectiveValue(effect, skillId, caster, unit, skillLevel, skillContext)
         let finalDamage = damageUnit(caster, unit, effect.damageType, total, skillContext)
@@ -5951,9 +5951,9 @@ function passesTriggerConditions(effect, event, unit, talentId) {
     }
     if(caster){
       let evStat = target.stats.evasion
-      let evasion = getStatValue("evasion", evStat, target, undefined, undefined, undefined, skillContext);
+      let evasion = getStatValue("evasion", evStat, target, undefined, undefined, skillContext);
       let acStat = caster.stats.accuracy;
-      let accuracy = getStatValue("accuracy", acStat, caster, target, undefined, undefined, skillContext) ;
+      let accuracy = getStatValue("accuracy", acStat, caster, target, undefined, skillContext) ;
 
       let evasionChance = getEvasionChance(accuracy, evasion)*100;
       if (Math.floor(Math.random()*100) < evasionChance) {
@@ -5977,7 +5977,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         base: 1,
         scaling: []
       }
-      damageAmp = getStatValue("damageAmp", caster.stats.damageAmp, caster, target, undefined, undefined, skillContext) ;
+      damageAmp = getStatValue("damageAmp", caster.stats.damageAmp, caster, target, undefined, skillContext) ;
       }
     }
     let damageTaken = 1;
@@ -5988,13 +5988,13 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         base: 1,
         scaling: []
       }
-      damageTaken = getStatValue("damageTaken", target.stats.damageTaken, target, caster, undefined, undefined, undefined) ;
+      damageTaken = getStatValue("damageTaken", target.stats.damageTaken, target, caster, undefined, undefined) ;
       }
     const total = amount * resist * damageTaken * damageAmp;
    // console.log(target.name, damageType, total, amount, resist)
    if(caster){
-    let lsChance = getStatValue("lifestealChance", caster.stats.lifestealChance, caster, target, undefined, undefined, skillContext) ;
-    let lsMulti = getStatValue("lifestealMulti", caster.stats.lifestealMulti, caster, target, undefined, undefined, skillContext) ;
+    let lsChance = getStatValue("lifestealChance", caster.stats.lifestealChance, caster, target, undefined, skillContext) ;
+    let lsMulti = getStatValue("lifestealMulti", caster.stats.lifestealMulti, caster, target, undefined, skillContext) ;
     if(lsChance && lsMulti && caster.isAlive){
       let rand = Math.random()*100;
       if(rand < lsChance){
@@ -6137,9 +6137,9 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       if (unit.isAlive) {
         if (settings.friendlyFire || potentialTargets.includes(unit)) {
       let evStat = unit.stats.evasion
-      let evasion = getStatValue("evasion", evStat, unit, undefined, undefined, undefined);
+      let evasion = getStatValue("evasion", evStat, unit, undefined, undefined);
       let acStat = caster.stats.accuracy;
-      let accuracy = getStatValue("accuracy", acStat, caster, unit, undefined, undefined) ;
+      let accuracy = getStatValue("accuracy", acStat, caster, unit, undefined) ;
 
       let hitChance = 1-getEvasionChance(accuracy, evasion);
       let hitChanceDiv = document.createElement("div");
