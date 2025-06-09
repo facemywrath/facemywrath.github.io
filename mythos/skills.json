@@ -1683,13 +1683,13 @@
     "name": "Insanguinate",
     "cost": {
       "mp": 25,
-      "hp": 5,
+      "hp": 5
     },
     "target": "singleEnemy",
     "requiresTarget": true,
     "cooldown": {
       "base": 15,
-      "min": 6,
+      "min": 6
     },
     "statBonuses": {
       "lifestealChance": {
@@ -1742,7 +1742,7 @@
     "name": "Blood Whip",
     "cost": {
       "mp": 15,
-      "hp": 5,
+      "hp": 5
     },
     "target": "singleEnemy",
     "requiresTarget": true,
