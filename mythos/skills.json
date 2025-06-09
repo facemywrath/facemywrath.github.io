@@ -12,20 +12,6 @@
         "scale": -0.02
       }]
     },
-    "statBonuses": {
-      "lifestealChance": {
-        "value": {
-          "base": 75
-        },
-        "effect": "override"
-      },
-      "lifestealMulti": {
-        "value": {
-          "base": 2
-        },
-        "effect": "override"
-      }
-    },
     "cost": { "mp": 13 },
     "target": "singleEnemy",
     "requiresTarget": true,
