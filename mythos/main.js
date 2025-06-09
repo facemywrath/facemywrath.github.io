@@ -5289,7 +5289,6 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
     // console.log("csst7jg")
     // Check cost and cooldown
     if (!canAfford(caster, skill.cost)){
-      console.log("Cant Afford Skill", caster.name, skillId);
       return;
     } 
     let skillFound = caster.skills.equipped.find(s => s && s.id == skillId);
@@ -5991,6 +5990,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       }
     const total = amount * resist * damageTaken * damageAmp;
    // console.log(target.name, damageType, total, amount, resist)
+   if(caster){
     let lsChance = getStatValue("lifestealChance", caster.stats.lifestealChance, caster, target, undefined, undefined, skillContext) ;
     let lsMulti = getStatValue("lifestealMulti", caster.stats.lifestealMulti, caster, target, undefined, undefined, skillContext) ;
     if(lsChance && lsMulti && caster.isAlive){
@@ -6001,6 +6001,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       updateCombatLog(`${caster.name} drained ${base.toFixed(2)} HP from ${target.name}`, caster, ["heal", caster.isAlly?"ally":"enemy"])
       updateCombatBar(caster, "hp");
       }
+    }
     }
     target.stats.hp.value = Math.max(target.stats.hp.value - total, 0);
     updateCombatBar(target, "hp");
