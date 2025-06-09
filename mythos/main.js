@@ -1,7 +1,7 @@
 let gameVersion = "0.92.x";
-let gameVerDiv = document.getElementById("game-ver")
+let gameVerDiv = document.getElementById("version-bar")
 if(gameVerDiv){
-  gameVerDiv.textContent = gameVersion;
+  gameVerDiv.textContent = "Version: "+ gameVersion;
 }
 let loreDataCache = null;
 let damageTypeMultipliers = null;
