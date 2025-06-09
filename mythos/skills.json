@@ -13,7 +13,7 @@
       }]
     },
     "statBonuses": {
-      "critChance": {
+      "lifestealChance": {
         "value": {
           "base": 75
         },
