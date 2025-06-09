@@ -1,4 +1,4 @@
-let gameVersion = "0.93.x";
+let gameVersion = "0.91.x";
 let gameVerDiv = document.getElementById("version-bar")
 if(gameVerDiv){
   gameVerDiv.textContent = "Version: "+ gameVersion;
@@ -5657,7 +5657,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       switch (effect.type) {
       case "damage":
         if(skillContext && skillContext.statBonuses){
-          console.log(skillId, JSON.stringify(skillContext.statBonuses), null, 2)
+          console.log(skillId, JSON.stringify(skillContext.statBonuses, null, 2))
         }
         let critChance = getStatValue("critChance", caster.stats.critChance, caster, target, undefined, undefined, skillContext) ;
         let critMulti = 1
@@ -6968,6 +6968,7 @@ function getEvasionChance(attackerAccuracy, targetEvasion, K = 9, x = 1) {
 function getStatValue(statName, block, caster, target, skillLevel, skillContext){
   let statValue = calculateEffectiveValue(block, statName, caster, target, skillLevel, skillContext);
         if(skillContext && skillContext.statBonuses){
+          console.log("1Bonusing " + statName, skillContext.statBonuses)
           if(skillContext.statBonuses[statName]){
             let statBonus = skillContext.statBonuses[statName];
             let value = calculateEffectiveValue(statBonus.value, skillContext, caster, target, skillLevel, undefined)
@@ -6978,7 +6979,7 @@ function getStatValue(statName, block, caster, target, skillLevel, skillContext)
             }else{
               statValue += value;
             }
-            console.log("Bonusing " + statName, statValue)
+            console.log("2Bonusing " + statName, statValue)
           }
           
         }
