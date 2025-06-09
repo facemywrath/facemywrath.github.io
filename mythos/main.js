@@ -1,4 +1,4 @@
-let gameVersion = "0.91.x";
+let gameVersion = "0.92.x";
 let gameVerDiv = document.getElementById("game-ver")
 if(gameVerDiv){
   gameVerDiv.textContent = gameVersion;
