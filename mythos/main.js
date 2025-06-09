@@ -1,4 +1,4 @@
-let gameVersion = "0.92.x";
+let gameVersion = "0.93.x";
 let gameVerDiv = document.getElementById("version-bar")
 if(gameVerDiv){
   gameVerDiv.textContent = "Version: "+ gameVersion;
@@ -5656,7 +5656,9 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       }
       switch (effect.type) {
       case "damage":
-
+        if(skillContext && skillContext.statBonuses){
+          console.log(skillId, JSON.stringify(skillContext.statBonuses), null, 2)
+        }
         let critChance = getStatValue("critChance", caster.stats.critChance, caster, target, undefined, undefined, skillContext) ;
         let critMulti = 1
         if(Math.random()*100 < critChance){
