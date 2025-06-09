@@ -1200,8 +1200,13 @@
       },
       "spRegen": {
         "display": "Sp Regen",
-        "base": 2,
-        "value": 2
+        "base": 1,
+        "value": 1,
+        "scaling": [{
+          "target": "caster",
+          "stat": "tier",
+          "scale": 0.05
+        }]
       },
       "spEfficiency": {
         "display": "Sp Efficiency",
