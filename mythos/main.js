@@ -75,12 +75,12 @@ const gearTypes = {
     slot: "head",
     oreRequired: 9,
     statBoosts: [
-      { stat: "lifestealMulti", weight: 1, multi: 1.004 },
+      { stat: "evasion", weight: 1, multi: 1.004 },
       { stat: "critChance", weight: 2, multi: 1.002 },
-      { stat: "lifestealChance", weight: 5, multi: 1.004 },
+      { stat: "accuracy", weight: 5, multi: 1.004 },
       { stat: "hpRegen", weight: 2, multi: 1.006},
       { stat: "maxSp", weight: 2, multi: 1.009 },
-      { stat: "damageTaken", weight: 2, multi: 0.997 }
+      { stat: "damageTaken", weight: 1, multi: 0.999 }
     ]
   },
   "Circlet": {
@@ -148,11 +148,11 @@ const gearTypes = {
     slot: "hands",
     oreRequired: 5,
     statBoosts: [
-      { stat: "maxSp", weight: 3, multi: 0.993 },
-      { stat: "spRegen", weight: 2, multi: 1.16},
+      { stat: "maxSp", weight: 16, multi: 0.993 },
+      { stat: "spRegen", weight: 16, multi: 1.16},
       { stat: "lifestealChance", weight: 2, multi: 1.02 },
-      { stat: "cooldownReduction", weight: 1, multi: 0.98 },
-      { stat: "hpRegen", weight: 4, multi: 1.02},
+      { stat: "cooldownReduction", weight: 1, multi: 0.99 },
+      { stat: "hpRegen", weight: 7, multi: 1.02},
       { stat: "xpGain", weight: 2, multi: 1.02 }
     ]
   },
@@ -160,48 +160,48 @@ const gearTypes = {
     slot: "waist",
     oreRequired: 7,
     statBoosts: [
-      { stat: "damageTaken", weight: 3, multi: 0.996 },
-      { stat: "hpRegen", weight: 3, multi: 1.02},
-      { stat: "maxHp", weight: 2, multi: 1.01 },
-      { stat: "evasion", weight: 4, multi: 1.02 },
-      { stat: "mpRegen", weight: 2, multi: 1.03 },
-      { stat: "cooldownReduction", weight: 2, multi: 0.98 }
+      { stat: "damageTaken", weight: 2, multi: 0.996 },
+      { stat: "hpRegen", weight: 9, multi: 1.02},
+      { stat: "maxHp", weight: 12, multi: 1.01 },
+      { stat: "evasion", weight: 7, multi: 1.02 },
+      { stat: "mpRegen", weight: 7, multi: 1.03 },
+      { stat: "cooldownReduction", weight: 1, multi: 0.993 }
     ]
   },
   "Girdle": {
     slot: "waist",
     oreRequired: 9,
     statBoosts: [
-      { stat: "lifestealMulti", weight: 2, multi: 1.008 },
-      { stat: "hpRegen", weight: 3, multi: 1.004},
-      { stat: "critMulti", weight: 2, multi: 1.009 },
-      { stat: "evasion", weight: 2, multi: 1.002 },
-      { stat: "maxSp", weight: 2, multi: 1.01 },
-      { stat: "mpEfficiency", weight: 3, multi: 0.995 }
+      { stat: "lifestealMulti", weight: 6, multi: 1.008 },
+      { stat: "hpRegen", weight: 13, multi: 1.004},
+      { stat: "critMulti", weight: 12, multi: 1.009 },
+      { stat: "evasion", weight: 8, multi: 1.002 },
+      { stat: "maxSp", weight: 17, multi: 1.01 },
+      { stat: "mpEfficiency", weight: 7, multi: 0.995 }
     ]
   },
   "Greaves": {
     slot: "legs",
     oreRequired: 13,
     statBoosts: [
-      { stat: "maxSp", weight: 2, multi: 1.007 },
-      { stat: "evasion", weight: 2, multi: 1.006 },
+      { stat: "maxSp", weight: 12, multi: 1.007 },
+      { stat: "evasion", weight: 7, multi: 1.006 },
       { stat: "damageTaken", weight: 2, multi: 0.996 },
-      { stat: "spRegen", weight: 3, multi: 1.009},
-      { stat: "cooldownReduction", weight: 2, multi: 0.998 },
-      { stat: "lifestealMulti", weight: 1, multi: 1.02 }
+      { stat: "spRegen", weight: 12, multi: 1.009},
+      { stat: "cooldownReduction", weight: 1, multi: 0.998 },
+      { stat: "lifestealMulti", weight: 6, multi: 1.02 }
     ]
   },
   "Pants": {
     slot: "legs",
     oreRequired: 11,
     statBoosts: [
-      { stat: "maxHp", weight: 2, multi: 1.01 },
-      { stat: "evasion", weight: 3, multi: 1.006 },
+      { stat: "maxHp", weight: 12, multi: 1.01 },
+      { stat: "evasion", weight: 9, multi: 1.006 },
       { stat: "damageTaken", weight: 2, multi: 0.993 },
-      { stat: "hpRegen", weight: 3, multi: 1.004},
-      { stat: "critChance", weight: 2, multi: 1.004 },
-      { stat: "lifestealMulti", weight: 2, multi: 1.003 }
+      { stat: "hpRegen", weight: 11, multi: 1.004},
+      { stat: "critChance", weight: 12, multi: 1.004 },
+      { stat: "maxSp", weight: 6, multi: 1.003 }
     ]
   },
   "Boots": {
@@ -1273,10 +1273,10 @@ player = {
       display: "Max MP",
       base: 40,
       scaling: [{
-        target: "caster", stat: "intellect", scale: 1
+        target: "caster", stat: "intellect", scale: 1.25
       },
         {
-          target: "caster", stat: "willpower", scale: 1
+          target: "caster", stat: "willpower", scale: 1.25
         }],
       value: 40,
     },
@@ -7741,7 +7741,7 @@ function buildGear(gearType, tier, quality, ores) {
         };
         rolledBonusCount++;
       } else {
-        const enhancementMultiplier = 1.05 + (qualityBonusCount * 0.05);
+        const enhancementMultiplier = 1 + (qualityBonusCount * 0.03);
         let current = rolledBonuses[stat].multi;
 
         if (current < 1) {

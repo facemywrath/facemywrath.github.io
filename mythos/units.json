@@ -29,12 +29,12 @@
       },
       "maxHp": {
         "display": "Max Hp",
-        "base": 100,
-        "value": 100,
+        "base": 75,
+        "value": 75,
         "scaling": [
           {
             "target": "caster",
-            "scale": 8,
+            "scale": 6.75,
             "stat": "constitution"
           }
         ]
