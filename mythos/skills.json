@@ -9,7 +9,7 @@
       {
         "target": "caster",
         "stat": "skillLevel",
-        "scale": -0.02
+        "scale": -0.016
       }]
     },
     "cost": { "mp": 13 },
@@ -29,7 +29,7 @@
         {
           "target": "caster",
           "stat": "skillLevel",
-          "scale": 2
+          "scale": 1.75
         }]
       },
       { "type": "condition",
@@ -39,12 +39,8 @@
         "scaling": [{
           "target": "caster",
           "stat": "skillLevel",
-          "scale": 0.5
-        },{
-          "target": "caster",
-          "stat": "willpower",
-          "scale": 0.01
-        }]
+          "scale": 0.75
+          }]
       }
       }
     ]
