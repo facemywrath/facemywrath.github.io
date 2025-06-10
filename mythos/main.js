@@ -2238,6 +2238,7 @@ case "planets":
         visitButton.style.marginTop = '0.5em';
         visitButton.onclick = function(e) {
             e.stopPropagation(); // Prevent bar click from toggling the infoDiv again
+            
             // Replace this with your visit logic:
             console.log(`Visiting ${planetKey}`);
         };
@@ -7932,27 +7933,29 @@ function showDebugPopup() {
     logText +=`\nCOMBATUNITS: ${JSON.stringify(combatUnits, null, 2)}`
     logText +=`\nSETTINGS: ${JSON.stringify(settings, null, 2)}`
     
-    const html = `
-        <div style="background: linear-gradient('#555','#222'); display: flex; flex-direction: column; width: 100%;">
-            <textarea readonly style="
-                width: 100%;
-                height: 300px;
-                resize: none;
-                overflow-y: scroll;
-                white-space: pre;
-                background: #f0f0f0;
-                color: #000;
-                padding: 10px;
-                border: 1px solid #ccc;
-                font-family: monospace;
-                font-size: 7px;
-            ">${logText}</textarea>
-            <button onclick="event.stopPropagation();
-            navigator.clipboard.writeText(\`${logText.replace(/`/g, '\\`')}\`)">
-                Copy to Clipboard
-            </button>
-        </div>
-    `;
+const html = `
+    <div style="background: linear-gradient(#555, #222); display: flex; flex-direction: column; width: 100%;">
+        <textarea readonly style="
+            width: 100%;
+            height: 300px;
+            resize: none;
+            overflow-y: scroll;
+            white-space: pre;
+            background: #f0f0f0;
+            color: #000;
+            padding: 10px;
+            border: 1px solid #ccc;
+            font-family: monospace;
+            font-size: 7px;
+        ">${logText}</textarea>
+        <button onclick="
+            event.stopPropagation();
+            navigator.clipboard.writeText(\`${logText.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${')}\`);
+        ">
+            Copy to Clipboard
+        </button>
+    </div>
+`;
 
     setTimeout(() => showPopup(html), 1);
 }
