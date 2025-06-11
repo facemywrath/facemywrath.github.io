@@ -5541,7 +5541,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       }
       return target;
     }
-    let livingUnits = combatUnits.filter(u => u.isAlive);
+    let livingUnits = combatUnits.filter(u => u && u.isAlive);
     if (targetType) {
 
       switch (targetType) {
@@ -7158,9 +7158,16 @@ function getStatValue(statName, block, caster, target, skillLevel, skillContext)
           // Count how many effects of this type come before this one
           const count = skillData.effects.slice(0, effectIndex + 1)
           .filter(e => e.type === type).length;
+          if(type == "summon"){
+            if(path.includes("tier")){
+              label = `${type.charAt(0).toUpperCase() + type.slice(1)} Tier (${count})`;
+            }else{
+                 label = `${type.charAt(0).toUpperCase() + type.slice(1)} (${count})`;
+            }
+          }
           if (type == "condition") {
             if (path.includes("stacks")) {
-              label = `${effect.name.charAt(0).toUpperCase() + effect.name.slice(1)} stacks (${count})`;
+                label = `${effect.name.charAt(0).toUpperCase() + effect.name.slice(1)} stacks (${count})`;
             } else {
               label = `${effect.name.charAt(0).toUpperCase() + effect.name.slice(1)}  (${count})`;
             }
@@ -7170,7 +7177,7 @@ function getStatValue(statName, block, caster, target, skillLevel, skillContext)
         }
       }
 
-      results.push(`<span style="color: #9c9;">--${capitalize(label)}  ${skillLevelScales}</span><br>`);
+      results.push(`<span style="color: #9c9;">--${fromCamelCase(label)}  ${skillLevelScales}</span><br>`);
     }
 
     return results.join(" ");
