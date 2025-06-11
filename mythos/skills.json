@@ -2618,6 +2618,42 @@
         }
       }
     ]
+  },
+    "stellarBolt": {
+    "name": "Stellar Bolt",
+    "flavorText": "{casterName} flings a piece of a star at {targetName}!",
+    "description": "Fling a molten ember at an enemy dealing minorheat damage and inflicting Burning.",
+    "cooldown": {
+      "base": 9,
+      "min": 6,
+      "scaling": [
+      {
+        "target": "caster",
+        "stat": "tier",
+        "scale": -0.016
+      }]
+    },
+    "cost": { "mp": 30},
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "effects": [
+      { 
+        "type": "damage",
+        "target": "singleEnemy", 
+        "base": 5,
+        "damageType": "heat",
+        "scaling": [{
+         "target": "caster",
+         "stat": "intellect", 
+         "scale": 0.3
+        },
+        {
+          "target": "caster",
+          "stat": "skillLevel",
+          "scale": 1.75
+        }]
+      }
+    ]
   }
 
 }
