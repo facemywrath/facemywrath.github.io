@@ -2014,7 +2014,7 @@ function showCharacterCreation(charId) {
     classSelect.appendChild(secondDefaultOption);
 
     Object.keys(loreDataCache.classes).forEach(r => {
-      if (r == "Pyromancer") {
+      if (r == "Pyromancer" || r == "Voidcaller") {
 
 
         const opt = document.createElement("option");
@@ -4940,6 +4940,10 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
           let stacks = e.stacks || "all"
           desc = `Cleanse ${stacks} stacks of ${toCleanse}`
           break;
+        case "energySiphon":
+          let amount = calculateEffectiveValue(e, skillId, member, null, skillLevel)
+          desc = `Steal ${amount} ${capitalize(e.energyType)} from the enemy.`
+          break;
         case "buff":
         case "debuff":
           e.value = calculateEffectiveValue(e.value, skillId, member, undefined, skillLevel)
@@ -5775,6 +5779,21 @@ function passesTriggerConditions(effect, event, unit, talentId) {
           let desc = `${caster.name} cleansed ${stacks} stacks of ${toCleanse} on ${unit.name}`;
           updateCombatLog(desc, "cleanse", caster.isAlly?"ally":"enemy");
         }
+      case "siphonEnergy":
+        let amount = calculateEffectiveValue(effect, skillId, caster, target, skillLevel, skillContext);
+        let energyType = effect.energyType;
+        let multi = calculateEffectiveValue(effect.multi, skillId, caster, target, skillLevel, skillContext)
+        if(unit.stats[energyType]){
+          let gainDiff = Math.min(amount,unit.stats[energyType].value)
+          unit.stats[energyType].value = Math.max(0,unit.stats[energyType].value-amount)
+          caster.stats[energyType].value = Math.min(caster.stats[`max${energyType}`].value,multi*gainDiff);
+          desc = `${caster.name} stole ${gainDiff} ${capitalize(energyType)} from ${unit.name}`
+            updateCombatLog(desc,
+          caster, ["siphon",caster.isAlly?"ally":"enemy"]);
+          updateCombatBar(unit, energyType)
+          updateCombatBar(caster, energyType)
+        }
+        break;
       case "buff":
 
         pushedEffect = JSON.parse(JSON.stringify(effect));

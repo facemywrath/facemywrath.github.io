@@ -390,7 +390,24 @@
         3,
         3,
         1
-      ]
+      ],
+      "skillTree": [
+        {
+          "id": "energyWhip",
+          "level": 1,
+          "cost": 2,
+          "maxLevel": 10
+        },
+        {
+          "id": "summonVoidVine",
+          "level": 1,
+          "cost": 2,
+          "unlockCost": 2,
+          "maxLevel": 30,
+          "previousSkill": "energyWhip",
+          "previousSkillLevelRequired": 1
+        }
+        ]
     },
     "Foresworn": {
       "description": "Dark warriors bound to cursed weapons, excelling at brutal melee and anti-magic.",
@@ -1942,24 +1959,8 @@
       ]
     },
     "Astral Maw": {
-      "description": "A void vortex housing singular, devastating bosses.",
+      "description": "A void vortex full of weird impossible creatures.",
       "units": [
-        {
-          "name": "voidmaw",
-          "weight": 10,
-          "levels": {
-            "min": 0,
-            "max": 15
-          }
-        },
-        {
-          "name": "gravityspawn",
-          "weight": 9,
-          "levels": {
-            "min": 0,
-            "max": 15
-          }
-        },
         {
           "name": "starscourge",
           "weight": 8,
@@ -1977,10 +1978,6 @@
             30
           ],
           "weights": [
-            105,
-            10,
-            5,
-            3,
             1
           ]
         }

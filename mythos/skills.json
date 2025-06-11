@@ -1599,7 +1599,7 @@
     ]
   },
   "summonVine": {
-    "name": "Summon Vine",
+    "name": "Summon: Vine",
     "cost": {
       "mp": 30
     },
@@ -1634,7 +1634,7 @@
     ]
   },
   "summonWolf": {
-    "name": "Summon Wolf",
+    "name": "Summon: Wolf",
     "cost": {
       "mp": 30
     },
@@ -2411,6 +2411,211 @@
         "base": 5000,
         "scaling": [],
         "overrideCooldown": true
+      }
+    ]
+  },
+  "summonVoidVine": {
+    "name": "Summon: Void Vine",
+    "cost": {
+      "mp": 30
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "initialCooldown": 10,
+    "cooldown": {
+      "base": 20,
+      "min": 5,
+      "scaling": [
+        {
+          "target": "caster",
+          "scale": 0.9992,
+          "effect": "multi",
+          "stat": "wisdom"
+        },
+        {
+          "target": "caster",
+          "scale": -0.01,
+          "stat": "skillLevel"
+        }
+      ]
+    },
+    "effects": [
+      {
+        "type": "summon",
+        "unit": "Void Vine",
+        "tier": {
+          "base": 0,
+          "scaling": [{
+            "target": "caster",
+            "stat": "skillLevel",
+            "scale": 1
+          }]
+        },
+        "isAlly": "true"
+      }
+    ]
+  },
+  "energyWhip": {
+    "name": "Energy Whip",
+    "cooldown": {
+      "base": 8,
+      "min": 3,
+      "scaling": [
+      {
+        "target": "caster",
+        "stat": "skillLevel",
+        "scale": -0.3
+      }]
+    },
+    "cost": {
+      "sp": 10,
+      "mp": 15
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "effects": [
+      { 
+        "type": "damage",
+        "target": "singleEnemy", 
+        "base": 6,
+        "damageType": "shock",
+        "scaling": [{
+         "target": "caster",
+         "stat": "intellect", 
+         "scale": 0.25
+        },
+        {
+          "target": "caster",
+          "stat": "skillLevel",
+          "scale": 3
+        }]
+      },
+      { 
+        "type": "siphonEnergy",
+        "target": "singleEnemy", 
+        "energyType": "sp",
+        "base": 1,
+        "scaling": [{
+         "target": "caster",
+         "stat": "intellect", 
+         "scale": 0.01
+        },
+        {
+          "target": "caster",
+          "stat": "skillLevel",
+          "scale": 1
+        }],
+        "multi": {
+          "base": 1,
+          "value": 1,
+          "scaling": []
+        }
+      }
+    ]
+  },
+  "voidWhip": {
+    "name": "Void Whip",
+    "cooldown": {
+      "base": 5,
+      "min": 3,
+      "scaling": [
+      {
+        "target": "caster",
+        "stat": "skillLevel",
+        "scale": -0.01
+      }]
+    },
+    "cost": {
+      "sp": 3,
+      "mp": 3
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "effects": [
+      { 
+        "type": "damage",
+        "target": "singleEnemy", 
+        "base": 2,
+        "damageType": "void",
+        "scaling": [{
+         "target": "caster",
+         "stat": "intellect", 
+         "scale": 0.25
+        },
+        {
+          "target": "caster",
+          "stat": "tier",
+          "scale": 4
+        }]
+      },
+      { 
+        "type": "siphonEnergy",
+        "target": "singleEnemy", 
+        "energyType": "mp",
+        "base": 1,
+        "scaling": [{
+         "target": "caster",
+         "stat": "intellect", 
+         "scale": 0.01
+        },
+        {
+          "target": "caster",
+          "stat": "tier",
+          "scale": 0.2
+        }],
+        "multi": {
+          "base": 1,
+          "value": 1,
+          "scaling": []
+        }
+      }
+    ]
+  },
+  "consumeEnergy": {
+    "name": "Consume Energy",
+    "cooldown": {
+      "base": 10,
+      "min": 6,
+      "scaling": [
+      {
+        "target": "caster",
+        "stat": "tier",
+        "effect": "multi",
+        "scale": 0.99
+      }]
+    },
+    "cost": {
+      "mp": 20
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "effects": [
+      { 
+        "type": "damage",
+        "target": "singleEnemy", 
+        "base": 2,
+        "damageType": "void",
+        "scaling": [{
+         "target": "caster",
+         "stat": "mp", 
+         "scale": 0.25
+        }]
+      },
+      { 
+        "type": "siphonEnergy",
+        "target": "singleEnemy", 
+        "energyType": "mp",
+        "base": 0,
+        "scaling": [{
+         "target": "caster",
+         "stat": "maxMp", 
+         "scale": 0.25
+        }],
+        "multi": {
+          "base": 1,
+          "value": 1,
+          "scaling": []
+        }
       }
     ]
   }

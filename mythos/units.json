@@ -1708,6 +1708,177 @@
     "talents": []
   },
   {
+    "name": "Void Vine",
+    "race": "Aberration",
+    "damageType": "Void",
+    "planet": "Hollow Reach",
+    "discoveryXp": 0,
+    "xp": 0,
+    "attributes": {
+      "strength": 1,
+      "dexterity": 3,
+      "constitution": 1,
+      "intellect": 1,
+      "wisdom": 1,
+      "willpower": 5
+    },
+    "attributesPerLevel": {
+      "strength": 0.2,
+      "dexterity": 0.4,
+      "constitution": 0.4,
+      "intellect": 0.5,
+      "wisdom": 0.5,
+      "willpower": 1.5
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 10,
+        "value": 10,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 5,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 0,
+        "value": 0
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 20,
+        "value": 20,
+        "scaling": []
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 4,
+        "value": 4
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 20,
+        "value": 20,
+        "scaling": []
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 4,
+        "value": 4
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "attackPower": {
+        "display": "Attack Power",
+        "base": 0,
+        "value": 0
+      },
+      "spellPower": {
+        "display": "Spell Power",
+        "base": 0,
+        "value": 0
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 5,
+        "value": 5,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "tier",
+            "scale": 1.1,
+            "effect": "multi"
+          }]
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 2,
+        "value": 2
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1,
+        "value": 1
+      },
+      "armorPenetration": {
+        "display": "Armor Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "magicPenetration": {
+        "display": "Magic Penetration",
+        "base": 1,
+        "value": 1
+      },
+      "hp": {
+        "value": 10
+      },
+      "mp": {
+        "value": 5
+      },
+      "sp": {
+        "value": 25
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "tier",
+            "scale": 3
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "tier",
+            "scale": 3
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "voidWhip",
+          "level": 1
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
     "name": "Monstrous Vine",
     "race": "Plant",
     "damageType": "Nature",
@@ -4115,6 +4286,197 @@
       "equipped": [
         {
           "id": "hotBite",
+          "level": 1
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
+    "name": "Starscourge",
+    "race": "Aberration",
+    "damageType": "void",
+    "planet": "Hollowreach",
+    "xp": 10,
+    "attributes": {
+      "strength": 2,
+      "dexterity": 2,
+      "constitution": 2,
+      "intellect": 1,
+      "wisdom": 1,
+      "willpower": 1
+    },
+    "attributesPerLevel": {
+      "strength": 0.5,
+      "dexterity": 1.5,
+      "constitution": 1.5,
+      "intellect": 0.5,
+      "wisdom": 0.5,
+      "willpower": 1.5
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 30,
+        "value": 30,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 5,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 2,
+        "value": 2
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 25,
+        "value": 25,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 1,
+            "stat": "strength"
+          }
+        ]
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 3,
+        "value": 3
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 10,
+        "value": 10,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 5,
+            "stat": "willpower"
+          }
+        ]
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 3,
+        "value": 3
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 25,
+        "value": 25
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 1.5,
+        "value": 1.5,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 0.01,
+            "stat": "strength"
+          },
+          {
+            "target": "caster",
+            "scale": 1.03,
+            "stat": "tier",
+            "effect": "multi"
+          }
+        ]
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 0,
+        "value": 0
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 0,
+        "value": 0
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1.2,
+        "value": 1.2,
+        "min": 0.4,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "tier",
+            "scale": 0.96,
+            "effect": "multi"
+          }
+        ]
+      },
+      "armorPenetration": {
+        "display": "Armor Penetration",
+        "base": 0,
+        "value": 0
+      },
+      "magicPenetration": {
+        "display": "Magic Penetration",
+        "base": 0,
+        "value": 0
+      },
+      "hp": {
+        "value": 30
+      },
+      "mp": {
+        "value": 10
+      },
+      "sp": {
+        "value": 25
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 3
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 3
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "stellarBolt",
+          "level": 1
+        },
+        {
+          "id": "consumeEnergy",
           "level": 1
         }
       ]
