@@ -2590,6 +2590,26 @@
     "target": "singleEnemy",
     "requiresTarget": true,
     "effects": [
+            { 
+        "type": "siphonEnergy",
+        "target": "singleEnemy", 
+        "energyType": "mp",
+        "base": 0,
+        "scaling": [{
+         "target": "caster",
+         "stat": "maxMp", 
+         "scale": 0.2
+        }],
+        "multi": {
+          "base": 1.2,
+          "value": 1.2,
+          "scaling": [{
+            "target": "caster",
+            "stat": "willpower",
+            "scale": 0.0003
+          }]
+        }
+      },
       { 
         "type": "damage",
         "target": "singleEnemy", 
@@ -2600,32 +2620,16 @@
          "stat": "mp", 
          "scale": 0.25
         }]
-      },
-      { 
-        "type": "siphonEnergy",
-        "target": "singleEnemy", 
-        "energyType": "mp",
-        "base": 0,
-        "scaling": [{
-         "target": "caster",
-         "stat": "maxMp", 
-         "scale": 0.25
-        }],
-        "multi": {
-          "base": 1,
-          "value": 1,
-          "scaling": []
-        }
       }
     ]
   },
     "stellarBolt": {
     "name": "Stellar Bolt",
     "flavorText": "{casterName} flings a piece of a star at {targetName}!",
-    "description": "Fling a molten ember at an enemy dealing minorheat damage and inflicting Burning.",
+    "description": "Fling a piece of a star at an enemy, dealing minor void damage.",
     "cooldown": {
-      "base": 9,
-      "min": 6,
+      "base": 6,
+      "min": 3,
       "scaling": [
       {
         "target": "caster",
@@ -2633,15 +2637,15 @@
         "scale": -0.016
       }]
     },
-    "cost": { "mp": 30},
+    "cost": { "mp": 20},
     "target": "singleEnemy",
     "requiresTarget": true,
     "effects": [
       { 
         "type": "damage",
         "target": "singleEnemy", 
-        "base": 5,
-        "damageType": "heat",
+        "base": 7,
+        "damageType": "void",
         "scaling": [{
          "target": "caster",
          "stat": "intellect", 
@@ -2649,7 +2653,7 @@
         },
         {
           "target": "caster",
-          "stat": "skillLevel",
+          "stat": "tier",
           "scale": 1.75
         }]
       }

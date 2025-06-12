@@ -4329,8 +4329,8 @@
       },
       "hpRegen": {
         "display": "Hp Regen",
-        "base": 2,
-        "value": 2
+        "base": 0,
+        "value": 0
       },
       "maxSp": {
         "display": "Max Sp",
@@ -4356,8 +4356,8 @@
       },
       "maxMp": {
         "display": "Max Mp",
-        "base": 10,
-        "value": 10,
+        "base": 15,
+        "value": 15,
         "scaling": [
           {
             "target": "caster",
