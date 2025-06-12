@@ -2506,8 +2506,8 @@
           "scale": 1
         }],
         "multi": {
-          "base": 1,
-          "value": 1,
+          "base": 0,
+          "value": 0,
           "scaling": []
         }
       }
