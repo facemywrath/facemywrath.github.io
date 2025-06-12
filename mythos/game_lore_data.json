@@ -1962,7 +1962,7 @@
       "description": "A void vortex full of weird impossible creatures.",
       "units": [
         {
-          "name": "starscourge",
+          "name": "Starscourge",
           "weight": 8,
           "levels": {
             "min": 0,
