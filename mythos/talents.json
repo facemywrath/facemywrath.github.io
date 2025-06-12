@@ -206,5 +206,35 @@
       }
     ]
   }
+  "voidVineHealthBoost": {
+    "name": "Evolve Void Vine I",
+    "description": ["Your void vines gain 10% more max health"],
+    "effects": [
+      {
+        "type": "listener",
+        "trigger": {
+          "event": "summonUnit",
+          "caster": "self",
+          "unitName": "Void Vine"
+        },
+        "effects": [
+        {
+          "type": "fun",
+"funParams": [
+  "caster",
+  "unit",
+  "skillId",
+  "originalTarget",
+  "skillContext",
+  "updateCombatLog"
+],
+"funBody": [
+  "if (!skillContext.unitSummoned) return;",
+  "console.log('summoned a vine!')",
+]
+        }]
+      }
+    ]
+  }
 
 }

@@ -5353,16 +5353,6 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
     }
 
     // Execute custom code if defined
-    if (skill.onCast) {
-      try {
-        const log = console.log; // or custom game log function
-        const fn = new Function("caster", "target", "log", skill.onCast);
-        fn(caster, target, log);
-
-      } catch (e) {
-        console.error(`Error in skill '${skillId}':`, e);
-      }
-    }
     potentialTargets = getPotentialTargets(caster, skill.target)
     if (potentialTargets.length > 0 && settings.autoTarget && (!originalTarget || !originalTarget.isAlive)) {
       caster.skills.combatData.targets[skillId].target = potentialTargets[0].id
@@ -5387,7 +5377,8 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
     let skillContext = {
       target: event.target || null,
       caster: event.caster || null,
-      id: talentId
+      id: talentId,
+      unitSummoned: event.unitSummoned || null
     }
     for (let eff of effect.effects) {
     applyEffect(eff, unit, undefined, talentId, undefined, skillContext);
@@ -5415,6 +5406,9 @@ function passesTriggerConditions(effect, event, unit, talentId) {
     if (!casters.includes(event.caster)) return false;
   }
   if(trigger.skillId && trigger.skillId != "any" && event.skillId  != trigger.skillId){
+    return false;
+  }
+  if(trigger.unitName && (!event.unitSummoned || event.unitSummoned.name != trigger.unitName)){
     return false;
   }
   if(trigger.cooldown){
@@ -5768,6 +5762,12 @@ function passesTriggerConditions(effect, event, unit, talentId) {
           },
             updateSpeed);
         })
+        summonUnitEvent.emit({
+          effect: effect,
+          caster: caster,
+          unitSummoned: unitData,
+          skillId: skillId
+        })
         updateCombatLog(`${caster.name} summoned an ${unitData.isAlly?"ally":"enemy"} ${unitData.name}(${unitData.tier})`, caster, ["summon", caster.isAlly?"ally":"enemy"])
 
         break;
@@ -5954,6 +5954,55 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         updateStatusButton(unit)
         
         break;
+        case "fun":
+  let funFn = null;
+
+  // 1. If already a real function
+  if (typeof effect.fun === "function") {
+    funFn = effect.fun;
+
+  // 2. If it's a named function in the registry
+
+  // 3. If it has funBody and funParams → compile and cache
+  } else if (effect.funBody && Array.isArray(effect.funParams)) {
+
+    if (!effect._compiledFun) {
+      try {
+        const funBodyStr = Array.isArray(effect.funBody)
+          ? effect.funBody.join("\n")
+          : effect.funBody;
+
+        effect._compiledFun = new Function(...effect.funParams, funBodyStr);
+      } catch (e) {
+        console.error(`Error compiling funBody:`, e, effect);
+      }
+    }
+
+    funFn = effect._compiledFun;
+  }
+
+  // Now execute the function if valid
+  if (typeof funFn === "function") {
+    try {
+      funFn({
+        caster,
+        unit, // <== NOTE! pass *unit*, not target array
+        skillId,
+        originalTarget,
+        skillContext,
+        effect,
+        applyEffectEvent,
+        updateCombatLog,
+        calculateEffectiveValue,
+        getTarget
+      });
+    } catch (e) {
+      console.error(`Error executing fun effect "${effect.fun || '[anonymous funBody]'}":`, e);
+    }
+  } else {
+    console.warn(`Effect of type "fun" does not have a valid .fun or .funBody/.funParams`, effect);
+  }
+  break;
       }
     }
   applyEffectEvent.emit({effect: effect, caster: caster, target: target, skillId: skillId, skillContext: skillContext})
@@ -7090,15 +7139,37 @@ function getStatValue(statName, block, caster, target, skillLevel, skillContext)
 
     
     }
-    if (typeof block.min === "number") {
-    value = Math.max(value, block.min);
-    }
-    if (typeof block.max === "number") {
-      value = Math.min(value, block.max);
-    }
+if (typeof block.min === "number") {
+  value = Math.max(value, block.min);
+}
+if (typeof block.max === "number") {
+  value = Math.min(value, block.max);
+}
 
-    return value;
+// Apply multipliers if defined
+if (block.multipliers && typeof block.multipliers === "object") {
+  for (const key of Object.keys(block.multipliers)) {
+    const multiplierFn = block.multipliers[key];
+    if (typeof multiplierFn === "function") {
+      try {
+        value = multiplierFn(value, {
+          caster,
+          target,
+          skillLevel,
+          skillContext,
+          parentObject,
+          block
+        });
+      } catch (e) {
+        console.error(`Error applying multiplier "${key}":`, e);
+      }
+    } else {
+      console.warn(`Multiplier "${key}" is not a function`);
+    }
   }
+}
+return value;
+}
   
   function setStatValue(entity, stat, value) {
   if (entity.attributes?.[stat] !== undefined) {
@@ -7354,6 +7425,7 @@ function getStatValue(statName, block, caster, target, skillLevel, skillContext)
 
   // Create an event type
   const onDamageEvent = new EventType("onDamage");
+  const summonUnitEvent = new EventType("summonUnit");
   const statusStartEvent = new EventType("statusStart");
   const statusEndEvent = new EventType("statusEnd");
   const applyEffectEvent = new EventType("applyEffect");
