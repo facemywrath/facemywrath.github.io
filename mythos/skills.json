@@ -2585,7 +2585,7 @@
       }]
     },
     "cost": {
-      "mp": 20
+      "mp": 5
     },
     "target": "singleEnemy",
     "requiresTarget": true,

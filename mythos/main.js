@@ -946,6 +946,7 @@ let combatLogFilters = {
   interrupt: true,
   debuff: false,
   condition: false,
+  siphon: true,
   cleanse: false
 }
 let combatLogFilterColors = {
@@ -976,6 +977,10 @@ let combatLogFilterColors = {
   buff: {
     ally: "#2f2",
     enemy: "#f22"
+  },
+  siphon: {
+    ally: "#aa1",
+    enemy: "#a31"
   },
   debuff: {
     ally: "#2f2",
@@ -5787,7 +5792,8 @@ function passesTriggerConditions(effect, event, unit, talentId) {
           let gainDiff = Math.min(amount,unit.stats[energyType].value)
           unit.stats[energyType].value = Math.max(0,unit.stats[energyType].value-amount)
           caster.stats[energyType].value = Math.min(caster.stats[`max${capitalize(energyType)}`].value,multi*gainDiff);
-          desc = `${caster.name} stole ${gainDiff} ${capitalize(energyType)} from ${unit.name}`
+          desc = `${caster.name} stole ${gainDiff*multi} ${capitalize(energyType)} from ${unit.name}`
+          console.log(unit, caster)
             updateCombatLog(desc,
           caster, ["siphon",caster.isAlly?"ally":"enemy"]);
           updateCombatBar(unit, energyType)
