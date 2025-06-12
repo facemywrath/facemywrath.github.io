@@ -4891,8 +4891,8 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
     overflowY: "auto",
     boxShadow: "0 0 10px #000"
   });
-  let mpEfficiency = member.stats?.mpEfficiency || 1;
-  let spEfficiency = member.stats?.spEfficiency || 1;
+  let mpEfficiency = member.stats?.mpEfficiency.value || 1;
+  let spEfficiency = member.stats?.spEfficiency.value || 1;
   const costParts = [];
   if (skill.cost?.mp * mpEfficiency) costParts.push(`${skill.cost.mp} MP`);
   if (skill.cost?.sp * spEfficiency) costParts.push(`${skill.cost.sp} SP`);
