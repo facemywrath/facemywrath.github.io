@@ -5786,7 +5786,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         if(unit.stats[energyType]){
           let gainDiff = Math.min(amount,unit.stats[energyType].value)
           unit.stats[energyType].value = Math.max(0,unit.stats[energyType].value-amount)
-          caster.stats[energyType].value = Math.min(caster.stats[`max${energyType}`].value,multi*gainDiff);
+          caster.stats[energyType].value = Math.min(caster.stats[`max${capitalize(energyType)}`].value,multi*gainDiff);
           desc = `${caster.name} stole ${gainDiff} ${capitalize(energyType)} from ${unit.name}`
             updateCombatLog(desc,
           caster, ["siphon",caster.isAlly?"ally":"enemy"]);
