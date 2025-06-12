@@ -2644,17 +2644,17 @@
       { 
         "type": "damage",
         "target": "singleEnemy", 
-        "base": 7,
+        "base": 4,
         "damageType": "void",
         "scaling": [{
          "target": "caster",
          "stat": "intellect", 
-         "scale": 0.3
+         "scale": 0.1
         },
-        {
+          {
           "target": "caster",
-          "stat": "tier",
-          "scale": 1.75
+          "stat": "mp",
+          "scale": 0.1
         }]
       }
     ]
