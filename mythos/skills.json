@@ -2619,6 +2619,12 @@
          "target": "caster",
          "stat": "mp", 
          "scale": 0.25
+        },
+        {
+          "target": "caster",
+          "stat": "tier",
+          "effect": "multi",
+          "scale": 1.05
         }]
       }
     ]

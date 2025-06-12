@@ -4313,7 +4313,7 @@
       "constitution": 1.5,
       "intellect": 0.5,
       "wisdom": 0.5,
-      "willpower": 1.5
+      "willpower": 3
     },
     "stats": {
       "maxHp": {
@@ -4357,12 +4357,12 @@
       },
       "maxMp": {
         "display": "Max Mp",
-        "base": 15,
-        "value": 15,
+        "base": 5,
+        "value": 5,
         "scaling": [
           {
             "target": "caster",
-            "scale": 5,
+            "scale": 7.5,
             "stat": "willpower"
           }
         ]
