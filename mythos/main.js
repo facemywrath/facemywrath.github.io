@@ -1347,8 +1347,8 @@ player = {
     },
     cooldownReduction: {
       display: "Cooldown Reduction",
-      base: 1,
-      value: 1
+      base: 0.1,
+      value: 0.1
     },
     armorPenetration: {
       display: "Armor Penetration",
@@ -1360,8 +1360,8 @@ player = {
     },
     xpGain: {
       display: "XP Multi",
-      value: 1,
-      base: 1,
+      value: 20,
+      base: 20,
       scaling: [{
         target: "caster", stat: "intellect", scale: 0.003
       },
@@ -5380,8 +5380,12 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
       id: talentId,
       unitSummoned: event.unitSummoned || null
     }
+    
+    if(!event.target && event.unitSummoned){
+      event.target = event.unitSummoned
+    }
     for (let eff of effect.effects) {
-    applyEffect(eff, unit, undefined, talentId, undefined, skillContext);
+    applyEffect(eff, unit, event.target, talentId, undefined, skillContext);
     }
   };
 }
@@ -5409,6 +5413,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
     return false;
   }
   if(trigger.unitName && (!event.unitSummoned || event.unitSummoned.name != trigger.unitName)){
+    console.log("wrong unit", trigger.unitName, event.unitSummoned?event.unitSummoned.name:"No unit summoned")
     return false;
   }
   if(trigger.cooldown){
@@ -5655,7 +5660,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
     }
     let sign = "";
     let value = ""
-
+    console.log(skillId, effect, "made it this far")
     // Apply effect to each target in the array
     for (let unit of Array.isArray(target)?target: [target]) {
       if (!unit) {
@@ -5784,6 +5789,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
           let desc = `${caster.name} cleansed ${stacks} stacks of ${toCleanse} on ${unit.name}`;
           updateCombatLog(desc, "cleanse", caster.isAlly?"ally":"enemy");
         }
+        break;
       case "siphonEnergy":
         let amount = calculateEffectiveValue(effect, skillId, caster, target, skillLevel, skillContext);
         let energyType = effect.energyType;
@@ -5955,6 +5961,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         
         break;
         case "fun":
+          console.log("hm")
   let funFn = null;
 
   // 1. If already a real function
@@ -5980,7 +5987,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
 
     funFn = effect._compiledFun;
   }
-
+  console.log(funFn)
   // Now execute the function if valid
   if (typeof funFn === "function") {
     try {

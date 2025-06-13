@@ -220,16 +220,9 @@
         "effects": [
         {
           "type": "fun",
-"funParams": [
-  "caster",
-  "unit",
-  "skillId",
-  "originalTarget",
-  "skillContext",
-  "updateCombatLog"
-],
 "funBody": [
-  "if (!skillContext.unitSummoned) return;",
+  "console.log('weird but ok')",
+  "if (!skillContext || !skillContext.unitSummoned) return;",
   "console.log('summoned a vine!')"
 ]
         }]
