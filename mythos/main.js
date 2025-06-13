@@ -1360,8 +1360,8 @@ player = {
     },
     xpGain: {
       display: "XP Multi",
-      value: 20,
-      base: 20,
+      value: 200,
+      base: 200,
       scaling: [{
         target: "caster", stat: "intellect", scale: 0.003
       },
@@ -3085,11 +3085,11 @@ function startCombat(force) {
         };
         resetSkillCooldown(unit, skillId);
       }
-      skillIntervals[unit.id] = setInterval(() => {
+      skillIntervals[unit.id + "-"+skillId] = setInterval(() => {
         if (player.inCombat && findUnitById(unit.id)) {
           updateProgressBar(skillId, unit); // Or loop through all allies
         } else {
-          clearInterval(skillIntervals[unit.id])
+          clearInterval(skillIntervals[unit.id+"-"+skillId])
         }
       },
         updateSpeed);
