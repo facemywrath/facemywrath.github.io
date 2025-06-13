@@ -5771,11 +5771,11 @@ function passesTriggerConditions(effect, event, unit, talentId) {
               active: true
             }
           }
-          skillIntervals[unitData.id] = setInterval(() => {
+          skillIntervals[unitData.id+"-"+skillId] = setInterval(() => {
             if (player.inCombat && findUnitById(unitData.id)) {
               updateProgressBar(skillId, unitData); // Or loop through all allies
             } else {
-              clearInterval(skillIntervals[unitData.id])
+              clearInterval(skillIntervals[unitData.id+"-"+skillId])
             }
           },
             updateSpeed);
