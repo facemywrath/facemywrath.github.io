@@ -282,6 +282,80 @@
       }
     ]
   }
+  "voidVineCritBoost1": {
+    "name": "Void Vine Crit Boost I",
+    "description": ["Your void vines gain:"," +5% Crit Damage (multiplicative)", " +5% Crit Chance (additive)"],
+    "effects": [
+      {
+        "type": "listener",
+        "trigger": {
+          "event": "summonUnit",
+          "caster": "self",
+          "unitName": "Void Vine"
+        },
+        "effects": [
+        {
+          "type": "fun",
+          "funBody": [
+            "if (!skillContext || !skillContext.unitSummoned) return;",
+            "if (!skillContext.unitSummoned.stats.critMulti.multipliers) {",
+            "  skillContext.unitSummoned.stats.critMulti.multipliers = {",
+            "    'voidVineCritBoost1': (value) => value * Math.pow(1.05, skillLevel)",
+            "  };",
+            "} else {",
+            "  skillContext.unitSummoned.stats.critMulti.multipliers['voidVineCritBoost1'] = (value) => value * Math.pow(1.05, skillLevel);",
+            "}",
+            "if (!skillContext.unitSummoned.stats.critChance.multipliers) {",
+            "  skillContext.unitSummoned.stats.critChance.multipliers = {",
+            "    'voidVineCritBoost1': (value) => value += (5*skillLevel)",
+            "  };",
+            "} else {",
+            "  skillContext.unitSummoned.stats.critChance.multipliers['voidVineCritBoost1'] = (value) => value += (5* skillLevel);",
+            "}",
+            "recalculateStat(skillContext.unitSummoned, 'critChance')",
+            "recalculateStat(skillContext.unitSummoned, 'critMulti')"
+            ]
+        }]
+      }
+    ]
+  }
+  "voidVineCritBoost2": {
+    "name": "Void Vine Crit Boost II",
+    "description": ["Your void vines gain:"," +5% Crit Damage (multiplicative)", " +5% Crit Chance (additive)"],
+    "effects": [
+      {
+        "type": "listener",
+        "trigger": {
+          "event": "summonUnit",
+          "caster": "self",
+          "unitName": "Void Vine"
+        },
+        "effects": [
+        {
+          "type": "fun",
+          "funBody": [
+            "if (!skillContext || !skillContext.unitSummoned) return;",
+            "if (!skillContext.unitSummoned.stats.critMulti.multipliers) {",
+            "  skillContext.unitSummoned.stats.critMulti.multipliers = {",
+            "    'voidVineCritBoost2': (value) => value * Math.pow(1.05, skillLevel)",
+            "  };",
+            "} else {",
+            "  skillContext.unitSummoned.stats.critMulti.multipliers['voidVineCritBoost2'] = (value) => value * Math.pow(1.05, skillLevel);",
+            "}",
+            "if (!skillContext.unitSummoned.stats.critChance.multipliers) {",
+            "  skillContext.unitSummoned.stats.critChance.multipliers = {",
+            "    'voidVineCritBoost2': (value) => value += (5*skillLevel)",
+            "  };",
+            "} else {",
+            "  skillContext.unitSummoned.stats.critChance.multipliers['voidVineCritBoost2'] = (value) => value += (5* skillLevel);",
+            "}",
+            "recalculateStat(skillContext.unitSummoned, 'critChance')",
+            "recalculateStat(skillContext.unitSummoned, 'critMulti')"
+            ]
+        }]
+      }
+    ]
+  }
 
 
 }

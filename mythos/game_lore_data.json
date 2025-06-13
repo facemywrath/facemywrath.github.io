@@ -426,6 +426,26 @@
           "maxLevel": 5,
           "previousSkill": "evolveVoidVine1",
           "previousSkillLevelRequired": 5
+        },
+        {
+          "id": "voidVineCritBoost1",
+          "level": 1,
+          "type": "talent",
+          "cost": 2,
+          "unlockCost": 1,
+          "maxLevel": 5,
+          "previousSkill": "evolveVoidVine1",
+          "previousSkillLevelRequired": 1
+        },
+        {
+          "id": "voidVineCritBoost2",
+          "level": 1,
+          "type": "talent",
+          "cost": 2,
+          "unlockCost": 1,
+          "maxLevel": 5,
+          "previousSkill": "evolveVoidVine2",
+          "previousSkillLevelRequired": 1
         }
         ]
     },
