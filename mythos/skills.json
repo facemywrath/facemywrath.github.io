@@ -1858,6 +1858,47 @@
       }
     ]
   },
+  "voidVineEntangle": {
+    "name": "Entangle",
+    "cost": {
+      "mp": 30,
+      "sp": 20
+    },
+    "target": "singleEnemy",
+    "requiresTarget": true,
+    "cooldown": {
+      "base": 20,
+      "scaling": []
+    },
+    "effects": [
+      {
+        "type": "condition",
+        "name": "Stunned",
+        "stacks": {
+          "base": 1,
+          "value": 1,
+          "scaling": []
+        },
+        "duration": 3500
+      },
+      {
+        "type": "siphonEnergy",
+        "energyType": "mp",
+        "base": 5,
+        "scaling": [
+          {
+            "target": "target",
+            "stat": "mp",
+            "scale": 0.1
+          }],
+        "multi": {
+          "base": 1,
+          "value": 1,
+          "scaling": []
+        }
+      }
+    ]
+  },
   "chillingPresence": {
     "name": "Chilling Presence",
     "cost": {
@@ -2420,7 +2461,7 @@
       "mp": 30
     },
     "perCombatMax": {
-      "base": 1,
+      "base": 0,
       "scaling": [{
         "target": "caster",
         "stat": "skillLevel",

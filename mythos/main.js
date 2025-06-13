@@ -5006,7 +5006,10 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
 
     let perCombatMaxHtml = "";
     if (skill.perCombatMax !== undefined) {
-      perCombatMaxHtml = `<tr><th style="text-align:left; border-bottom: 1px solid #444;">Per Combat Max Uses</th><td style="border-bottom: 1px solid #444;">${skill.perCombatMax}</td></tr>`
+      perCombatMaxHtml = `<tr><th style="text-align:left; border-bottom: 1px solid #444;">Per Combat Max Uses</th><td style="border-bottom: 1px solid #444;">${calculateEffectiveValue(skill.perCombatMax, skillId,
+              member,
+              undefined,
+              skillLevel)}</td></tr>`
     }
 
     popup.innerHTML = `
