@@ -220,7 +220,7 @@
         "effects": [
         {
           "type": "fun",
-[
+"funBody": [
   "console.log('weird but ok');",
   "if (!skillContext || !skillContext.unitSummoned) return;",
   "if (!skillContext.unitSummoned.stats.maxHp.multipliers) {",
