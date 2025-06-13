@@ -220,7 +220,7 @@
         "effects": [
         {
           "type": "fun",
-"funBody": [
+          "funBody": [
             "console.log('weird but ok');",
             "if (!skillContext || !skillContext.unitSummoned) return;",
             "if (!skillContext.unitSummoned.stats.maxHp.multipliers) {",
@@ -229,8 +229,9 @@
             "  };",
             "} else {",
             "  skillContext.unitSummoned.stats.maxHp.multipliers['voidVineHealthBoost'] = (value) => value * Math.pow(1.1, skillLevel);",
-            "}"
-]
+            "}",
+            "recalculateStat(skillContext.unitSummoned, 'maxHp')"
+            ]
         }]
       }
     ]
