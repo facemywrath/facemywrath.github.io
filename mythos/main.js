@@ -5971,7 +5971,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
   // 2. If it's a named function in the registry
 
   // 3. If it has funBody and funParams → compile and cache
-  } else if (effect.funBody && Array.isArray(effect.funParams)) {
+  } else if (effect.funBody) {
 
     if (!effect._compiledFun) {
       try {
@@ -5979,7 +5979,17 @@ function passesTriggerConditions(effect, event, unit, talentId) {
           ? effect.funBody.join("\n")
           : effect.funBody;
 
-        effect._compiledFun = new Function(...effect.funParams, funBodyStr);
+        effect._compiledFun = new Function(...[        "caster",
+        "unit",
+        'skillId',
+        'originalTarget',
+        'skillContext',
+        'skillLevel',
+        'effect',
+        "applyEffectEvent",
+        "updateCombatLog",
+        "calculateEffectiveValue",
+        "getTarget"], funBodyStr);
       } catch (e) {
         console.error(`Error compiling funBody:`, e, effect);
       }
@@ -5987,22 +5997,23 @@ function passesTriggerConditions(effect, event, unit, talentId) {
 
     funFn = effect._compiledFun;
   }
-  console.log(funFn)
+  console.log(skillContext, funFn.toString())
   // Now execute the function if valid
   if (typeof funFn === "function") {
     try {
-      funFn({
+      funFn(
         caster,
         unit, // <== NOTE! pass *unit*, not target array
         skillId,
         originalTarget,
         skillContext,
+        skillLevel,
         effect,
         applyEffectEvent,
         updateCombatLog,
         calculateEffectiveValue,
         getTarget
-      });
+      );
     } catch (e) {
       console.error(`Error executing fun effect "${effect.fun || '[anonymous funBody]'}":`, e);
     }
