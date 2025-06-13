@@ -5003,6 +5003,12 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
     if(skill.initialCooldown){
       initCdHtml = `<tr><th style="text-align:left; border-bottom: 1px solid #444;">Initial Cooldown</th><td style="border-bottom: 1px solid #444;">${skill.initialCooldown.toFixed(2)}s</td></tr>`
     }
+
+    let perCombatMaxHtml = "";
+    if (skill.perCombatMax !== undefined) {
+      perCombatMaxHtml = `<tr><th style="text-align:left; border-bottom: 1px solid #444;">Per Combat Max Uses</th><td style="border-bottom: 1px solid #444;">${skill.perCombatMax}</td></tr>`
+    }
+
     popup.innerHTML = `
     <div style="font-size: 18px; font-weight: bold; color: #0bf;">${skill.name}</div>
     <div style="color: #aaa; margin-top: 6px;">${Array.isArray(skill.description)?skill.description.join("<br>- "):skill.description || "No description provided."}</div>
@@ -5017,6 +5023,7 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
     <tr><th style="text-align:left; border-bottom: 1px solid #444;">Cooldown</th><td style="border-bottom: 1px solid #444;">${calculateSkillCooldown(member,
       skillId).toFixed(2)}s</td></tr>
       ${initCdHtml}
+      ${perCombatMaxHtml}
     <tr><th style="text-align:left; border-bottom: 1px solid #444;">Target</th><td style="border-bottom: 1px solid #444;">${fromCamelCase(skill.target) || "None"}</td></tr>
     </table>
 
@@ -5046,8 +5053,7 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
         detailsSection.style.display = isVisible ? "none": "block";
         toggleBtn.textContent = isVisible ? "See More": "See Less";
       });
-  }
-
+}
   function findSkillLevelScalingPaths(obj) {
     const results = [];
 
@@ -7229,61 +7235,78 @@ return value;
 }
   
   function formatSkillLevelScalingsWithLabels(skillId, paths) {
-    const results = [];
-    if (!paths) {
-      console.log("no paths")
+  const results = [];
+  const skillData = skillsData[skillId];
+  const skillName = skillData?.name || skillId;
+
+  if (!paths) {
+    console.log("no paths");
+    return "";
+  }
+
+  for (const path of paths) {
+    // Follow the path to get to the scaling object
+    let value = skillData;
+    for (let i = 0; i < path.length; i++) {
+      value = value[path[i]];
     }
 
-    for (const path of paths) {
-      let current = skillsData;
-      const skillData = skillsData[skillId];
-      const skillName = skillData?.name || skillId
-
-      // Follow the path to get to the scaling object
-      let value = skillsData[skillId];
-      for (let i = 0; i < path.length; i++) {
-        value = value[path[i]];
-      }
-      let isDuration = path.includes("duration")
-      const scalingArray = value.scaling || [];
-      const skillLevelScales = scalingArray
+    // Handle scaling
+    let isDuration = path.includes("duration");
+    const scalingArray = value.scaling || [];
+    const skillLevelScales = scalingArray
       .filter(s => s.stat === "skillLevel")
-      .map(s => `${isDuration?"Duration ":""}${s.scale >= 0 ? !s.effect || s.effect == "add"? "+":"*": ""}${isDuration?(s.scale/1000) + "s":s.scale} per level`).join("<br>");
+      .map(s => {
+        const prefix = isDuration ? "Duration " : "";
+        const sign = s.scale >= 0 ? (!s.effect || s.effect === "add" ? "+" : "*") : "";
+        const scaleValue = isDuration ? (s.scale / 1000) + "s" : s.scale;
+        return `${prefix}${sign}${scaleValue} per level`;
+      })
+      .join("<br>");
 
-      // Determine the label based on the path
-      let label = path.join('.');
-      if (path.includes("effects")) {
-        const effectIndex = path[path.indexOf("effects") + 1];
-        const effect = skillData.effects?.[effectIndex];
-        if (effect && effect.type) {
-          const type = effect.type;
-          // Count how many effects of this type come before this one
-          const count = skillData.effects.slice(0, effectIndex + 1)
+    // Build label
+    let label = path.join('.'); // default fallback
+
+    if (path.includes("effects")) {
+      const effectIndex = path[path.indexOf("effects") + 1];
+      const effect = skillData.effects?.[effectIndex];
+
+      if (effect && effect.type) {
+        const type = effect.type;
+        const count = skillData.effects
+          .slice(0, effectIndex + 1)
           .filter(e => e.type === type).length;
-          if(type == "summon"){
-            if(path.includes("tier")){
-              label = `${type.charAt(0).toUpperCase() + type.slice(1)} Tier (${count})`;
-            }else{
-                 label = `${type.charAt(0).toUpperCase() + type.slice(1)} (${count})`;
-            }
-          }
-          if (type == "condition") {
-            if (path.includes("stacks")) {
-                label = `${effect.name.charAt(0).toUpperCase() + effect.name.slice(1)} stacks (${count})`;
-            } else {
-              label = `${effect.name.charAt(0).toUpperCase() + effect.name.slice(1)}  (${count})`;
-            }
+
+        if (type === "summon") {
+          if (path.includes("tier")) {
+            label = `Summon Tier (${count})`;
           } else {
-            label = `${type.charAt(0).toUpperCase() + type.slice(1)} (${count})`;
+            label = `Summon (${count})`;
           }
+        } else if (type === "condition") {
+          if (path.includes("stacks")) {
+            label = `${capitalize(effect.name)} Stacks (${count})`;
+          } else {
+            label = `${capitalize(effect.name)} (${count})`;
+          }
+        } else {
+          label = `${capitalize(type)} (${count})`;
         }
       }
-
-      results.push(`<span style="color: #9c9;">--${fromCamelCase(label)}  ${skillLevelScales}</span><br>`);
     }
 
-    return results.join(" ");
+    // Append formatted result
+    results.push(`<span style="color: #9c9;">--${fromCamelCase(label)} ${skillLevelScales}</span><br>`);
   }
+
+  return results.join(" ");
+}
+
+// Helper to capitalize first letter
+function capitalize(str) {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
 
   function showStatusPopup(unitId, x = 100, y = 100) {
     let unit = findUnitById(unitId)

@@ -2419,6 +2419,14 @@
     "cost": {
       "mp": 30
     },
+    "perCombatMax": {
+      "base": 1,
+      "scaling": [{
+        "target": "caster",
+        "stat": "skillLevel",
+        "scale": 1
+      }]
+    },
     "target": "self",
     "requiresTarget": false,
     "initialCooldown": 10,
