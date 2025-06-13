@@ -220,17 +220,17 @@
         "effects": [
         {
           "type": "fun",
-"funBody": [
-  "console.log('weird but ok');",
-  "if (!skillContext || !skillContext.unitSummoned) return;",
-  "if (!skillContext.unitSummoned.stats.maxHp.multipliers) {",
-  "  skillContext.unitSummoned.stats.maxHp.multipliers = {",
-  "    'voidVineHealthBoost': (value) => value * Math.pow(1.1, skillLevel)",
-  "  };",
-  "} else {",
-  "  skillContext.unitSummoned.stats.maxHp.multipliers['voidVineHealthBoost'] = (value) => value * Math.pow(1.1, skillLevel);",
-  "}"
-]
+          "funBody": [
+            "console.log('weird but ok');",
+            "if (!skillContext || !skillContext.unitSummoned) return;",
+            "if (!skillContext.unitSummoned.stats.maxHp.multipliers) {",
+            "  skillContext.unitSummoned.stats.maxHp.multipliers = {",
+            "    'voidVineHealthBoost': (value) => value * Math.pow(1.1, skillLevel)",
+            "  };",
+            "} else {",
+            "  skillContext.unitSummoned.stats.maxHp.multipliers['voidVineHealthBoost'] = (value) => value * Math.pow(1.1, skillLevel);",
+            "}"
+          ]
         }]
       }
     ]
