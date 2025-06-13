@@ -281,7 +281,7 @@
         }]
       }
     ]
-  }
+  },
   "voidVineCritBoost1": {
     "name": "Void Vine Crit Boost I",
     "description": ["Your void vines gain:"," +5% Crit Damage (multiplicative)", " +5% Crit Chance (additive)"],
@@ -318,7 +318,7 @@
         }]
       }
     ]
-  }
+  },
   "voidVineCritBoost2": {
     "name": "Void Vine Crit Boost II",
     "description": ["Your void vines gain:"," +5% Crit Damage (multiplicative)", " +5% Crit Chance (additive)"],
