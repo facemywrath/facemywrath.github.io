@@ -205,7 +205,7 @@
         }]
       }
     ]
-  }
+  },
   "voidVineHealthBoost": {
     "name": "Evolve Void Vine I",
     "description": ["Your void vines gain 10% more max health"],
@@ -230,7 +230,7 @@
 ],
 "funBody": [
   "if (!skillContext.unitSummoned) return;",
-  "console.log('summoned a vine!')",
+  "console.log('summoned a vine!')"
 ]
         }]
       }
