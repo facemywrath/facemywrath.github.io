@@ -208,7 +208,7 @@
   },
   "evolveVoidVine1": {
     "name": "Evolve Void Vine I",
-    "description": ["Your void vines gain:"," +10% more max health (multiplicative)", " +10% lifesteal chance (additive)"],
+    "description": ["Your void vines gain:"," +25% max health (multiplicative)", " +10% lifesteal chance (additive)"],
     "effects": [
       {
         "type": "listener",
@@ -224,10 +224,10 @@
             "if (!skillContext || !skillContext.unitSummoned) return;",
             "if (!skillContext.unitSummoned.stats.maxHp.multipliers) {",
             "  skillContext.unitSummoned.stats.maxHp.multipliers = {",
-            "    'evolveVoidVine1': (value) => value * Math.pow(1.1, skillLevel)",
+            "    'evolveVoidVine1': (value) => value * Math.pow(1.25, skillLevel)",
             "  };",
             "} else {",
-            "  skillContext.unitSummoned.stats.maxHp.multipliers['evolveVoidVine1'] = (value) => value * Math.pow(1.1, skillLevel);",
+            "  skillContext.unitSummoned.stats.maxHp.multipliers['evolveVoidVine1'] = (value) => value * Math.pow(1.25, skillLevel);",
             "}",
             "if (!skillContext.unitSummoned.stats.lifestealChance.multipliers) {",
             "  skillContext.unitSummoned.stats.lifestealChance.multipliers = {",
@@ -246,7 +246,7 @@
   },
   "evolveVoidVine2": {
     "name": "Evolve Void Vine II",
-    "description": ["Your void vines gain:"," +10% more max health (multiplicative)", " +10% lifesteal chance (additive)"],
+    "description": ["Your void vines gain:"," +25% max health (multiplicative)", " +5% lifesteal chance (additive)"," A new skill!"],
     "effects": [
       {
         "type": "listener",
@@ -262,17 +262,17 @@
             "if (!skillContext || !skillContext.unitSummoned) return;",
             "if (!skillContext.unitSummoned.stats.maxHp.multipliers) {",
             "  skillContext.unitSummoned.stats.maxHp.multipliers = {",
-            "    'evolveVoidVine2': (value) => value * Math.pow(1.1, skillLevel)",
+            "    'evolveVoidVine2': (value) => value * Math.pow(1.25, skillLevel)",
             "  };",
             "} else {",
-            "  skillContext.unitSummoned.stats.maxHp.multipliers['evolveVoidVine2'] = (value) => value * Math.pow(1.1, skillLevel);",
+            "  skillContext.unitSummoned.stats.maxHp.multipliers['evolveVoidVine2'] = (value) => value * Math.pow(1.25, skillLevel);",
             "}",
             "if (!skillContext.unitSummoned.stats.lifestealChance.multipliers) {",
             "  skillContext.unitSummoned.stats.lifestealChance.multipliers = {",
-            "    'evolveVoidVine2': (value) => value += (10*skillLevel)",
+            "    'evolveVoidVine2': (value) => value += (5*skillLevel)",
             "  };",
             "} else {",
-            "  skillContext.unitSummoned.stats.lifestealChance.multipliers['evolveVoidVine2'] = (value) => value += (10* skillLevel);",
+            "  skillContext.unitSummoned.stats.lifestealChance.multipliers['evolveVoidVine2'] = (value) => value += (5* skillLevel);",
             "}",
             "recalculateStat(skillContext.unitSummoned, 'maxHp')",
             "recalculateStat(skillContext.unitSummoned, 'lifestealChance')",
