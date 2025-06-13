@@ -401,21 +401,31 @@
         {
           "id": "summonVoidVine",
           "level": 1,
-          "cost": 2,
+          "cost": 4,
           "unlockCost": 2,
           "maxLevel": 30,
           "previousSkill": "energyWhip",
           "previousSkillLevelRequired": 2
         },
         {
-          "id": "voidVineHealthBoost",
+          "id": "evolveVoidVine1",
           "level": 1,
           "type": "talent",
-          "cost": 1,
-          "unlockCost": 2,
-          "maxLevel": 10,
+          "cost": 4,
+          "unlockCost": 3,
+          "maxLevel": 5,
           "previousSkill": "summonVoidVine",
-          "previousSkillLevelRequired": 2
+          "previousSkillLevelRequired": 1
+        },
+        {
+          "id": "evolveVoidVine2",
+          "level": 1,
+          "type": "talent",
+          "cost": 4,
+          "unlockCost": 3,
+          "maxLevel": 5,
+          "previousSkill": "evolveVoidVine1",
+          "previousSkillLevelRequired": 5
         }
         ]
     },
