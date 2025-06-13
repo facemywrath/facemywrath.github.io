@@ -5756,7 +5756,11 @@ function passesTriggerConditions(effect, event, unit, talentId) {
 
 
           } else {
-            console.error("summonbas")
+            let potentialTargets = getPotentialTargets(unitData, skillsData[skillId].target);
+            unitData.skills.combatData.targets[skillId] = {
+              target: potentialTargets[0].id,
+              active: true
+            }
           }
           skillIntervals[unitData.id] = setInterval(() => {
             if (player.inCombat && findUnitById(unitData.id)) {

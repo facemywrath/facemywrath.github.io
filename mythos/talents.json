@@ -230,7 +230,8 @@
             "} else {",
             "  skillContext.unitSummoned.stats.maxHp.multipliers['voidVineHealthBoost'] = (value) => value * Math.pow(1.1, skillLevel);",
             "}",
-            "recalculateStat(skillContext.unitSummoned, 'maxHp')"
+            "recalculateStat(skillContext.unitSummoned, 'maxHp')",
+            "skillContext.unitSummoned.stats.hp.value = skillContext.unitSummoned.stats.maxHp.value"
             ]
         }]
       }
