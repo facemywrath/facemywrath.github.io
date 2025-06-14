@@ -7178,9 +7178,9 @@ if (typeof block.max === "number") {
 }
 
 // Apply multipliers if defined
-if (block.multipliers && typeof block.multipliers === "object") {
-  for (const key of Object.keys(block.multipliers)) {
-    const multiplierFn = block.multipliers[key];
+if (block.modifiers && typeof block.modifiers === "object") {
+  for (const key of Object.keys(block.modifiers)) {
+    const multiplierFn = block.modifiers[key];
     if (typeof multiplierFn === "function") {
       try {
         value = multiplierFn(value, {
@@ -8112,4 +8112,47 @@ function showDebugPopup() {
 
     setTimeout(() => showPopup(html), 1);
 }
+function addSkillWhileInCombat(unit, skillId, level = 1) {
+  if (!unit || !skillId) return;
 
+  // Add to equipped skills
+  unit.skills.equipped.push({ id: skillId, level });
+
+  // UI update
+  const skillsContainer = document.getElementById('skills-container-' + unit.id);
+  const skillFrame = updateSkillUnitDisplay(skillId, unit);
+  if (skillFrame && skillsContainer) {
+    skillsContainer.appendChild(skillFrame);
+  }
+
+  // Set combat data (first target for now)
+  const potentialTargets = getPotentialTargets(unit, skillsData[skillId].target);
+  unit.skills.combatData.targets[skillId] = {
+    target: potentialTargets[0]?.id,
+    active: true
+  };
+
+  // Set interval for skill progress bar
+  skillIntervals[unit.id + '-' + skillId] = setInterval(() => {
+    if (player.inCombat && findUnitById(unit.id)) {
+      updateProgressBar(skillId, unit);
+    } else {
+      clearInterval(skillIntervals[unit.id + '-' + skillId]);
+    }
+  }, updateSpeed);
+
+  resetSkillCooldown(unit, skillId);
+}
+function addModifier(unit, statName, key, fn){
+  if(!unit.stats[statName]){
+    return;
+  }
+  if(!unit.stats[statName].modifiers){
+    unit.stats[statName].modifiers = {
+      [key]: fn
+    }
+  }else{
+    unit.stats[statName].modifiers[key] = fn
+  }
+  recalculateStat(unit, statName);
+}

@@ -222,24 +222,10 @@
           "type": "fun",
           "funBody": [
             "if (!skillContext || !skillContext.unitSummoned) return;",
-            "if (!skillContext.unitSummoned.stats.maxHp.multipliers) {",
-            "  skillContext.unitSummoned.stats.maxHp.multipliers = {",
-            "    'evolveVoidVine1': (value) => value * Math.pow(1.25, skillLevel)",
-            "  };",
-            "} else {",
-            "  skillContext.unitSummoned.stats.maxHp.multipliers['evolveVoidVine1'] = (value) => value * Math.pow(1.25, skillLevel);",
-            "}",
-            "if (!skillContext.unitSummoned.stats.lifestealChance.multipliers) {",
-            "  skillContext.unitSummoned.stats.lifestealChance.multipliers = {",
-            "    'evolveVoidVine1': (value) => value += (10*skillLevel)",
-            "  };",
-            "} else {",
-            "  skillContext.unitSummoned.stats.lifestealChance.multipliers['evolveVoidVine1'] = (value) => value += (10* skillLevel);",
-            "}",
-            "recalculateStat(skillContext.unitSummoned, 'maxHp')",
-            "recalculateStat(skillContext.unitSummoned, 'lifestealChance')",
-            "skillContext.unitSummoned.stats.hp.value = skillContext.unitSummoned.stats.maxHp.value"
-            ]
+            "addModifier(skillContext.unitSummoned, 'maxHp', 'evolveVoidVine1', (value) => value * Math.pow(1.25, skillLevel));",
+            "addModifier(skillContext.unitSummoned, 'lifestealChance', 'evolveVoidVine1', (value) => value + (10 * skillLevel));",
+            "skillContext.unitSummoned.stats.hp.value = skillContext.unitSummoned.stats.maxHp.value;"
+          ]
         }]
       }
     ]
@@ -260,41 +246,11 @@
           "type": "fun",
           "funBody": [
             "if (!skillContext || !skillContext.unitSummoned) return;",
-            "if (!skillContext.unitSummoned.stats.maxHp.multipliers) {",
-            "  skillContext.unitSummoned.stats.maxHp.multipliers = {",
-            "    'evolveVoidVine2': (value) => value * Math.pow(1.25, skillLevel)",
-            "  };",
-            "} else {",
-            "  skillContext.unitSummoned.stats.maxHp.multipliers['evolveVoidVine2'] = (value) => value * Math.pow(1.25, skillLevel);",
-            "}",
-            "if (!skillContext.unitSummoned.stats.lifestealChance.multipliers) {",
-            "  skillContext.unitSummoned.stats.lifestealChance.multipliers = {",
-            "    'evolveVoidVine2': (value) => value += (5*skillLevel)",
-            "  };",
-            "} else {",
-            "  skillContext.unitSummoned.stats.lifestealChance.multipliers['evolveVoidVine2'] = (value) => value += (5* skillLevel);",
-            "}",
-            "skillContext.unitSummoned.skills.equipped.push({id: 'voidVineEntangle', 'level': 1})",
-            "let skillsContainer = document.getElementById('skills-container-'+skillContext.unitSummoned.id)",
-            "let skillFrame = updateSkillUnitDisplay('voidVineEntangle', skillContext.unitSummoned)",
-            "if (skillFrame && skillsContainer)  skillsContainer.appendChild(skillFrame)",
-            "let potentialTargets = getPotentialTargets(skillContext.unitSummoned, skillsData[skillId].target);",
-            "skillContext.unitSummoned.skills.combatData.targets['voidVineEntangle'] = {",
-            "  target: potentialTargets[0].id,",
-            "  active: true",
-            "}",
-            "skillIntervals[skillContext.unitSummoned.id + '-' + 'voidVineEntangle'] = setInterval(() => {",
-            "  if (player.inCombat && findUnitById(skillContext.unitSummoned.id)) {",
-            "    updateProgressBar('voidVineEntangle', skillContext.unitSummoned); // Or loop through all allies",
-            "  } else {",
-            "    clearInterval(skillIntervals[skillContext.unitSummoned.id + '-' + 'voidVineEntangle'])",
-            "  }",
-            "}, updateSpeed);",
-            "resetSkillCooldown(skillContext.unitSummoned, 'voidVineEntangle')",
-            "recalculateStat(skillContext.unitSummoned, 'maxHp')",
-            "recalculateStat(skillContext.unitSummoned, 'lifestealChance')",
-            "skillContext.unitSummoned.stats.hp.value = skillContext.unitSummoned.stats.maxHp.value"
-            ]
+            "addModifier(skillContext.unitSummoned, 'maxHp', 'evolveVoidVine2', (value) => value * Math.pow(1.25, skillLevel));",
+            "addModifier(skillContext.unitSummoned, 'lifestealChance', 'evolveVoidVine2', (value) => value + (5 * skillLevel));",
+            "addSkillWhileInCombat(skillContext.unitSummoned, 'voidVineEntangle', 1);",
+            "skillContext.unitSummoned.stats.hp.value = skillContext.unitSummoned.stats.maxHp.value;"
+          ]
         }]
       }
     ]
@@ -315,22 +271,8 @@
           "type": "fun",
           "funBody": [
             "if (!skillContext || !skillContext.unitSummoned) return;",
-            "if (!skillContext.unitSummoned.stats.critMulti.multipliers) {",
-            "  skillContext.unitSummoned.stats.critMulti.multipliers = {",
-            "    'voidVineCritBoost1': (value) => value * Math.pow(1.05, skillLevel)",
-            "  };",
-            "} else {",
-            "  skillContext.unitSummoned.stats.critMulti.multipliers['voidVineCritBoost1'] = (value) => value * Math.pow(1.05, skillLevel);",
-            "}",
-            "if (!skillContext.unitSummoned.stats.critChance.multipliers) {",
-            "  skillContext.unitSummoned.stats.critChance.multipliers = {",
-            "    'voidVineCritBoost1': (value) => value += (5*skillLevel)",
-            "  };",
-            "} else {",
-            "  skillContext.unitSummoned.stats.critChance.multipliers['voidVineCritBoost1'] = (value) => value += (5* skillLevel);",
-            "}",
-            "recalculateStat(skillContext.unitSummoned, 'critChance')",
-            "recalculateStat(skillContext.unitSummoned, 'critMulti')"
+            "addModifier(skillContext.unitSummoned, 'critMulti', 'voidVineCritBoost2', (value) => value * Math.pow(1.05, skillLevel))",
+            "addModifier(skillContext.unitSummoned, 'critChance', 'voidVineCritBoost2', (value) => value + (5 * skillLevel));"
             ]
         }]
       }
@@ -352,22 +294,8 @@
           "type": "fun",
           "funBody": [
             "if (!skillContext || !skillContext.unitSummoned) return;",
-            "if (!skillContext.unitSummoned.stats.critMulti.multipliers) {",
-            "  skillContext.unitSummoned.stats.critMulti.multipliers = {",
-            "    'voidVineCritBoost2': (value) => value * Math.pow(1.05, skillLevel)",
-            "  };",
-            "} else {",
-            "  skillContext.unitSummoned.stats.critMulti.multipliers['voidVineCritBoost2'] = (value) => value * Math.pow(1.05, skillLevel);",
-            "}",
-            "if (!skillContext.unitSummoned.stats.critChance.multipliers) {",
-            "  skillContext.unitSummoned.stats.critChance.multipliers = {",
-            "    'voidVineCritBoost2': (value) => value += (5*skillLevel)",
-            "  };",
-            "} else {",
-            "  skillContext.unitSummoned.stats.critChance.multipliers['voidVineCritBoost2'] = (value) => value += (5* skillLevel);",
-            "}",
-            "recalculateStat(skillContext.unitSummoned, 'critChance')",
-            "recalculateStat(skillContext.unitSummoned, 'critMulti')"
+            "addModifier(skillContext.unitSummoned, 'critMulti', 'voidVineCritBoost2', (value) => value * Math.pow(1.05, skillLevel))",
+            "addModifier(skillContext.unitSummoned, 'critChance', 'voidVineCritBoost2', (value) => value + (5 * skillLevel));"
             ]
         }]
       }
