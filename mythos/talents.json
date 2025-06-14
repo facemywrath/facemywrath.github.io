@@ -208,7 +208,7 @@
   },
   "evolveVoidVine1": {
     "name": "Evolve Void Vine I",
-    "description": ["Your void vines gain:"," +25% max health (multiplicative)", " +10% lifesteal chance (additive)"],
+    "description": ["Your void vines gain:"," +25% max health (multiplicative)", " -5% cooldownReduction (additive)"],
     "effects": [
       {
         "type": "listener",
@@ -223,7 +223,7 @@
           "funBody": [
             "if (!skillContext || !skillContext.unitSummoned) return;",
             "addModifier(skillContext.unitSummoned, skillLevel, 'maxHp', 'evolveVoidVine1', (value) => value * Math.pow(1.25, skillLevel));",
-            "addModifier(skillContext.unitSummoned, skillLevel, 'lifestealChance', 'evolveVoidVine1', (value) => value + (10 * skillLevel));",
+            "addModifier(skillContext.unitSummoned, skillLevel, 'cooldownReduction', 'evolveVoidVine1', (value) => value * (1- 0.05 * skillLevel));",
             "skillContext.unitSummoned.stats.hp.value = skillContext.unitSummoned.stats.maxHp.value;"
           ]
         }]

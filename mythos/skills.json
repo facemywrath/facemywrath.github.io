@@ -2513,7 +2513,7 @@
       {
         "target": "caster",
         "stat": "skillLevel",
-        "scale": -0.3
+        "scale": -0.2
       }]
     },
     "cost": {
@@ -2531,12 +2531,12 @@
         "scaling": [{
          "target": "caster",
          "stat": "intellect", 
-         "scale": 0.25
+         "scale": 0.15
         },
         {
           "target": "caster",
           "stat": "skillLevel",
-          "scale": 3
+          "scale": 1.5
         }]
       },
       { 
