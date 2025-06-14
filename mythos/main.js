@@ -947,7 +947,8 @@ let combatLogFilters = {
   debuff: false,
   condition: false,
   siphon: true,
-  cleanse: false
+  cleanse: false,
+  taunt: false
 }
 let combatLogFilterColors = {
   flavorText: {
@@ -991,6 +992,10 @@ let combatLogFilterColors = {
     enemy: "#cc6"
   },
   interrupt: {
+    ally: "#f73",
+    enemy: "#a62"
+  },
+  taunt: {
     ally: "#f73",
     enemy: "#a62"
   }
@@ -4946,6 +4951,9 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
           let amount = calculateEffectiveValue(e, skillId, member, null, skillLevel)
           desc = `Steal ${amount} ${capitalize(e.energyType)} from the enemy.`
           break;
+        case "taunt":
+          desc = `Force a unit to target you.`
+          break;
         case "buff":
         case "debuff":
           e.value = calculateEffectiveValue(e.value, skillId, member, undefined, skillLevel)
@@ -5818,6 +5826,15 @@ function passesTriggerConditions(effect, event, unit, talentId) {
           updateCombatBar(unit, energyType)
           updateCombatBar(caster, energyType)
         }
+        break;
+      case "taunt":
+        unit.skills.equipped.forEach(s => {
+          if(s.requiresTarget && getPotentialTargets(unit, skillsData[s.id].target).includes(caster)){
+            unit.skills.combatData.targets[s.id].target = caster.id;
+          }
+        })
+        desc = `${caster.name} taunted ${unit.name}.`
+        updateCombatLog(desc, caster ["taunt", caster.isAlly?"ally":"enemy"])
         break;
       case "buff":
 

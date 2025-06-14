@@ -4293,6 +4293,199 @@
     "talents": []
   },
   {
+    "name": "Umbralith",
+    "race": "Aberration",
+    "damageType": "void",
+    "planet": "Hollowreach",
+    "discoveryXp": 0,
+    "xp": 0,
+    "attributes": {
+      "strength": 2,
+      "dexterity": 1,
+      "constitution": 4,
+      "intellect": 1,
+      "wisdom": 1,
+      "willpower": 3
+    },
+    "attributesPerLevel": {
+      "strength": 0.5,
+      "dexterity": 0.25,
+      "constitution": 2.5,
+      "intellect": 0.25,
+      "wisdom": 0.25,
+      "willpower": 1.5
+    },
+    "stats": {
+      "maxHp": {
+        "display": "Max Hp",
+        "base": 30,
+        "value": 30,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 5,
+            "stat": "constitution"
+          }
+        ]
+      },
+      "hpRegen": {
+        "display": "Hp Regen",
+        "base": 1,
+        "value": 1
+      },
+      "maxSp": {
+        "display": "Max Sp",
+        "base": 25,
+        "value": 25,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 1,
+            "stat": "strength"
+          }
+        ]
+      },
+      "spRegen": {
+        "display": "Sp Regen",
+        "base": 3,
+        "value": 3
+      },
+      "spEfficiency": {
+        "display": "Sp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "maxMp": {
+        "display": "Max Mp",
+        "base": 25,
+        "value": 25,
+        "scaling": [
+          {
+            "target": "caster",
+            "scale": 10,
+            "stat": "willpower"
+          }
+        ]
+      },
+      "mpRegen": {
+        "display": "Mp Regen",
+        "base": 3,
+        "value": 3,
+        "scaling": [{
+          "target": "caster",
+          "stat": "wisdom",
+          "scale": 0.5
+        }]
+      },
+      "mpEfficiency": {
+        "display": "Mp Efficiency",
+        "base": 1,
+        "value": 1
+      },
+      "critChance": {
+        "display": "Crit Chance",
+        "base": 0,
+        "value": 0
+      },
+      "critMulti": {
+        "display": "Crit Multi",
+        "base": 1.5,
+        "value": 1.5,
+        "scaling": [
+        ]
+      },
+      "lifestealMulti": {
+        "display": "Lifesteal Multi",
+        "base": 1,
+        "value": 1
+      },
+      "lifestealChance": {
+        "display": "Lifesteal Chance",
+        "base": 10,
+        "value": 10
+      },
+      "cooldownReduction": {
+        "display": "Cooldown Reduction",
+        "base": 1.2,
+        "value": 1.2,
+        "min": 0.4,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "tier",
+            "scale": 0.96,
+            "effect": "multi"
+          }
+        ]
+      },
+      "damageTaken": {
+        "display": "Damage Taken",
+        "base": 1,
+        "value": 1,
+        "scaling": [{
+          "target": "caster",
+          "stat": "mp",
+          "scale": 0.999,
+          "effect": "multi"
+        }]
+      },
+      "armorPenetration": {
+        "display": "Armor Penetration",
+        "base": 0,
+        "value": 0
+      },
+      "magicPenetration": {
+        "display": "Magic Penetration",
+        "base": 0,
+        "value": 0
+      },
+      "hp": {
+        "value": 30
+      },
+      "mp": {
+        "value": 10
+      },
+      "sp": {
+        "value": 25
+      },
+      "evasion": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "wisdom",
+            "scale": 1
+          }
+        ]
+      },
+      "accuracy": {
+        "base": 1,
+        "value": 1,
+        "scaling": [
+          {
+            "target": "caster",
+            "stat": "dexterity",
+            "scale": 3
+          }
+        ]
+      }
+    },
+    "skills": {
+      "combatData": {
+        "targets": {},
+        "lastUsed": {}
+      },
+      "equipped": [
+        {
+          "id": "sentinelShock",
+          "level": 1
+        }
+      ]
+    },
+    "talents": []
+  },
+  {
     "name": "Starscourge",
     "race": "Aberration",
     "damageType": "void",

@@ -2504,6 +2504,50 @@
       }
     ]
   },
+  "summonUmbralith": {
+    "name": "Summon: Umbralith",
+    "cost": {
+      "mp": 100
+    },
+    "perCombatMax": {
+      "base": 1,
+      "scaling": []
+    },
+    "target": "self",
+    "requiresTarget": false,
+    "cooldown": {
+      "base": 20,
+      "min": 2,
+      "scaling": [
+        {
+          "target": "caster",
+          "scale": 0.9998,
+          "effect": "multi",
+          "stat": "wisdom"
+        },
+        {
+          "target": "caster",
+          "scale": -0.05,
+          "stat": "skillLevel"
+        }
+      ]
+    },
+    "effects": [
+      {
+        "type": "summon",
+        "unit": "Umbralith",
+        "tier": {
+          "base": 0,
+          "scaling": [{
+            "target": "caster",
+            "stat": "skillLevel",
+            "scale": 1
+          }]
+        },
+        "isAlly": "true"
+      }
+    ]
+  },
   "energyWhip": {
     "name": "Energy Whip",
     "cooldown": {
@@ -2710,6 +2754,84 @@
           "target": "caster",
           "stat": "mp",
           "scale": 0.1
+        }]
+      }
+    ]
+  },
+  "sentinelShock": {
+    "name": "Sentinel Shock",
+    "flavorText": "{casterName} shocks the battlefield, drawing the attention of all enemies!",
+    "description": "Shock the battlefield, drawing the attention of all enemies.",
+    "initialCooldown": 10,
+    "cooldown": {
+      "base": 30,
+      "min": 25,
+      "scaling": [
+      {
+        "target": "caster",
+        "stat": "tier",
+        "scale": -0.05
+      }]
+    },
+    "cost": { "mp": 20},
+    "target": "allEnemies",
+    "requiresTarget": false,
+    "effects": [
+      { 
+        "type": "damage",
+        "base": 4,
+        "damageType": "shock",
+        "scaling": [{
+         "target": "caster",
+         "stat": "intellect", 
+         "scale": 0.1
+        },
+        {
+          "target": "caster",
+          "stat": "mp",
+          "scale": 0.05
+        }]
+      },
+      {
+        "type": "taunt"
+      }
+    ]
+  },
+  "terrorEmpowerment": {
+    "name": "Terror Empowerment",
+    "flavorText": "{casterName} feeds off the fear of its enemies",
+    "description": "Feed off the fear of your enemies.",
+    "cooldown": {
+      "base": 16,
+      "min": 9,
+      "scaling": []
+    },
+    "statBonuses": {
+      "lifestealChance": {
+        "value": {
+          "base": 100
+        },
+        "effect": "override"
+      }
+    },
+    "cost": { "mp": 40},
+    "target": "allEnemies",
+    "requiresTarget": false,
+    "effects": [
+      { 
+        "type": "damage",
+        "target": "singleEnemy", 
+        "base": 10,
+        "damageType": "psychic",
+        "scaling": [{
+         "target": "caster",
+         "stat": "intellect", 
+         "scale": 1
+        },
+          {
+          "target": "caster",
+          "stat": "tier",
+          "scale": 5
         }]
       }
     ]

@@ -408,6 +408,15 @@
           "previousSkillLevelRequired": 2
         },
         {
+          "id": "summonUmbralith",
+          "level": 1,
+          "cost": 4,
+          "unlockCost": 4,
+          "maxLevel": 30,
+          "previousSkill": "energyWhip",
+          "previousSkillLevelRequired": 6
+        },
+        {
           "id": "evolveVoidVine1",
           "level": 1,
           "type": "talent",
