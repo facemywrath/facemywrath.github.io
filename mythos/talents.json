@@ -271,8 +271,8 @@
           "type": "fun",
           "funBody": [
             "if (!skillContext || !skillContext.unitSummoned) return;",
-            "addModifier(skillContext.unitSummoned, skillLevel, 'critMulti', 'voidVineCritBoost2', (value) => value * Math.pow(1.05, skillLevel))",
-            "addModifier(skillContext.unitSummoned, skillLevel, 'critChance', 'voidVineCritBoost2', (value) => value + (5 * skillLevel));"
+            "addModifier(skillContext.unitSummoned, skillLevel, 'critMulti', 'voidVineCritBoost1', (value) => value * Math.pow(1.05, skillLevel))",
+            "addModifier(skillContext.unitSummoned, skillLevel, 'critChance', 'voidVineCritBoost1', (value) => value + (5 * skillLevel));"
             ]
         }]
       }

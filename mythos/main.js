@@ -1538,7 +1538,7 @@ function recalculateStat(unit, statName) {
     stat.value = 0;
   }
 
-  let base = calculateEffectiveValue(stat, unit.stats, unit);
+  let base = getStatValue(statName, stat, unit);
   if (isNaN(base)) {
     console.error("base is NaN", stat);
   }
@@ -1554,12 +1554,9 @@ const talentEffects = [].concat(...unit.skills.learned
   .filter(e => e.talentData?.type === "statBonus" && e.talentData.stat === statName));
    talentEffects.forEach(e => {
      let eff = calculateEffectiveValue(e.talentData, e, unit, undefined, unit.skills.learned.find(s => s.id == e.talentId).level)
-     console.log(e, eff)
      if(e.talentData.effect && e.talentData.effect == "multi"){
-       console.log("Multiplying "+statName+" by " + eff)
        base *= eff;
      }else{
-       console.log("Adding " + eff + " to " +  statName)
        base += eff
      }
    })
@@ -6020,7 +6017,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         skillId,
         originalTarget,
         skillContext,
-        skillLevel,
+        findSkill(caster, skillId).level,
         effect,
         applyEffectEvent,
         updateCombatLog,
@@ -6028,7 +6025,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         getTarget
       );
     } catch (e) {
-      console.error(`Error executing fun effect "${effect.fun || '[anonymous funBody]'}":`, e);
+      console.error(`Error executing fun effect for ${skillId} "${effect.funBody || '[anonymous funBody]'}":`, e);
     }
   } else {
     console.warn(`Effect of type "fun" does not have a valid .fun or .funBody/.funParams`, effect);
@@ -7080,7 +7077,6 @@ function getEvasionChance(attackerAccuracy, targetEvasion, K = 9, x = 1) {
 function getStatValue(statName, block, caster, target, skillLevel, skillContext){
   let statValue = calculateEffectiveValue(block, statName, caster, target, skillLevel, skillContext);
         if(skillContext && skillContext.statBonuses){
-          console.log("1Bonusing " + statName, JSON.stringify(skillContext.statBonuses, null, 2))
           if(skillContext.statBonuses[statName]){
             let statBonus = skillContext.statBonuses[statName];
             let value = calculateEffectiveValue(statBonus.value, skillContext, caster, target, skillLevel, undefined)
@@ -7095,6 +7091,9 @@ function getStatValue(statName, block, caster, target, skillLevel, skillContext)
           }
           
         }
+  if(caster.stats[statName].modifiers){
+//    console.log("Modifiers:",caster.name, statName, Object.values(caster.stats[statName].modifiers).map(fn => fn.toString()).join(";,"))
+  }
   return statValue;
 }
   function calculateEffectiveValue(block, parentObject, caster, target, skillLevel, skillContext) {
@@ -7114,9 +7113,7 @@ function getStatValue(statName, block, caster, target, skillLevel, skillContext)
 
     let value = block.base;
 
-    if (!Array.isArray(block.scaling) || block.scaling.length === 0) {
-      return value;
-    }
+    if (Array.isArray(block.scaling) && block.scaling.length > 0) {
 
     for (const scaleEntry of block.scaling) {
       
@@ -7170,6 +7167,7 @@ function getStatValue(statName, block, caster, target, skillLevel, skillContext)
 
     
     }
+    }
 if (typeof block.min === "number") {
   value = Math.max(value, block.min);
 }
@@ -7179,6 +7177,7 @@ if (typeof block.max === "number") {
 
 // Apply multipliers if defined
 if (block.modifiers && typeof block.modifiers === "object") {
+  
   for (const key of Object.keys(block.modifiers)) {
     const multiplierFn = block.modifiers[key];
     if (typeof multiplierFn === "function") {
@@ -8049,6 +8048,14 @@ function updateResistancesSection(unit) {
   // Step 6: Set the new HTML
   resistSection.innerHTML = tableHTML;
 }
+
+function findSkill(unit, skillId){
+    let skillFound = unit.skills.equipped.find(s => s && s.id == skillId)
+  if(!skillFound || !skillFound.level){
+    skillFound = unit.skills.learned.find(s => s && s.id == skillId);
+  }
+  return skillFound;
+}
 function getRandomQuality(tier, maxQuality = 6) {
   const weights = [];
 
@@ -8143,8 +8150,9 @@ function addSkillWhileInCombat(unit, skillId, level = 1) {
 
   resetSkillCooldown(unit, skillId);
 }
-function addModifier(unit, statName, key, fn){
+function addModifier(unit, skillLevel, statName, key, fn){
   if(!unit.stats[statName]){
+    console.error("modifier not added", statName, unit)
     return;
   }
   if(!unit.stats[statName].modifiers){
@@ -8155,4 +8163,5 @@ function addModifier(unit, statName, key, fn){
     unit.stats[statName].modifiers[key] = fn
   }
   recalculateStat(unit, statName);
+  
 }
