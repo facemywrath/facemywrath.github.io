@@ -1347,8 +1347,8 @@ player = {
     },
     cooldownReduction: {
       display: "Cooldown Reduction",
-      base: 0.1,
-      value: 0.1
+      base: 1,
+      value: 1
     },
     armorPenetration: {
       display: "Armor Penetration",
@@ -1360,8 +1360,8 @@ player = {
     },
     xpGain: {
       display: "XP Multi",
-      value: 200,
-      base: 200,
+      value: 1,
+      base: 1,
       scaling: [{
         target: "caster", stat: "intellect", scale: 0.003
       },
@@ -4974,7 +4974,7 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
             if (e.stacks.scaling) {
               e.stacks.scaling.forEach(sc => {
                 if (sc.target == "caster") {
-                  scalingText += ` + (${sc.scale} x ${sc.target}'s ${fromCamelCase(sc.stat)})`
+                  scalingText += ` + (${sc.scale} ^ ${sc.target}'s ${fromCamelCase(sc.stat)})`
                 } else {
                   targetFlag = true;
                 }
