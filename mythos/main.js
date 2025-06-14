@@ -5829,7 +5829,8 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         break;
       case "taunt":
         unit.skills.equipped.forEach(s => {
-          if(s.requiresTarget && getPotentialTargets(unit, skillsData[s.id].target).includes(caster)){
+          let skillData = skillsData[s.id]
+          if(skillData.requiresTarget && getPotentialTargets(unit, skillData.target).includes(caster)){
             unit.skills.combatData.targets[s.id].target = caster.id;
           }
         })
