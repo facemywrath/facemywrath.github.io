@@ -222,7 +222,6 @@
           "type": "fun",
           "funBody": [
             "if (!skillContext || !skillContext.unitSummoned) return;",
-            "skillLevel = findSkill(unit, 'evolveVoidVine1').level",
             "addModifier(skillContext.unitSummoned, skillLevel, 'maxHp', 'evolveVoidVine1', (value) => value * Math.pow(1.25, skillLevel));",
             "addModifier(skillContext.unitSummoned, skillLevel, 'lifestealChance', 'evolveVoidVine1', (value) => value + (10 * skillLevel));",
             "skillContext.unitSummoned.stats.hp.value = skillContext.unitSummoned.stats.maxHp.value;"
