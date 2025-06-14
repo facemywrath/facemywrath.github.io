@@ -1792,8 +1792,8 @@
       },
       "critChance": {
         "display": "Crit Chance",
-        "base": 5,
-        "value": 5,
+        "base": 1,
+        "value": 1,
         "scaling": [
           {
             "target": "caster",
@@ -1804,8 +1804,8 @@
       },
       "critMulti": {
         "display": "Crit Multi",
-        "base": 2,
-        "value": 2
+        "base": 1.5,
+        "value": 1.5
       },
       "lifestealMulti": {
         "display": "Lifesteal Multi",
