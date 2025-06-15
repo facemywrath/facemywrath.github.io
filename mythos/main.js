@@ -4696,8 +4696,8 @@ function updateSkillUnitDisplay(skillId, member) {
     const svgNS = "http://www.w3.org/2000/svg";
 
 const iconContainer = document.createElement("div");
-iconContainer.style.width = "0.7em";
-iconContainer.style.height = "0.7em";
+iconContainer.style.width = "1.25em";
+iconContainer.style.height = "1.25em";
 
 const svg = document.createElementNS(svgNS, "svg");
 svg.setAttribute("viewBox", "0 0 100 100");
@@ -4729,11 +4729,11 @@ text.setAttribute("x", "50");
 text.setAttribute("y", "55");
 text.setAttribute("text-anchor", "middle");
 text.setAttribute("dominant-baseline", "middle");
-text.setAttribute("font-size", "20");
+text.setAttribute("font-size", "24");
 text.setAttribute("font-weight", "bold");
 text.setAttribute("fill", "black");
 text.textContent = castsLeft;
-text.id = `${member.id}-${skillId}-iconText`;
+text.id = `${member.id}-${skillId}-perCombatText`;
 svg.appendChild(text);
 
 iconContainer.appendChild(svg);
@@ -5394,7 +5394,7 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
       return;
     }
     caster.skills.combatData.perCombat[skillId]++;
-    let perCombatIcon = document.getElementById(caster.id + "-"+skillId+"-perCombatIcon")
+    let perCombatIcon = document.getElementById(caster.id + "-"+skillId+"-perCombatText")
     if(perCombatIcon && perCombatMax){
       let castsThisCombat = caster.skills.combatData.perCombat[skillId]
       let castsLeft = perCombatMax - castsThisCombat
