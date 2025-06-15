@@ -4694,7 +4694,7 @@ function updateSkillUnitDisplay(skillId, member) {
     let castsThisCombat = member.skills.combatData.perCombat[skillId] || 0;
     let castsLeft = perCombatMax - castsThisCombat
     perCombatIcon.innerHTML=`
-<div id="icon-container" style="width: 2em; height: 2em; position: absolute; top: 0px; left: 0px;">
+<div id="icon-container" style="width: 2em; height: 2em;">
   <svg id="${member.id}-${skillId}-perCombatIcon"
        viewBox="0 0 100 100"
        xmlns="http://www.w3.org/2000/svg"
