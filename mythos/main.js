@@ -4505,7 +4505,9 @@ function updateProgressBar(skillId, member) {
     member.skills.combatData.targets[skillId].target = potentialTargets[0].id
   } else {}
   let label = document.getElementById(`${member.id}-${skillId}-target-display`)
-  if (label && isStunned) {
+  if(label && castsLeft == 0){
+    label.textContent = "Out of casts";
+  }else if (label && isStunned) {
 
     label.textContent = "Stunned";
 
