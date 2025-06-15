@@ -1716,7 +1716,6 @@ function handleCharacterCreation() {
     completed: false,
     timesCompleted: 0
   }
-  
   const loreEntry = loreDataCache.planets[startingPlanet].description;
   const zoneLogs = Object.entries(loreDataCache.zones)
   .filter(([zone]) => loreEntry && zone.includes(startingPlanet.split(" ")[0]))
@@ -1730,7 +1729,7 @@ function handleCharacterCreation() {
   }
   document.getElementById("menu-buttons").classList.remove("hidden")
   document.getElementById("top-bar").style.display = "flex"
-  document.getElementById("planet-name").textContent = startingPlanet
+  document.getElementById("planet-name").textContent = player.planet
   document.getElementById("zone-name").style.display = "none"
   document.getElementById("encounter-bar").classList.add("hidden")
   console.log("You awaken on the planet of " + startingPlanet + ".", loreEntry, ...zoneLogs, "Select the Combat menu to begin your journey.")
@@ -4555,6 +4554,7 @@ function updateSkillUnitDisplay(skillId, member) {
   }
   skillDiv.id = `${member.id}-${skillId}-skill-block`;
   skillDiv.className = "skill-block";
+  skillDiv.style.position = "relative"
   skillDiv.style.display = "flex";
   skillDiv.style.flexDirection = "column";
   skillDiv.style.alignItems = "center";
@@ -7731,7 +7731,7 @@ function selectCharacter(slot) {
     })
     }
     document.getElementById("menu-content").classList.remove("hidden")
-    
+    document.getElementById("planet-name").textContent = player.planet
     document.getElementById("top-bar").style.display = "flex"
     document.getElementById("menu-buttons").classList.remove("hidden")
     showMenu("journey")
