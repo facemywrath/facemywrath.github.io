@@ -4490,8 +4490,8 @@
     "race": "Aberration",
     "damageType": "void",
     "planet": "Hollowreach",
-    "discoveryXp": 15,
-    "xp": 10,
+    "discoveryXp": 20,
+    "xp": 15,
     "attributes": {
       "strength": 2,
       "dexterity": 2,
