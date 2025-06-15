@@ -413,8 +413,8 @@
           "cost": 4,
           "unlockCost": 3,
           "maxLevel": 30,
-          "previousSkill": "energyWhip",
-          "previousSkillLevelRequired": 6
+          "previousSkill": "summonVoidVine",
+          "previousSkillLevelRequired": 2
         },
         {
           "id": "evolveVoidVine1",

@@ -1726,9 +1726,9 @@
       "strength": 1,
       "dexterity": 1,
       "constitution": 1,
-      "intellect": 1.5,
-      "wisdom": 1.5,
-      "willpower": 2
+      "intellect": 0.75,
+      "wisdom": 0.75,
+      "willpower": 1
     },
     "stats": {
       "maxHp": {
@@ -1738,7 +1738,7 @@
         "scaling": [
           {
             "target": "caster",
-            "scale": 5,
+            "scale": 1,
             "stat": "constitution"
           }
         ]
