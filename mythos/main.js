@@ -1,4 +1,4 @@
-let gameVersion = "0.11.x";
+let gameVersion = "0.1.x";
 let gameVerDiv = document.getElementById("version-bar")
 if(gameVerDiv){
   gameVerDiv.textContent = "Version: "+ gameVersion;
@@ -4729,7 +4729,7 @@ text.setAttribute("x", "50");
 text.setAttribute("y", "55");
 text.setAttribute("text-anchor", "middle");
 text.setAttribute("dominant-baseline", "middle");
-text.setAttribute("font-size", "24");
+text.setAttribute("font-size", "50");
 text.setAttribute("font-weight", "bold");
 text.setAttribute("fill", "black");
 text.textContent = castsLeft;
