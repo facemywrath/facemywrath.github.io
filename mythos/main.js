@@ -4439,7 +4439,10 @@ function updateProgressBar(skillId, member) {
     console.error("updateProgressBar skill is null", skillId, skillsData);
 
   }
-  
+  let castsLeft = getCastsLeft(member, skillId);
+  if(castsLeft == 0){
+    member.skills.combatData.targets[skillId].active = false;
+  }
   const combatData = member.skills.combatData;
   const skillData = combatData.targets?.[skillId] || {};
   const hasTarget = skillData.target !== undefined && findUnitById(skillData.target);
@@ -4639,8 +4642,8 @@ function updateSkillUnitDisplay(skillId, member) {
     if (targetting || !(member.isAlly || member.isPlayer)) return;
     e.stopPropagation();
     const skillEntry = member.skills.combatData.targets?.[skillId];
-
-    if (skillEntry) {
+    let castsLeft = getCastsLeft(member, skillId);
+    if (skillEntry && castsLeft != 0) {
       toggleSkill(member.id, skillId);
       innerBar.style.background = isOn
       ? "linear-gradient(#4c4, #282)": !requiresTarget || (hasTarget && isTargetAlive)?"linear-gradient(#cb4,#863)": "linear-gradient(#c44, #844)";
@@ -8276,4 +8279,14 @@ function addModifier(unit, skillLevel, statName, key, fn){
   }
   recalculateStat(unit, statName);
   
+}
+function getCastsLeft(unit, skillId){
+    let castsThisCombat = unit.skills.combatData.perCombat[skillId] || 0;
+    let skill = skillsData[skillId]
+    
+    let perCombatMax = 0;
+    if(skill.perCombatMax){calculateEffectiveValue(skill.perCombatMax, skill, unit, undefined, findSkill(unit, skillId).level)}
+    let castsLeft = -1;
+    if(perCombatMax) castsLeft = perCombatMax - castsThisCombat
+    return castsLeft
 }
