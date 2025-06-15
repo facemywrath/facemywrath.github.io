@@ -4562,6 +4562,12 @@
             "target": "caster",
             "scale": 7.5,
             "stat": "willpower"
+          },
+          {
+            "target": "caster",
+            "stat": "tier",
+            "scale": 1.0007,
+            "effect": "multi"
           }
         ]
       },
