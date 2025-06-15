@@ -4528,7 +4528,7 @@
         "scaling": [{
           "target": "caster",
           "stat": "mp",
-          "scale": 0.02
+          "scale": 0.04
         }]
       },
       "maxSp": {
@@ -4566,7 +4566,7 @@
           {
             "target": "caster",
             "stat": "tier",
-            "scale": 1.0007,
+            "scale": 1.0011,
             "effect": "multi"
           }
         ]

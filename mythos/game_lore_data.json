@@ -2035,11 +2035,11 @@
           "weight": 8,
           "levels": {
             "min": 0,
-            "max": 15
+            "max": 30
           }
         }
       ],
-      "maxTier": 15,
+      "maxTier": 30,
       "unitCountWeights": [
         {
           "range": [
