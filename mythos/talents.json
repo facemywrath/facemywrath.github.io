@@ -302,7 +302,7 @@
     ]
   },
   "evolveUmbralith1": {
-    "name": "Umbralith Evolve I",
+    "name": "Evolve Umbralith I",
     "description": ["Your Umbralith gains:"," +25% Max Health (multiplicative)", " +10% Max MP (multiplicative)"],
     "effects": [
       {
