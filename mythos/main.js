@@ -8283,6 +8283,9 @@ function addModifier(unit, skillLevel, statName, key, fn){
   
 }
 function getCastsLeft(unit, skillId){
+  if(!unit.skills.combatData.perCombat){
+    unit.skills.combatData.perCombat = {}
+  }
     let castsThisCombat = unit.skills.combatData.perCombat[skillId] || 0;
     let skill = skillsData[skillId]
     
