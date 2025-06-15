@@ -4476,7 +4476,7 @@ function updateProgressBar(skillId, member) {
 
       let hitChance = 1-getEvasionChance(accuracy, evasion);
 
-      hitChanceDiv.textContent = "Hit Chance: " + (hitChance*100).toFixed(2)+"%";
+      hitChanceDiv.textContent = (hitChance*100).toFixed(2)+"%";
       
         }
     }
@@ -4554,47 +4554,14 @@ function updateSkillUnitDisplay(skillId, member) {
   }
   skillDiv.id = `${member.id}-${skillId}-skill-block`;
   skillDiv.className = "skill-block";
-  skillDiv.style.position = "relative"
+  skillDiv.style.position = "relative";
   skillDiv.style.display = "flex";
   skillDiv.style.flexDirection = "column";
   skillDiv.style.alignItems = "center";
   skillDiv.style.border = "1px solid black";
   skillDiv.style.padding = "0.5em";
   skillDiv.style.cursor = "default";
-  let perCombatIcon = document.createElement('div')
-  if(perCombatMax){
-    let castsThisCombat = member.skills.combatData.perCombat[skillId] || 0;
-    let castsLeft = perCombatMax - castsThisCombat
-    perCombatIcon.innerHTML=`
-<div id="icon-container" style="width: 2em; height: 2em; position: absolute; top: 0px; left: 0px;">
-  <svg id="${member.id}-${skillId}-perCombatIcon"
-       viewBox="0 0 100 100"
-       xmlns="http://www.w3.org/2000/svg"
-       width="100%"
-       height="100%">
-    
-    <!-- Circle Path -->
-    <path d="M50 10 A40 40 0 1 1 49.9 10" fill="none" stroke="black" stroke-width="5"/>
-    
-    <!-- Arrowhead 1 -->
-    <polygon points="50,2.5 58,10.5 50,19" fill="black"/>
-    
-    <!-- Arrowhead 2 -->
-    <polygon points="50,97.5 42,89.5 50,81" fill="black"/>
-    
-    <!-- Centered Text -->
-    <text id="${member.id}-${skillId}-iconText"
-          x="50" y="55"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          font-size="20"
-          font-weight="bold"
-          fill="black">${castsLeft}</text>
-  </svg>
-</div>
-`
-skillDiv.appendChild(perCombatIcon)
-  }
+
   // Skill name
   const nameDiv = document.createElement("div");
   nameDiv.innerHTML = `<strong>${skill.name} ${member.skills.equipped.find(sk => sk.id == skillId).level}</strong>`;
@@ -4684,6 +4651,7 @@ skillDiv.appendChild(perCombatIcon)
 
   // Bottom row with Target + Info button
   const bottomRow = document.createElement("div");
+  bottomRow.id = `${member.id}-${skillId}-bottomRow`
   bottomRow.style.display = "flex";
   bottomRow.style.justifyContent = "space-between";
   bottomRow.style.width = "100%";
@@ -4716,12 +4684,45 @@ skillDiv.appendChild(perCombatIcon)
 
       let hitChance = 1-getEvasionChance(accuracy, evasion);
 
-      hitChanceDiv.textContent = "Hit Chance: " + (hitChance*100).toFixed(2)+"%";
+      hitChanceDiv.textContent = (hitChance*100).toFixed(2)+"%";
       
       
     }
     bottomRow.appendChild(hitChanceDiv)
-  
+    let perCombatIcon = document.createElement('div')
+  if(perCombatMax){
+    let castsThisCombat = member.skills.combatData.perCombat[skillId] || 0;
+    let castsLeft = perCombatMax - castsThisCombat
+    perCombatIcon.innerHTML=`
+<div id="icon-container" style="width: 2em; height: 2em; position: absolute; top: 0px; left: 0px;">
+  <svg id="${member.id}-${skillId}-perCombatIcon"
+       viewBox="0 0 100 100"
+       xmlns="http://www.w3.org/2000/svg"
+       width="100%"
+       height="100%">
+    
+    <!-- Circle Path -->
+    <path d="M50 10 A40 40 0 1 1 49.9 10" fill="none" stroke="black" stroke-width="5"/>
+    
+    <!-- Arrowhead 1 -->
+    <polygon points="50,2.5 58,10.5 50,19" fill="black"/>
+    
+    <!-- Arrowhead 2 -->
+    <polygon points="50,97.5 42,89.5 50,81" fill="black"/>
+    
+    <!-- Centered Text -->
+    <text id="${member.id}-${skillId}-iconText"
+          x="50" y="55"
+          text-anchor="middle"
+          dominant-baseline="middle"
+          font-size="20"
+          font-weight="bold"
+          fill="black">${castsLeft}</text>
+  </svg>
+</div>
+`
+bottomRow.appendChild(perCombatIcon)
+  }
 
 
 
@@ -6314,7 +6315,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       let hitChance = 1-getEvasionChance(accuracy, evasion);
       let hitChanceDiv = document.createElement("div");
       hitChanceDiv.id = unitId + '-hitChance'
-      hitChanceDiv.textContent = "Hit Chance: " + (hitChance*100).toFixed(2)+"%";
+      hitChanceDiv.textContent = (hitChance*100).toFixed(2)+"%";
       hitChanceDiv.style.fontSize = "0.7em"
       console.log("adding", hitChanceDiv.id)
       box.appendChild(hitChanceDiv)
