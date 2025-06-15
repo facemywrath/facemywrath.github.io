@@ -2550,7 +2550,7 @@
   "energyWhip": {
     "name": "Energy Whip",
     "cooldown": {
-      "base": 7,
+      "base": 6,
       "min": 3,
       "scaling": [
       {
@@ -2569,7 +2569,7 @@
       { 
         "type": "damage",
         "target": "singleEnemy", 
-        "base": 6,
+        "base": 7,
         "damageType": "shock",
         "scaling": [{
          "target": "caster",
