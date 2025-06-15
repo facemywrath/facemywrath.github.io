@@ -2735,14 +2735,14 @@
         "scale": -0.016
       }]
     },
-    "cost": { "mp": 20},
+    "cost": { "mp": 30},
     "target": "singleEnemy",
     "requiresTarget": true,
     "effects": [
       { 
         "type": "damage",
         "target": "singleEnemy", 
-        "base": 4,
+        "base": 2,
         "damageType": "void",
         "scaling": [{
          "target": "caster",
