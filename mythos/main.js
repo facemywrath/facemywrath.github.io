@@ -4694,8 +4694,8 @@ function updateSkillUnitDisplay(skillId, member) {
     const svgNS = "http://www.w3.org/2000/svg";
 
 const iconContainer = document.createElement("div");
-iconContainer.style.width = "1em";
-iconContainer.style.height = "1em";
+iconContainer.style.width = "0.7em";
+iconContainer.style.height = "0.7em";
 
 const svg = document.createElementNS(svgNS, "svg");
 svg.setAttribute("viewBox", "0 0 100 100");
