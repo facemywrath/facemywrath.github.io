@@ -208,7 +208,7 @@
   },
   "evolveVoidVine1": {
     "name": "Evolve Void Vine I",
-    "description": ["Your void vines gain:"," +25% max health (multiplicative)", " -5% cooldownReduction (additive)"],
+    "description": ["Your void vines gain:"," +10% max health (additive)", " -5% Cooldown Reduction (multiplicative)"],
     "effects": [
       {
         "type": "listener",
@@ -222,8 +222,8 @@
           "type": "fun",
           "funBody": [
             "if (!skillContext || !skillContext.unitSummoned) return;",
-            "addModifier(skillContext.unitSummoned, skillLevel, 'maxHp', 'evolveVoidVine1', (value) => value * Math.pow(1.25, skillLevel));",
-            "addModifier(skillContext.unitSummoned, skillLevel, 'cooldownReduction', 'evolveVoidVine1', (value) => value * (1- 0.05 * skillLevel));",
+            "addModifier(skillContext.unitSummoned, skillLevel, 'maxHp', 'evolveVoidVine1', (value) => value * (1+0.1* skillLevel));",
+            "addModifier(skillContext.unitSummoned, skillLevel, 'cooldownReduction', 'evolveVoidVine1', (value) => value * Math.pow(0.95,skillLevel));",
             "skillContext.unitSummoned.stats.hp.value = skillContext.unitSummoned.stats.maxHp.value;"
           ]
         }]
@@ -232,7 +232,7 @@
   },
   "evolveVoidVine2": {
     "name": "Evolve Void Vine II",
-    "description": ["Your void vines gain:"," +25% max health (multiplicative)", " +5% lifesteal chance (additive)"," A new skill!"],
+    "description": ["Your void vines gain:","+10% Max Health (additive)", " -5% Cooldown Reduction (multiplicative)"," A new skill!"],
     "effects": [
       {
         "type": "listener",
@@ -246,8 +246,8 @@
           "type": "fun",
           "funBody": [
             "if (!skillContext || !skillContext.unitSummoned) return;",
-            "addModifier(skillContext.unitSummoned, skillLevel, 'maxHp', 'evolveVoidVine2', (value) => value * Math.pow(1.25, skillLevel));",
-            "addModifier(skillContext.unitSummoned, skillLevel, 'lifestealChance', 'evolveVoidVine2', (value) => value + (5 * skillLevel));",
+            "addModifier(skillContext.unitSummoned, skillLevel, 'maxHp', 'evolveVoidVine2', (value) => value * (1+0.1* skillLevel));",
+            "addModifier(skillContext.unitSummoned, skillLevel, 'cooldownReduction', 'evolveVoidVine2', (value) => value * Math.pow(0.95, skillLevel));",
             "addSkillWhileInCombat(skillContext.unitSummoned, 'voidVineEntangle', 1);",
             "skillContext.unitSummoned.stats.hp.value = skillContext.unitSummoned.stats.maxHp.value;"
           ]
