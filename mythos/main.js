@@ -4691,6 +4691,8 @@ function updateSkillUnitDisplay(skillId, member) {
     bottomRow.appendChild(hitChanceDiv)
     let perCombatIcon = document.createElement('div')
   if(perCombatMax){
+        let castsThisCombat = member.skills.combatData.perCombat[skillId] || 0;
+    let castsLeft = perCombatMax - castsThisCombat
     const svgNS = "http://www.w3.org/2000/svg";
 
 const iconContainer = document.createElement("div");
