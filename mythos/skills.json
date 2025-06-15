@@ -2666,8 +2666,8 @@
   "consumeEnergy": {
     "name": "Consume Energy",
     "cooldown": {
-      "base": 10,
-      "min": 6,
+      "base": 15,
+      "min": 7,
       "scaling": [
       {
         "target": "caster",
