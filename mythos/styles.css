@@ -5,6 +5,10 @@ body {
   background-color: #111;
   color: #eee;
 }
+#icon-container {
+  width: 50px;
+  height: 50px;
+}
 #skills-pip {
   position: absolute;
   top: -0.5em;
