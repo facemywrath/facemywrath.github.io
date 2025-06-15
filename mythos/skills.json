@@ -2550,7 +2550,7 @@
   "energyWhip": {
     "name": "Energy Whip",
     "cooldown": {
-      "base": 8,
+      "base": 7,
       "min": 3,
       "scaling": [
       {
@@ -2560,8 +2560,8 @@
       }]
     },
     "cost": {
-      "sp": 10,
-      "mp": 15
+      "sp": 15,
+      "mp": 7
     },
     "target": "singleEnemy",
     "requiresTarget": true,
@@ -2574,7 +2574,7 @@
         "scaling": [{
          "target": "caster",
          "stat": "intellect", 
-         "scale": 0.15
+         "scale": 0.18
         },
         {
           "target": "caster",
