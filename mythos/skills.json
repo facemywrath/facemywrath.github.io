@@ -2470,10 +2470,9 @@
     },
     "target": "self",
     "requiresTarget": false,
-    "initialCooldown": 10,
     "cooldown": {
-      "base": 20,
-      "min": 5,
+      "base": 5,
+      "min": 2,
       "scaling": [
         {
           "target": "caster",

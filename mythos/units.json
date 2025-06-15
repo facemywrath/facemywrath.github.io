@@ -4511,12 +4511,12 @@
     "stats": {
       "maxHp": {
         "display": "Max Hp",
-        "base": 30,
-        "value": 30,
+        "base": 40,
+        "value": 40,
         "scaling": [
           {
             "target": "caster",
-            "scale": 5,
+            "scale": 8,
             "stat": "constitution"
           }
         ]
@@ -4524,7 +4524,12 @@
       "hpRegen": {
         "display": "Hp Regen",
         "base": 0,
-        "value": 0
+        "value": 0,
+        "scaling": [{
+          "target": "caster",
+          "stat": "mp",
+          "scale": 0.02
+        }]
       },
       "maxSp": {
         "display": "Max Sp",
