@@ -1723,12 +1723,12 @@
       "willpower": 5
     },
     "attributesPerLevel": {
-      "strength": 0.2,
-      "dexterity": 0.4,
-      "constitution": 0.4,
-      "intellect": 0.5,
-      "wisdom": 0.5,
-      "willpower": 1.5
+      "strength": 1,
+      "dexterity": 1,
+      "constitution": 1,
+      "intellect": 1.5,
+      "wisdom": 1.5,
+      "willpower": 2
     },
     "stats": {
       "maxHp": {
@@ -1797,7 +1797,7 @@
         "scaling": [
           {
             "target": "caster",
-            "stat": "tier",
+            "stat": "strength",
             "scale": 1.1,
             "effect": "multi"
           }]
@@ -1847,7 +1847,7 @@
         "scaling": [
           {
             "target": "caster",
-            "stat": "tier",
+            "stat": "wisdom",
             "scale": 3
           }
         ]
@@ -1858,7 +1858,7 @@
         "scaling": [
           {
             "target": "caster",
-            "stat": "tier",
+            "stat": "dexterity",
             "scale": 3
           }
         ]
