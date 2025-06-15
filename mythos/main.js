@@ -4691,37 +4691,51 @@ function updateSkillUnitDisplay(skillId, member) {
     bottomRow.appendChild(hitChanceDiv)
     let perCombatIcon = document.createElement('div')
   if(perCombatMax){
-    let castsThisCombat = member.skills.combatData.perCombat[skillId] || 0;
-    let castsLeft = perCombatMax - castsThisCombat
-    perCombatIcon.innerHTML=`
-<div id="icon-container" style="width: 1em; height: 1em;">
-  <svg id="${member.id}-${skillId}-perCombatIcon"
-       viewBox="0 0 100 100"
-       xmlns="http://www.w3.org/2000/svg"
-       width="100%"
-       height="100%">
-    
-    <!-- Circle Path -->
-    <path d="M50 10 A40 40 0 1 1 49.9 10" fill="none" stroke="black" stroke-width="5"/>
-    
-    <!-- Arrowhead 1 -->
-    <polygon points="50,2.5 58,10.5 50,19" fill="black"/>
-    
-    <!-- Arrowhead 2 -->
-    <polygon points="50,97.5 42,89.5 50,81" fill="black"/>
-    
-    <!-- Centered Text -->
-    <text id="${member.id}-${skillId}-iconText"
-          x="50" y="55"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          font-size="20"
-          font-weight="bold"
-          fill="black">${castsLeft}</text>
-  </svg>
-</div>
-`
-bottomRow.appendChild(perCombatIcon)
+    const svgNS = "http://www.w3.org/2000/svg";
+
+const iconContainer = document.createElement("div");
+iconContainer.style.width = "1em";
+iconContainer.style.height = "1em";
+
+const svg = document.createElementNS(svgNS, "svg");
+svg.setAttribute("viewBox", "0 0 100 100");
+svg.setAttribute("width", "100%");
+svg.setAttribute("height", "100%");
+
+// Circle path
+const path = document.createElementNS(svgNS, "path");
+path.setAttribute("d", "M50 10 A40 40 0 1 1 49.9 10");
+path.setAttribute("fill", "none");
+path.setAttribute("stroke", "black");
+path.setAttribute("stroke-width", "5");
+svg.appendChild(path);
+
+// Arrowheads
+const arrow1 = document.createElementNS(svgNS, "polygon");
+arrow1.setAttribute("points", "50,2.5 58,10.5 50,19");
+arrow1.setAttribute("fill", "black");
+svg.appendChild(arrow1);
+
+const arrow2 = document.createElementNS(svgNS, "polygon");
+arrow2.setAttribute("points", "50,97.5 42,89.5 50,81");
+arrow2.setAttribute("fill", "black");
+svg.appendChild(arrow2);
+
+// Text
+const text = document.createElementNS(svgNS, "text");
+text.setAttribute("x", "50");
+text.setAttribute("y", "55");
+text.setAttribute("text-anchor", "middle");
+text.setAttribute("dominant-baseline", "middle");
+text.setAttribute("font-size", "20");
+text.setAttribute("font-weight", "bold");
+text.setAttribute("fill", "black");
+text.textContent = castsLeft;
+text.id = `${member.id}-${skillId}-iconText`;
+svg.appendChild(text);
+
+iconContainer.appendChild(svg);
+bottomRow.appendChild(iconContainer);
   }
 
 
