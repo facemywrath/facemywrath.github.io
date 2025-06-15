@@ -4694,7 +4694,7 @@ function updateSkillUnitDisplay(skillId, member) {
     let castsThisCombat = member.skills.combatData.perCombat[skillId] || 0;
     let castsLeft = perCombatMax - castsThisCombat
     perCombatIcon.innerHTML=`
-<div id="icon-container" style="width: 2em; height: 2em;">
+<div id="icon-container" style="width: 1em; height: 1em;">
   <svg id="${member.id}-${skillId}-perCombatIcon"
        viewBox="0 0 100 100"
        xmlns="http://www.w3.org/2000/svg"
@@ -8147,6 +8147,36 @@ function getRandomQuality(tier, maxQuality = 6) {
 }
 
 function showDebugPopup() {
+  const existingPopup = document.getElementById("popup-overlay");
+    if (existingPopup) existingPopup.remove();
+  const overlay = document.createElement("div");
+    overlay.id = "popup-overlay";
+    overlay.style.position = "fixed";
+    overlay.style.top = 0;
+    overlay.style.left = 0;
+    overlay.style.width = "100vw";
+    overlay.style.height = "100vh";
+    overlay.style.zIndex = 999;
+    overlay.style.background = "rgba(0,0,0,0.0)";
+    overlay.addEventListener("click", () => overlay.remove());
+
+    // Popup container
+    const popup = document.createElement("div");
+    popup.className = "popup";
+    popup.style.position = "absolute";
+    popup.style.left = "50%";
+    popup.style.top = "50%";
+    popup.style.transform = "translate(-50%, -50%)";
+    popup.style.zIndex = 1000;
+    popup.style.backgroundColor = "#666";
+    popup.style.color = "#fff";
+    popup.style.padding = "10px";
+    popup.style.border = "2px solid #444";
+    popup.style.borderRadius = "10px";
+    popup.style.maxWidth = "80vw";
+    popup.style.maxHeight = "80vh";
+    popup.style.overflowY = "auto";
+    popup.style.boxShadow = "0 0 10px #000";
     let logText = ""
     if(debugLog && debugLog.length > 0){
       logText = debugLog.join('\n');
@@ -8172,14 +8202,18 @@ function showDebugPopup() {
                 font-family: monospace;
                 font-size: 7px;
             ">${logText}</textarea>
-            <button onclick="event.stopPropagation();
-            navigator.clipboard.writeText(\`${logText.replace(/`/g, '\\`')}\`)">
+            <button id='copy-btn'>
                 Copy to Clipboard
             </button>
         </div>
     `;
-
-    setTimeout(() => showPopup(html), 1);
+    popup.innerHTML = html;
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
+    document.getElementById('copy-btn').onclick = (e) => {
+  e.stopPropagation();
+  navigator.clipboard.writeText(logText.replace(/`/g, '\\`'));
+};
 }
 function addSkillWhileInCombat(unit, skillId, level = 1) {
   if (!unit || !skillId) return;
