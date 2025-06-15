@@ -455,6 +455,26 @@
           "maxLevel": 5,
           "previousSkill": "evolveVoidVine2",
           "previousSkillLevelRequired": 1
+        },
+        {
+          "id": "evolveUmbralith1",
+          "level": 1,
+          "type": "talent",
+          "cost": 3,
+          "unlockCost": 4,
+          "maxLevel": 5,
+          "previousSkill": "summonUmbralith",
+          "previousSkillLevelRequired": 2
+        },
+        {
+          "id": "evolveUmbralith2",
+          "level": 1,
+          "type": "talent",
+          "cost": 3,
+          "unlockCost": 4,
+          "maxLevel": 5,
+          "previousSkill": "evolveUmbralith1",
+          "previousSkillLevelRequired": 5
         }
         ]
     },

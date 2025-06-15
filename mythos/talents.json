@@ -300,6 +300,57 @@
         }]
       }
     ]
+  },
+  "evolveUmbralith1": {
+    "name": "Umbralith Evolve I",
+    "description": ["Your Umbralith gains:"," +25% Max Health (multiplicative)", " +10% Max MP (multiplicative)"],
+    "effects": [
+      {
+        "type": "listener",
+        "trigger": {
+          "event": "summonUnit",
+          "caster": "self",
+          "unitName": "Umbralith"
+        },
+        "effects": [
+        {
+          "type": "fun",
+          "funBody": [
+            "if (!skillContext || !skillContext.unitSummoned) return;",
+            "addModifier(skillContext.unitSummoned, skillLevel, 'maxHp', 'evolveUmbralith1', (value) => value * Math.pow(1.25, skillLevel))",
+            "addModifier(skillContext.unitSummoned, skillLevel, 'maxMp', 'evolveUmbralith1', (value) => value * Math.pow(1.1, skillLevel));",
+            "skillContext.unitSummoned.stats.hp.value = skillContext.unitSummoned.stats.maxHp.value;",
+            "skillContext.unitSummoned.stats.mp.value = skillContext.unitSummoned.stats.maxMp.value;"
+            ]
+        }]
+      }
+    ]
+  },
+  "evolveUmbralith2": {
+    "name": "Evolve Umbralith II",
+    "description": ["Your Umbralith gains:"," +25% Max Health (multiplicative)", " +10% Max MP (multiplicative)","A new skill!"],
+    "effects": [
+      {
+        "type": "listener",
+        "trigger": {
+          "event": "summonUnit",
+          "caster": "self",
+          "unitName": "Umbralith"
+        },
+        "effects": [
+        {
+          "type": "fun",
+          "funBody": [
+            "if (!skillContext || !skillContext.unitSummoned) return;",
+            "addModifier(skillContext.unitSummoned, skillLevel, 'maxHp', 'evolveUmbralith2', (value) => value * Math.pow(1.25, skillLevel))",
+            "addModifier(skillContext.unitSummoned, skillLevel, 'maxMp', 'evolveUmbralith2', (value) => value * Math.pow(1.1, skillLevel));",
+            "addSkillWhileInCombat(skillContext.unitSummoned, 'terrorEmpowerment', 1);",
+            "skillContext.unitSummoned.stats.hp.value = skillContext.unitSummoned.stats.maxHp.value;",
+            "skillContext.unitSummoned.stats.mp.value = skillContext.unitSummoned.stats.maxMp.value;"
+            ]
+        }]
+      }
+    ]
   }
 
 
