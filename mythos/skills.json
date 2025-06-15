@@ -2641,6 +2641,13 @@
         }]
       },
       { 
+        "type": "damage",
+        "target": "self", 
+        "base": 2,
+        "damageType": "void",
+        "scaling": []
+      },
+      { 
         "type": "siphonEnergy",
         "target": "singleEnemy", 
         "energyType": "mp",
