@@ -1142,65 +1142,71 @@ svg.lines {
     border-top: 10px solid blue;
 }
 .icon {
-  display: inline-block;
-  width: 128px;
-  height: 128px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   background-image: url('images/extended_sprite_sheet.png');
-  background-size: 640px 1024px;
+  background-size: 500% 800%;
   background-repeat: no-repeat;
-  vertical-align: middle;
+  background-position: 0% 0%;
 }
 
+/* Inline icons (e.g., for damage types) */
+.icon.inline {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+}
 /* Row 1 */
-.icon.arcane    { background-position:   0px    0px; }
-.icon.blight    { background-position: -128px   0px; }
-.icon.blood     { background-position: -256px   0px; }
-.icon.blunt     { background-position: -384px   0px; }
-.icon.cold      { background-position: -512px   0px; }
+.icon.arcane     { background-position:   0%   0%; }
+.icon.blight     { background-position:  20%   0%; }
+.icon.blood      { background-position:  40%   0%; }
+.icon.blunt      { background-position:  60%   0%; }
+.icon.cold       { background-position:  80%   0%; }
 
 /* Row 2 */
-.icon.corrupt   { background-position:   0px  -128px; }
-.icon.elemental { background-position: -128px -128px; }
-.icon.ethereal  { background-position: -256px -128px; }
-.icon.force     { background-position: -384px -128px; }
-.icon.gravity   { background-position: -512px -128px; }
+.icon.corrupt    { background-position:   0%  12.5%; }
+.icon.elemental  { background-position:  20%  12.5%; }
+.icon.ethereal   { background-position:  40%  12.5%; }
+.icon.force      { background-position:  60%  12.5%; }
+.icon.gravity    { background-position:  80%  12.5%; }
 
 /* Row 3 */
-.icon.heat      { background-position:   0px  -256px; }
-.icon.holy      { background-position: -128px -256px; }
-.icon.magic     { background-position: -256px -256px; }
-.icon.nature    { background-position: -384px -256px; }
-.icon.physical  { background-position: -512px -256px; }
+.icon.heat       { background-position:   0%  25%; }
+.icon.holy       { background-position:  20%  25%; }
+.icon.magic      { background-position:  40%  25%; }
+.icon.nature     { background-position:  60%  25%; }
+.icon.physical   { background-position:  80%  25%; }
 
 /* Row 4 */
-.icon.piercing  { background-position:   0px  -384px; }
-.icon.poison    { background-position: -128px -384px; }
-.icon.psychic   { background-position: -256px -384px; }
-.icon.radiant   { background-position: -384px -384px; }
-.icon.shock     { background-position: -512px -384px; }
+.icon.piercing   { background-position:   0%  37.5%; }
+.icon.poison     { background-position:  20%  37.5%; }
+.icon.psychic    { background-position:  40%  37.5%; }
+.icon.radiant    { background-position:  60%  37.5%; }
+.icon.shock      { background-position:  80%  37.5%; }
 
 /* Row 5 */
-.icon.slashing  { background-position:   0px  -512px; }
-.icon.sonic     { background-position: -128px -512px; }
-.icon.spirit    { background-position: -256px -512px; }
-.icon.void      { background-position: -384px -512px; }
-.icon.water     { background-position: -512px -512px; }
+.icon.slashing   { background-position:   0%  50%; }
+.icon.sonic      { background-position:  20%  50%; }
+.icon.spirit     { background-position:  40%  50%; }
+.icon.void       { background-position:  60%  50%; }
+.icon.water      { background-position:  80%  50%; }
 
 /* Row 6 - Buttons */
-.icon.character_btn { background-position:   0px  -640px; }
-.icon.classes_btn   { background-position: -128px -640px; }
-.icon.journey_btn   { background-position: -256px -640px; }
-.icon.planets_btn   { background-position: -384px -640px; }
-.icon.settings_btn  { background-position: -512px -640px; }
+.icon.character_btn { background-position:   0%  62.5%; }
+.icon.classes_btn   { background-position:  20%  62.5%; }
+.icon.journey_btn   { background-position:  40%  62.5%; }
+.icon.planets_btn   { background-position:  60%  62.5%; }
+.icon.settings_btn  { background-position:  80%  62.5%; }
 
 /* Row 7 - Buttons + Classes */
-.icon.skills_btn     { background-position:   0px  -768px; }
-.icon.chronomancer   { background-position: -128px -768px; }
-.icon.foresworn      { background-position: -256px -768px; }
-.icon.ironveil       { background-position: -384px -768px; }
-.icon.mystic         { background-position: -512px -768px; }
+.icon.skills_btn     { background-position:   0%  75%; }
+.icon.chronomancer   { background-position:  20%  75%; }
+.icon.foresworn      { background-position:  40%  75%; }
+.icon.ironveil       { background-position:  60%  75%; }
+.icon.mystic         { background-position:  80%  75%; }
 
 /* Row 8 - Remaining Classes */
-.icon.pyromancer     { background-position:   0px  -896px; }
-.icon.reaper         { background-position: -128px -896px; }
-.icon.voidcaller     { background-position: -256px -896px; }
+.icon.pyromancer     { background-position:   0%  87.5%; }
+.icon.reaper         { background-position:  20%  87.5%; }
+.icon.voidcaller     { background-position:  40%  87.5%; }

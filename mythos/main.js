@@ -4928,8 +4928,10 @@ function getIcon(key) {
   return icon;
 }
 function getDamageTypeIcon(damageType, clickable) {
-  let onClick = `onclick="setTimeout(() =>{ showDamageTypePopup('${damageType.toLowerCase()}')},1);"`
-  return `<span class="icon ${damageType.toLowerCase()}" ${onClick}></span>`;
+  const onClick = clickable
+    ? `onclick="setTimeout(() =>{ showDamageTypePopup('${damageType.toLowerCase()}')},1);"`
+    : '';
+  return `<span class="icon inline ${damageType.toLowerCase()}" ${onClick}></span>`;
 }
 //POPUPS
 function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
