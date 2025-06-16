@@ -1,4 +1,4 @@
-let gameVersion = "0.11.x";
+let gameVersion = "0.1.x";
 let gameVerDiv = document.getElementById("version-bar")
 if(gameVerDiv){
   gameVerDiv.textContent = "Version: "+ gameVersion;
@@ -4916,6 +4916,7 @@ function getIcon(key) {
 
   const icon = document.createElement('div');
   icon.classList.add('icon');
+  icon.style.display = "inline-block"
   icon.style.width = "100%"
   icon.style.height = "100%"
 
@@ -6950,8 +6951,6 @@ function addHint(elementId, useOverlay) {
         // Icon
         let img = getIcon(className);
         img.alt = className;
-        img.style.width = '48px';
-        img.style.height = '48px';
         img.style.marginRight = '10px';
 
         // Info
@@ -7744,8 +7743,7 @@ function renderCharacterMenu() {
 
         // Class icon
         const icon = getIcon(char.class);
-        icon.style.width = "64px";
-        icon.style.height = "64px";
+
         icon.style.marginRight = "10px";
         charContainer.appendChild(icon);
 
