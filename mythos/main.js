@@ -4905,6 +4905,27 @@ function createUnit(unitType, isAlly, tier) {
 document.addEventListener("click", function () {
   document.querySelectorAll(".popup").forEach(popup => popup.remove());
 });
+function getIcon(key) {
+  key = key.toLowerCase();
+
+  const validKeys = new Set([
+    "character_btn", "classes_btn", "journey_btn", "planets_btn", "settings_btn",
+    "skills_btn", "chronomancer", "foresworn", "ironveil", "mystic",
+    "pyromancer", "reaper", "voidcaller"
+  ]);
+
+  const icon = document.createElement('div');
+  icon.classList.add('icon');
+
+  if (validKeys.has(key)) {
+    icon.classList.add(key);
+  } else {
+    console.warn(`Icon key "${key}" is not recognized.`);
+    icon.classList.add('unknown');
+  }
+
+  return icon;
+}
 function getDamageTypeIcon(damageType, clickable) {
   let onClick = `onclick="setTimeout(() =>{ showDamageTypePopup('${damageType.toLowerCase()}')},1);"`
   return `<span class="icon ${damageType.toLowerCase()}" ${onClick}></span>`;
@@ -6914,20 +6935,18 @@ function addHint(elementId, useOverlay) {
         row.style.display = 'flex';
         row.style.marginTop = "1em";
         row.style.marginBottom = "1em";
-        row.style.border = "2px solid #aaa";
-        if(className == player.class){
-          row.style.border = "2px solid #393"
-        }
+        row.style.border = className === player.class ? "2px solid #393" : "2px solid #aaa";
         row.style.alignItems = 'center';
         row.style.padding = '0.5em';
-        if(lore.bgcolor){
-          row.style.background = `linear-gradient(90deg, ${lore.bgcolor}, #000)`;
+        row.style.cursor = 'pointer';
+        row.style.transition = 'background 0.3s';
+        if (lore.bgcolor) {
+            row.style.background = `linear-gradient(90deg, ${lore.bgcolor}, #000)`;
         }
-        
+        row.title = lore.short || lore.description || className;
 
         // Icon
-        let img = document.createElement('img');
-        img.src = `images/${className.toLowerCase()}.png`;
+        let img = getIcon(className);
         img.alt = className;
         img.style.width = '48px';
         img.style.height = '48px';
@@ -6937,7 +6956,7 @@ function addHint(elementId, useOverlay) {
         let info = document.createElement('div');
 
         let title = document.createElement('div');
-        let currentText = className == player.class?" (Selected)":""
+        let currentText = className === player.class ? " (Selected)" : "";
         title.textContent = `${className} (Level ${classInfo.level})${currentText}`;
         title.style.fontWeight = 'bold';
 
@@ -6950,75 +6969,75 @@ function addHint(elementId, useOverlay) {
         row.appendChild(img);
         row.appendChild(info);
 
-// ---- SUBDIV ----
-let subdiv = document.createElement('div');
-subdiv.style.display = 'none';
-subdiv.style.marginTop = '0.5em';
-subdiv.style.padding = '0.75em';
-subdiv.style.borderTop = '1px solid rgba(255, 255, 255, 0.2)';
-subdiv.style.background = 'linear-gradient(to right, #222, #333)';
-subdiv.style.color = '#ddd';
-subdiv.style.borderRadius = '4px';
-subdiv.style.boxShadow = 'inset 0 1px 3px rgba(0,0,0,0.3)';
-subdiv.textContent = className
+        // ---- SUBDIV ----
+        let subdiv = document.createElement('div');
+        subdiv.classList.add('class-details');
+        subdiv.style.display = 'none';
+        subdiv.style.marginTop = '0.5em';
+        subdiv.style.padding = '0.75em';
+        subdiv.style.borderTop = '1px solid rgba(255, 255, 255, 0.2)';
+        subdiv.style.background = 'linear-gradient(to right, #222, #333)';
+        subdiv.style.color = '#ddd';
+        subdiv.style.borderRadius = '4px';
+        subdiv.style.boxShadow = 'inset 0 1px 3px rgba(0,0,0,0.3)';
 
-// Skill Points
-let spText = document.createElement('div');
-spText.textContent = `Skill Points: ${classInfo.skillPoints || 0}`;
-spText.style.marginBottom = '0.5em';
-spText.style.fontWeight = 'bold';
-spText.style.color = '#fff';
+        // Skill Points
+        let spText = document.createElement('div');
+        spText.textContent = `Skill Points: ${classInfo.skillPoints || 0}`;
+        spText.style.marginBottom = '0.5em';
+        spText.style.fontWeight = 'bold';
+        spText.style.color = '#fff';
 
-// Skills Unlocked
-let skUnlockText = document.createElement('div');
-if (lore && lore.skillTree) {
-    let count = lore.skillTree.length;
-    let unlockedCount = player.skills.learned.filter(s => s && s.level &&
-    lore.skillTree.some(sk => sk.id === s.id)).length;
-    skUnlockText.textContent = `Skills Unlocked: ${unlockedCount} / ${count}`;
-} else {
-    skUnlockText.textContent = 'No Skills Unlocked';
-}
-skUnlockText.style.marginBottom = '0.5em';
-skUnlockText.style.color = '#ccc';
+        // Skills Unlocked
+        let skUnlockText = document.createElement('div');
+        if (lore && lore.skillTree) {
+            let count = lore.skillTree.length;
+            let unlockedCount = player.skills.learned.filter(s =>
+                s && s.level && lore.skillTree.some(sk => sk.id === s.id)
+            ).length;
+            skUnlockText.textContent = `Skills Unlocked: ${unlockedCount} / ${count}`;
+        } else {
+            skUnlockText.textContent = 'No Skills Unlocked';
+        }
+        skUnlockText.style.marginBottom = '0.5em';
+        skUnlockText.style.color = '#ccc';
 
-// Button
-let button = document.createElement('button');
-button.style.padding = '0.5em 1em';
-button.style.fontWeight = 'bold';
-button.style.border = '1px solid #666';
-button.style.borderRadius = '3px';
-button.style.backgroundColor = '#555';
-button.style.color = '#fff';
-button.style.cursor = 'pointer';
-button.style.marginTop = '0.5em';
-button.onmouseover = () => button.style.backgroundColor = '#666';
-button.onmouseout = () => button.style.backgroundColor = '#555';
+        // Button
+        let button = document.createElement('button');
+        button.style.padding = '0.5em 1em';
+        button.style.fontWeight = 'bold';
+        button.style.border = '1px solid #666';
+        button.style.borderRadius = '3px';
+        button.style.backgroundColor = '#555';
+        button.style.color = '#fff';
+        button.style.cursor = 'pointer';
+        button.style.marginTop = '0.5em';
+        button.onmouseover = () => button.style.backgroundColor = '#666';
+        button.onmouseout = () => button.style.backgroundColor = '#555';
 
-if (player.class === className) {
-    button.textContent = 'Current Class';
-    button.disabled = true;
-    button.style.backgroundColor = '#444';
-    button.style.cursor = 'default';
-} else {
-    button.textContent = 'Select Class';
-    button.onclick = () => selectClass(className);
-}
+        if (player.class === className) {
+            button.textContent = 'Current Class';
+            button.disabled = true;
+            button.style.backgroundColor = '#444';
+            button.style.cursor = 'default';
+        } else {
+            button.textContent = 'Select Class';
+            button.onclick = () => selectClass(className);
+        }
 
-subdiv.appendChild(spText);
-subdiv.appendChild(skUnlockText);
-subdiv.appendChild(button);
-        // Append
+        subdiv.appendChild(spText);
+        subdiv.appendChild(skUnlockText);
+        subdiv.appendChild(button);
+
+        // Append to menu
         menu.appendChild(row);
         menu.appendChild(subdiv);
 
-        // Click to toggle
-        row.onclick = function() {
-          let vis = subdiv.style.display == "block";
-            document.querySelectorAll('#menu-content > div:nth-child(even)').forEach(d => {
-                d.style.display = 'none';
-            });
-            subdiv.style.display = vis?'none':'block';
+        // Toggle logic
+        row.onclick = function () {
+            const isVisible = subdiv.style.display === 'block';
+            document.querySelectorAll('.class-details').forEach(d => d.style.display = 'none');
+            subdiv.style.display = isVisible ? 'none' : 'block';
         };
     }
 }
@@ -7670,12 +7689,17 @@ function hardReset(characterId) {
 function renderCharacterMenu() {
   const container = document.getElementById('main-area');
   container.innerHTML = ''; // Clear previous content
+
   const saveKey = `mythos-saveData`;
   const saveString = localStorage.getItem(saveKey);
   let unlockedSlots = 3;
   if (saveString) {
-    const saveData = JSON.parse(saveString);
-    unlockedSlots = saveData.characterSlots || 3;
+    try {
+      const saveData = JSON.parse(saveString);
+      unlockedSlots = saveData.characterSlots || 3;
+    } catch (e) {
+      console.warn("Failed to parse global save data:", e);
+    }
   }
 
   for (let i = 1; i <= 5; i++) {
@@ -7684,39 +7708,84 @@ function renderCharacterMenu() {
     const slot = document.createElement('div');
     slot.className = 'character-slot';
 
+    // Locked slot
     if (i > unlockedSlots) {
       slot.classList.add("locked");
-      slot.innerHTML = `
-        <h3>Slot ${i}: Locked</h3>
-      `;
+      slot.innerHTML = `<h3>Slot ${i}: Locked</h3>`;
       container.appendChild(slot);
       continue;
     }
 
+    // Used slot
     if (data) {
       try {
+        const parsed = JSON.parse(data);
+        const char = parsed.playerData;
+
         slot.classList.add("used");
-        const char = JSON.parse(data).playerData;
+
         const classLevel = (char.classData?.[char.class]?.level) || 0;
 
-        slot.innerHTML = `
-          <div class="character-info-container" style="display: flex; align-items: center; position: relative;">
-                          <button class="char-info-btn" onclick="showCharacterPopup(${i})">i</button>
-            <img src="images/${char.class}.png" alt="Character Class Icon" style="width: 64px; height: 64px; margin-right: 10px;">
-            <div>
-              <h3>Slot ${i}: ${char.name} (Lv ${char.level})</h3>
-              <p>${char.race} - ${char.class} (Class Lv ${classLevel})</p>
-              <div class="slot-buttons">
-                <button class='select-char-btn' onclick="selectCharacter(${i})">Select</button>
-                <button class="delete-char-btn" onclick="deleteCharacter(${i})">Delete</button>
-              </div>
-            </div>
-          </div>
-        `;
+        // Slot container
+        const charContainer = document.createElement('div');
+        charContainer.className = "character-info-container";
+        charContainer.style.display = "flex";
+        charContainer.style.alignItems = "center";
+        charContainer.style.position = "relative";
+
+        // Info button
+        const infoBtn = document.createElement('button');
+        infoBtn.className = "char-info-btn";
+        infoBtn.textContent = "i";
+        infoBtn.onclick = () => showCharacterPopup(i);
+        charContainer.appendChild(infoBtn);
+
+        // Class icon
+        const icon = getIcon(char.class);
+        icon.style.width = "64px";
+        icon.style.height = "64px";
+        icon.style.marginRight = "10px";
+        charContainer.appendChild(icon);
+
+        // Info section
+        const info = document.createElement('div');
+
+        const title = document.createElement('h3');
+        title.textContent = `Slot ${i}: ${char.name} (Lv ${char.level})`;
+        info.appendChild(title);
+
+        const subtitle = document.createElement('p');
+        subtitle.textContent = `${char.race} - ${char.class} (Class Lv ${classLevel})`;
+        info.appendChild(subtitle);
+
+        // Buttons
+        const buttonRow = document.createElement('div');
+        buttonRow.className = 'slot-buttons';
+
+        const selectBtn = document.createElement('button');
+        selectBtn.className = 'select-char-btn';
+        selectBtn.textContent = "Select";
+        selectBtn.onclick = () => selectCharacter(i);
+        buttonRow.appendChild(selectBtn);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-char-btn';
+        deleteBtn.textContent = "Delete";
+        deleteBtn.onclick = () => deleteCharacter(i);
+        buttonRow.appendChild(deleteBtn);
+
+        info.appendChild(buttonRow);
+        charContainer.appendChild(info);
+        slot.appendChild(charContainer);
       } catch (e) {
+        console.warn(`Failed to parse character slot ${i}:`, e);
         deleteCharacter(i);
+        slot.classList.add("error");
+        slot.innerHTML = `<h3>Slot ${i}: Corrupted Data</h3>`;
       }
-    } else {
+    }
+    // Empty slot
+    else {
       slot.classList.add("empty");
       slot.innerHTML = `
         <h3>Slot ${i}: Empty</h3>
