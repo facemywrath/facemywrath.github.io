@@ -4927,7 +4927,7 @@ function getIcon(key) {
 
   return icon;
 }
-function getDamageTypeIcon(damageType, clickable) {
+function getDamageTypeIcon(damageType, clickable=true) {
   const onClick = clickable
     ? `onclick="setTimeout(() =>{ showDamageTypePopup('${damageType.toLowerCase()}')},1);"`
     : '';
