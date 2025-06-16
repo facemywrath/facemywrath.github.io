@@ -4916,7 +4916,7 @@ function getIcon(key) {
 
   const icon = document.createElement('div');
   icon.classList.add('icon');
-  icon.style.flex = "1 1 auto"
+  icon.style.flex = "0 0 auto"
 
   if (validKeys.has(key)) {
     icon.classList.add(key);
