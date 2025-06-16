@@ -399,6 +399,15 @@
           "maxLevel": 10
         },
         {
+          "id": "lifeTap",
+          "level": 1,
+          "cost": 1,
+          "unlockCost": 3,
+          "maxLevel": 1,
+          "previousSkill": "energyWhip",
+          "previousSkillLevelRequired": 1
+        },
+        {
           "id": "summonVoidVine",
           "level": 1,
           "cost": 4,

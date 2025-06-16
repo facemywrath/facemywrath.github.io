@@ -2728,7 +2728,7 @@
       }
     ]
   },
-    "stellarBolt": {
+  "stellarBolt": {
     "name": "Stellar Bolt",
     "flavorText": "{casterName} flings a piece of a star at {targetName}!",
     "description": "Fling a piece of a star at an enemy, dealing minor void damage.",
@@ -2760,6 +2760,42 @@
           "target": "caster",
           "stat": "mp",
           "scale": 0.1
+        }]
+      }
+    ]
+  },
+  "lifeTap": {
+    "name": "Life Tap",
+    "flavorText": "{casterName} converts health into mana",
+    "description": "Convert your life force into mana.",
+    "cooldown": {
+      "base": 5,
+      "min": 3,
+      "scaling": []
+    },
+    "cost": {},
+    "target": "self",
+    "requiresTarget": false,
+    "effects": [
+      { 
+        "type": "gainEnergy",
+        "energyType": "mp", 
+        "base": 0,
+        "scaling": [{
+         "target": "caster",
+         "stat": "hp", 
+         "scale": 0.1
+        }]
+      },
+      { 
+        "type": "damage",
+        "target": "self", 
+        "base": 0,
+        "damageType": "void",
+        "scaling": [{
+         "target": "caster",
+         "stat": "hp", 
+         "scale": 0.1
         }]
       }
     ]

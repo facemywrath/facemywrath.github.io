@@ -948,7 +948,8 @@ let combatLogFilters = {
   condition: false,
   siphon: true,
   cleanse: false,
-  taunt: false
+  taunt: false,
+  gainEnergy: true
 }
 let combatLogFilterColors = {
   flavorText: {
@@ -964,6 +965,10 @@ let combatLogFilterColors = {
     enemy: "#f22"
   },
   heal: {
+    ally: "#dd0",
+    enemy: "#c22"
+  },
+  gainEnergy: {
     ally: "#dd0",
     enemy: "#c22"
   },
@@ -5872,6 +5877,15 @@ function passesTriggerConditions(effect, event, unit, talentId) {
           let desc = `${caster.name} cleansed ${stacks} stacks of ${toCleanse} on ${unit.name}`;
           updateCombatLog(desc, "cleanse", caster.isAlly?"ally":"enemy");
         }
+        break;
+      case "gainEnergy":
+        let amt = calculateEffectiveValue(effect, skillId, caster, target, skillLevel, skillContext);
+        let type = effect.energyType;
+        caster.stats[type].value = Math.min(caster.stats[`max${capitalize(type)}`].value,amt+caster.stats[type].value);
+        let desc = `${caster.name} gained ${amt.toFixed(2)} ${capitalize(type)}.`
+        updateCombatLog(desc,
+        caster, ["gainEnergy",caster.isAlly?"ally":"enemy"]);
+        updateCombatBar(caster, type)
         break;
       case "siphonEnergy":
         let amount = calculateEffectiveValue(effect, skillId, caster, target, skillLevel, skillContext);
