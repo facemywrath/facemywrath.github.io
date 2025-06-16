@@ -4916,7 +4916,6 @@ function getIcon(key) {
 
   const icon = document.createElement('div');
   icon.classList.add('icon');
-  icon.style.display = "inline-block;"
 
   if (validKeys.has(key)) {
     icon.classList.add(key);
