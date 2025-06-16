@@ -4916,9 +4916,7 @@ function getIcon(key) {
 
   const icon = document.createElement('div');
   icon.classList.add('icon');
-  icon.style.display = "inline-block"
-  icon.style.width = "100%"
-  icon.style.height = "100%"
+  icon.display = "inline-block;
 
   if (validKeys.has(key)) {
     icon.classList.add(key);
@@ -6950,7 +6948,6 @@ function addHint(elementId, useOverlay) {
 
         // Icon
         let img = getIcon(className);
-        img.alt = className;
         img.style.marginRight = '10px';
 
         // Info
