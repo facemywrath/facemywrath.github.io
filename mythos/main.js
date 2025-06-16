@@ -1,4 +1,4 @@
-let gameVersion = "0.1.x";
+let gameVersion = "0.11.x";
 let gameVerDiv = document.getElementById("version-bar")
 if(gameVerDiv){
   gameVerDiv.textContent = "Version: "+ gameVersion;
@@ -7742,7 +7742,7 @@ function renderCharacterMenu() {
 
         // Class icon
         const icon = getIcon(char.class);
-
+        icon.style.width = "3em;"
         icon.style.marginRight = "10px";
         charContainer.appendChild(icon);
 
