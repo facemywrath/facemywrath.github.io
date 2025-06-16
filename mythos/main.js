@@ -4916,6 +4916,8 @@ function getIcon(key) {
 
   const icon = document.createElement('div');
   icon.classList.add('icon');
+  icon.style.width = "100%"
+  icon.style.height = "100%"
 
   if (validKeys.has(key)) {
     icon.classList.add(key);
