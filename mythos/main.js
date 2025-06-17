@@ -6959,7 +6959,6 @@ function addHint(elementId, useOverlay) {
 
         // Icon
         let img = getIcon(className);
-        img.style.marginRight = '10px';
 
         // Info
         let info = document.createElement('div');
@@ -7751,7 +7750,6 @@ function renderCharacterMenu() {
 
         // Class icon
         const icon = getIcon(char.class);
-        icon.style.marginRight = "10px";
         charContainer.appendChild(icon);
 
         // Info section
