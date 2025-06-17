@@ -1,4 +1,4 @@
-let gameVersion = "0.11.x";
+let gameVersion = "0.1.x";
 let gameVerDiv = document.getElementById("version-bar")
 if(gameVerDiv){
   gameVerDiv.textContent = "Version: "+ gameVersion;
@@ -4932,8 +4932,7 @@ function getIcon(key) {
 const computed = window.getComputedStyle(icon);
 console.log('Position:', computed.backgroundPosition);
 console.log('Size:', computed.backgroundSize);
-console.log('Element offset size:', computed.offsetWidth, computed.offsetHeight);
-console.log('Element size:', computed.width, computed.height);
+console.log('Element size:', icon.getBoundingClientRect());
   }, 5)
   return div;
 }
