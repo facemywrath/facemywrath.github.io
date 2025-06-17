@@ -1142,10 +1142,11 @@ svg.lines {
     border-top: 10px solid blue;
 }
 .icon {
-  width: 100%;
+  width: 3em;
+  height: 3em;
   aspect-ratio: 1 / 1; /* keep square ratio */
   background-image: url('images/extended_sprite_sheet.png');
-  background-size: 500% 800%;
+  background-size: 15em 24em;
   background-repeat: no-repeat;
   background-position: 0% 0%;
   flex: 1 1 auto;
@@ -1156,6 +1157,7 @@ svg.lines {
   display: inline-block;
   width: 1em;
   height: 1em;
+  background-size: 5em 8em;
 }
 /* Row 1 */
 .icon.arcane     { background-position:   0%   0%; }
