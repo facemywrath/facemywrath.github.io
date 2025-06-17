@@ -4932,8 +4932,8 @@ function getIcon(key) {
 const computed = window.getComputedStyle(icon);
 console.log('Position:', computed.backgroundPosition);
 console.log('Size:', computed.backgroundSize);
-console.log('Element offset size:', icon.offsetWidth, icon.offsetHeight);
-console.log('Element size:', icon.width, icon.height);
+console.log('Element offset size:', computed.offsetWidth, computed.offsetHeight);
+console.log('Element size:', computed.width, computed.height);
   }, 5)
   return div;
 }
