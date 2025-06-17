@@ -4928,6 +4928,12 @@ function getIcon(key) {
   div.style.width = "100%";
   div.style.height = "100%";
   div.appendChild(icon)
+  setTimeout(() => {
+const computed = window.getComputedStyle(icon);
+console.log('Position:', computed.backgroundPosition);
+console.log('Size:', computed.backgroundSize);
+console.log('Element size:', icon.offsetWidth, icon.offsetHeight);
+  }, 5)
   return div;
 }
 function getDamageTypeIcon(damageType, clickable=true) {
