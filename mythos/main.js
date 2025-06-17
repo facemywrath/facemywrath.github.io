@@ -48,7 +48,7 @@ const debugLog = [];
 Array.prototype.random = function() {
   return this[Math.floor(Math.random() * this.length)];
 };
-let loadFromGithub = true;
+let loadFromGithub = false;
 let runAnalysis = false;
 let hintData;
 const updateSpeed = 100;
@@ -4925,8 +4925,14 @@ function getIcon(key) {
   }
   const div = document.createElement('div');
   div.style.display = "flex";
+  div.style.position = "relative"
   div.style.width = "100%";
   div.style.height = "100%";
+  icon.style.position = "absolute";
+  icon.style.top = "0px"
+  icon.style.bottom = "0px"
+  icon.style.left = "0px"
+  icon.style.right = "0px"
   div.appendChild(icon)
   setTimeout(() => {
 const computed = window.getComputedStyle(icon);
@@ -7750,6 +7756,7 @@ function renderCharacterMenu() {
 
         // Class icon
         const icon = getIcon(char.class);
+        icon.style.display = "block"
         icon.style.width = "128px;"
         icon.style.height = "128px;"
         charContainer.appendChild(icon);
