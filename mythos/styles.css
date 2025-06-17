@@ -1146,7 +1146,7 @@ svg.lines {
   height: 128px;
   aspect-ratio: 1 / 1; /* keep square ratio */
   background-image: url('images/extended_sprite_sheet.png');
-  background-size: 640px 1152px;
+  background-size: 640px 1024px;
   background-repeat: no-repeat;
   background-position: 0% 0%;
 }
@@ -1156,7 +1156,7 @@ svg.lines {
   display: inline-block;
   width: 1em;
   height: 1em;
-  background-size: 5em 9em;
+  background-size: 5em 8em;
   vertical-align: middle;
 }
 /* Row 1 */
