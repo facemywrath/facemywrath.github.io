@@ -7742,7 +7742,6 @@ function renderCharacterMenu() {
 
         // Class icon
         const icon = getIcon(char.class);
-        icon.style.width = "3em;"
         icon.style.marginRight = "10px";
         charContainer.appendChild(icon);
 
