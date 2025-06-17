@@ -4932,7 +4932,7 @@ function getIcon(key) {
 const computed = window.getComputedStyle(icon);
 console.log('Position:', computed.backgroundPosition);
 console.log('Size:', computed.backgroundSize);
-console.log('Element size:', icon.getBoundingClientRect());
+console.log('Element size:', JSON.stringify(icon.getBoundingClientRect(), null, 2));
   }, 5)
   return div;
 }
