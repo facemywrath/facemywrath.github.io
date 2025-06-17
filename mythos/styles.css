@@ -1148,7 +1148,7 @@ svg.lines {
   background-size: 500% 800%;
   background-repeat: no-repeat;
   background-position: 0% 0%;
-  flex: "1 1 auto";
+  flex: 1 1 auto;
 }
 
 /* Inline icons (e.g., for damage types) */
@@ -1156,7 +1156,6 @@ svg.lines {
   display: inline-block;
   width: 1em;
   height: 1em;
-  background-size: 5em 8em;
 }
 /* Row 1 */
 .icon.arcane     { background-position:   0%   0%; }
