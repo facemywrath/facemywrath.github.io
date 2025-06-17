@@ -1149,7 +1149,6 @@ svg.lines {
   background-size: 15em 24em;
   background-repeat: no-repeat;
   background-position: 0% 0%;
-  flex: 1 1 auto;
 }
 
 /* Inline icons (e.g., for damage types) */
