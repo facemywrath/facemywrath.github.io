@@ -1,4 +1,4 @@
-let gameVersion = "0.1.x";
+let gameVersion = "0.11.x";
 let gameVerDiv = document.getElementById("version-bar")
 if(gameVerDiv){
   gameVerDiv.textContent = "Version: "+ gameVersion;
@@ -4923,8 +4923,12 @@ function getIcon(key) {
     console.warn(`Icon key "${key}" is not recognized.`);
     icon.classList.add('unknown');
   }
-
-  return icon;
+  const div = document.createElement('div');
+  div.style.display = "flex";
+  div.style.width = "100%";
+  div.style.height = "100%";
+  div.appendChild(icon)
+  return div;
 }
 function getDamageTypeIcon(damageType, clickable=true) {
   const onClick = clickable

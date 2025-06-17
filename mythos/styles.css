@@ -1156,7 +1156,7 @@ svg.lines {
   display: inline-block;
   width: 1em;
   height: 1em;
-  vertical-align: middle;
+  background-size: 5em 8em;
 }
 /* Row 1 */
 .icon.arcane     { background-position:   0%   0%; }
