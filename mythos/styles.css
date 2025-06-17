@@ -1143,11 +1143,12 @@ svg.lines {
 }
 .icon {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1 / 1; /* keep square ratio */
   background-image: url('images/extended_sprite_sheet.png');
   background-size: 500% 800%;
   background-repeat: no-repeat;
   background-position: 0% 0%;
+  flex: "1 1 auto";
 }
 
 /* Inline icons (e.g., for damage types) */
