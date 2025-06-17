@@ -1,4 +1,4 @@
-let gameVersion = "0.1.x";
+let gameVersion = "0.11.x";
 let gameVerDiv = document.getElementById("version-bar")
 if(gameVerDiv){
   gameVerDiv.textContent = "Version: "+ gameVersion;
@@ -49,7 +49,7 @@ Array.prototype.random = function() {
   return this[Math.floor(Math.random() * this.length)];
 };
 let loadFromGithub = true;
-let runAnalysis = true;
+let runAnalysis = false;
 let hintData;
 const updateSpeed = 100;
 let skillToEquip = null; // temporarily holds a skill ID when "Equip" is clicked
