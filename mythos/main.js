@@ -7750,6 +7750,8 @@ function renderCharacterMenu() {
 
         // Class icon
         const icon = getIcon(char.class);
+        icon.style.width = "128px;"
+        icon.style.height = "128px;"
         charContainer.appendChild(icon);
 
         // Info section
