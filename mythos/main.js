@@ -1,23 +1,141 @@
-let gameVersion = "0.1.x";
+let gameVersion = "0.12.4.x";
 let gameVerDiv = document.getElementById("version-bar")
 if(gameVerDiv){
   gameVerDiv.textContent = "Version: "+ gameVersion;
 }
+let isSignedIn = false;
+let loadFromGithub = false;
+let runAnalysis = false;
 let loreDataCache = null;
 let damageTypeMultipliers = null;
 let skillsData = null;
 let unitsData = null;
 let talentsData = null;
+let timeshardConsumptionInterval = undefined;
+let debugEnemyTesting = false
+let debugEnemy = undefined
 const debugLog = [];
+const errorLog = [];
+function setRemFromViewport() {
+  const viewport = document.querySelector('.viewport');
+  const vw = viewport.offsetWidth;
+  document.documentElement.style.fontSize = (vw / 100 * 4)+ 'px'; // 1rem = 1% of .viewport width
+}
+
+// Run on load
+window.addEventListener('load', setRemFromViewport);
+// Run on resize or orientation change
+window.addEventListener('resize', setRemFromViewport);
+window.addEventListener('orientationchange', setRemFromViewport);
+document.addEventListener('click', function(event) {
+    const target = event.target;
+    const id = target.id || '(no id)';
+    
+    addToDebugLog("debug", `Clicked element with id: "${id}"`, JSON.stringify({
+        tag: target.tagName,
+        classes: [...target.classList].join(' ')
+    }));
+});
+function reportBug() {
+    let logText = ""
+    if (debugLog && debugLog.length > 0) {
+        logText = debugLog.join('\n');
+    } else {
+        logText = "There is nothing here";
+    }
+
+    
+
+    // Send logText instead of debugLog
+    fetch('/report-bug', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    errors: errorLog ? errorLog.join('\n') : "No errors found.",
+    logs: debugLog ? debugLog.join('\n') : "No logs found",
+    playerData: JSON.stringify(player, null, 2),
+    combatData: JSON.stringify(combatUnits, null, 2),
+    version: gameVersion
+  })
+})
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+    })
+    .catch(err => {
+        alert('Failed to report bug: ' + err.message);
+    });
+}
 (function () {
     const originalLog = console.log;
     const originalWarn = console.warn;
     const originalError = console.error;
 
+    let lastErrorNotificationTime = 0;
+    const ERROR_NOTIFICATION_COOLDOWN = 5000; // 5 seconds
+
+    function getStackLineInfo(type) {
+    try {
+      let count = (type=="error" || type == "global error")?3:1
+        const stack = new Error().stack;
+        if (!stack) return ["unknown location"];
+
+        const lines = stack.split('\n').slice(type=="debug"?3:4); // Skip "Error" and current function
+        const result = [];
+
+        for (let i = 0; i < lines.length && result.length < count; i++) {
+            const line = lines[i];
+            if (typeof line !== 'string') continue;
+
+            const trimmed = line.trim();
+            // Match the full path and extract just the file name + line number
+            const match = trimmed.match(/(?:at\s+)?(?:.*\/)?([^\/]+):(\d+):(\d+)/);
+            if (match) {
+                const [, filename, lineNum] = match;
+                result.push(`${filename}:${lineNum}`);
+            }
+        }
+
+        return result.length > 0 ? result : ["unknown location"];
+    } catch (e) {
+        return ["unknown location"];
+    }
+}
+
+    function formatISOToMMDDYY_HHMM(isoString) {
+        const date = new Date(isoString);
+        const MM = String(date.getMonth() + 1).padStart(2, '0');
+        const DD = String(date.getDate()).padStart(2, '0');
+        const YY = String(date.getFullYear()).slice(-2);
+        const HH = String(date.getHours()).padStart(2, '0');
+        const mm = String(date.getMinutes()).padStart(2, '0');
+        return `${MM}${DD}${YY}/${HH}${mm}`;
+    }
+
+    
+
     function addToDebugLog(type, ...args) {
-        const timestamp = new Date().toISOString();
-        const entry = `[${type.toUpperCase()}]  ${timestamp}:  ${args.join(', ')}`;
+        const timestamp = formatISOToMMDDYY_HHMM(new Date().toISOString());
+        const location = getStackLineInfo(type);
+        const entry = `[${type.toUpperCase()}] ${timestamp} @ ${location}: ${args.join(', ')}`;
         debugLog.push(entry);
+    }
+    function addToErrorLog(type, ...args) {
+        const timestamp = formatISOToMMDDYY_HHMM(new Date().toISOString());
+        const location = getStackLineInfo(type);
+        const entry = `[${type.toUpperCase()}] ${timestamp} @ ${location}: ${args.join(', ')}`;
+        errorLog.push(entry);
+    }
+
+    function handleErrorNotification() {
+        const now = Date.now();
+        if (now - lastErrorNotificationTime >= ERROR_NOTIFICATION_COOLDOWN) {
+            lastErrorNotificationTime = now;
+            if (typeof showDebugPopup === 'function') showDebugPopup();
+            if (typeof notify === 'function') notify("An Error Occurred");
+        }
     }
 
     console.log = function (...args) {
@@ -31,25 +149,34 @@ const debugLog = [];
     };
 
     console.error = function (...args) {
+    
+        addToErrorLog('error', ...args);
         addToDebugLog('error', ...args);
         originalError.apply(console, args);
+        handleErrorNotification();
     };
 
     window.addEventListener("error", function (event) {
         addToDebugLog('global error', event.message, event.filename, event.lineno);
+        addToErrorLog('global error', event.message, event.filename, event.lineno);
+        handleErrorNotification();
     });
 
     window.addEventListener("unhandledrejection", function (event) {
         addToDebugLog('unhandled rejection', event.reason, new Error().stack);
+        addToErrorLog('unhandled rejection', event.reason, new Error().stack);
+        handleErrorNotification();
     });
+
+    window.addToDebugLog = addToDebugLog;
+    window.addToErrorLog = addToErrorLog;
 })();
 
 
 Array.prototype.random = function() {
   return this[Math.floor(Math.random() * this.length)];
 };
-let loadFromGithub = false;
-let runAnalysis = false;
+
 let hintData;
 const updateSpeed = 100;
 let skillToEquip = null; // temporarily holds a skill ID when "Equip" is clicked
@@ -60,12 +187,12 @@ let combatHistory = ""
 let timeStartedTargetting = 0;
 let unitToCast = null;
 let unitCounter = 1;
-let regenIntervals = [];
+let regenIntervals = {}
 let dotIntervals = [];
 let burningIntervals = {};
 let forceContinue = false;
 let talentListeners = [];
-let skillIntervals = [];
+let skillIntervals = {};
 let isDragging = false;
 let isCombatPaused = false;
 let startX, startY, scrollLeft, scrollTop;
@@ -347,7 +474,7 @@ const gearTypes = {
       { stat: "damageTaken", weight: 3, multi: 0.997 },
       { stat: "critMulti", weight: 2, multi: 1.007 },
       { stat: "evasion", weight: 2, multi: 1.003 },
-      { stat: "hpRegen", weight: 2, multi: 1.02 },
+      { stat: "hp", weight: 2, multi: 1.02 },
       { stat: "lifestealMulti", weight: 1, multi: 1.008 }
     ]
   },
@@ -1038,6 +1165,7 @@ const damageTypeBreakdown = {
   blunt: { physical: 1 }
 };
 let settings = {
+  timeShardSpeed: 1,
   confirmLeaveCombat: true,
   confirmTrashItem: true,
   friendlyFire: false,
@@ -1073,7 +1201,7 @@ const conditionsData = {
         // Initialize stunTimeouts array if not present
         if (!target.stunTimeouts) target.stunTimeouts = [];
 
-        updateCombatLog(`${target.name} has become stunned!`, caster, ["condition", target.isAlly ? "ally" : "enemy"]);
+      CombatLog(`${target.name} has become stunned!`, caster, ["condition", target.isAlly ? "ally" : "enemy"]);
          console.log(event.effect.duration.base)
         const timeout = setTimeout(() => {
           // Re-check combat state and if target is still stunned
@@ -1164,7 +1292,7 @@ const conditionsData = {
             updateStatusButton(target);
           }
 
-        }, 1000);
+        }, 1000/settings.timeShardSpeed);
       }
     });
   }
@@ -1200,7 +1328,13 @@ player = {
   classData: {
   },
   xp: 0,
-  maxXp: 30,
+  maxXp: 40,
+  timeShards: {
+    count: 0,
+    max: 900,
+    accumulation: 100,
+    upgradeLevels: [0,0]
+  },
   attributePoints: 0,
   skillSlots: 2,
   inventorySlots: 8,
@@ -1238,17 +1372,16 @@ player = {
       display: "Max HP",
       base: 45,
       scaling: [{
-        target: "caster", stat: "constitution", scale: 4
+        target: "caster", stat: "constitution", scale: 2
       },
-      {target: "caster", stat: "strength", scale: 1.01, effect: "multi"},
-      {target: "caster", stat: "tier", scale: 3}],
+      {target: "caster", stat: "strength", scale: 0.75, effect: "add"}],
       value: 45
     },
     hpRegen: {
       display: "HP Regen",
       base: 0,
       scaling: [{
-        target: "caster", stat: "constitution", scale: 0.05
+        target: "caster", stat: "constitution", scale: 0.03
       }],
       value: 0
     },
@@ -1260,7 +1393,7 @@ player = {
       display: "Max SP",
       base: 20,
       scaling: [{
-        target: "caster", stat: "constitution", scale: 2
+        target: "caster", stat: "constitution", scale: 1
       }],
       value: 20
     },
@@ -1268,7 +1401,7 @@ player = {
       display: "SP Regen",
       base: 1,
       scaling: [{
-        target: "caster", stat: "strength", scale: 0.1
+        target: "caster", stat: "strength", scale: 0.075
       }],
       value: 1
     },
@@ -1276,7 +1409,7 @@ player = {
       display: "SP Efficiency",
       base: 1,
       scaling: [{
-        target: "caster", stat: "dexterity", scale: -0.01
+        target: "caster", stat: "dexterity", scale: 0.9995, effect: "multi"
       }],
       value: 1
     },
@@ -1288,10 +1421,10 @@ player = {
       display: "Max MP",
       base: 40,
       scaling: [{
-        target: "caster", stat: "intellect", scale: 1.25
+        target: "caster", stat: "intellect", scale: 0.8
       },
         {
-          target: "caster", stat: "willpower", scale: 1.25
+          target: "caster", stat: "willpower", scale: 0.8
         }],
       value: 40,
     },
@@ -1299,7 +1432,7 @@ player = {
       display: "MP Regen",
       base: 1,
       scaling: [{
-        target: "caster", stat: "wisdom", scale: 0.1
+        target: "caster", stat: "wisdom", scale: 0.07
       }],
       value: 1
     },
@@ -1307,10 +1440,10 @@ player = {
       display: "MP Efficiency",
       base: 1,
       scaling: [{
-        target: "caster", stat: "wisdom", scale: -0.005
+        target: "caster", stat: "wisdom", scale: 0.9995, effect: "multi"
       },
       {
-        target: "caster", stat: "willpower", scale: -0.002
+        target: "caster", stat: "willpower", scale: 0.9998, effect: "multi"
       }],
       value: 1
     },
@@ -1322,10 +1455,12 @@ player = {
     critChance: {
       display: "Critical Hit Chance",
       base: 0,
+      value: 0
     },
     critMulti: {
       display: "Critical Hit Damage Multiplier",
-      base: 2
+      base: 2,
+      value: 0
     },
     evasion: {
       display: "Evasion",
@@ -1334,17 +1469,17 @@ player = {
       scaling: [{
         "target": "caster",
         "stat": "wisdom",
-        "scale": 1
+        "scale": 0.6
       }]
     },
     accuracy: {
       display: "Accuracy",
-      value: 1,
-      base: 1,
+      value: 10,
+      base: 10,
       scaling: [{
         "target": 'caster',
         "stat": "dexterity",
-        "scale": 1
+        "scale": 0.7
       }]
     },
     lifestealMulti: {
@@ -1394,7 +1529,7 @@ player = {
     storage: []
   },
   skills: {
-    equipped: [],
+    equipped:[],
     learned: [
 ],
     combatData: {
@@ -1427,74 +1562,154 @@ const classToPlanet = {
   "Foresworn": "Halcyon Bastion",
   "Ironveil": "Gravemount"
 };
-async function getLoreData() {
-  menuContent = document.getElementById("menu-content");
-  try {
+(() => {
+  // --- CONFIG ---
+  const jsonFiles = [
+    "game_lore_data.json",
+    "damageType_multipliers.json",
+    "new-skills.json",
+    "units.json",
+    "talents.json"
+  ];
+  const spriteFiles = [
+    "images/extended_sprite_sheet.png",
+    "images/planets_spritesheet.png"
+  ];
+  const baseURL = loadFromGithub ? "https://raw.githubusercontent.com/facemywrath/facemywrath.github.io/main/mythos/"
+    : "";
+
+  // --- PROGRESS BAR SETUP ---
+  let loadedCount = 0;
+  const totalCount = jsonFiles.length + spriteFiles.length;
+  function incrementLoadingBar() {
+    loadedCount++;
+    const pct = Math.round((loadedCount / totalCount) * 100);
+    document.getElementById("loading-bar").style.width = pct + "%";
+  }
+
+  // --- LOAD HELPERS ---
+  async function loadJSON(path) {
+    const res = await fetch(baseURL + path);
+    if (!res.ok) throw new Error(`Failed to load ${path}`);
+    const data = await res.json();
+    incrementLoadingBar();
+    return data;
+  }
+
+  function loadImage(path) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = baseURL + path;
+    img.onload = async () => {
+      try {
+        if (img.decode) await img.decode();
+        incrementLoadingBar();
+        resolve(img);
+      } catch (_){
+        // if decode() isn’t supported, just resolve anyway
+        incrementLoadingBar();
+        resolve(img);
+      }
+    };
+    img.onerror = () => reject(new Error(`Failed to load ${path}`));
+  });
+}
+
+  // --- LORE DATA & PROCESSING ---
+  async function getLoreData() {
     if (!loreDataCache) {
+      console.log("GAME VERSION:", gameVersion);
 
-      const baseURL = loadFromGithub?"https://raw.githubusercontent.com/facemywrath/facemywrath.github.io/main/mythos/":"";
-
+      // parallel JSON loads
       const [
-        loreRes,
-        multiplierRes,
-        skillsRes,
-        unitsRes,
-        talentsRes
-      ] = await Promise.all([
-        fetch(baseURL + "game_lore_data.json"),
-        fetch(baseURL + "damageType_multipliers.json"),
-        fetch(baseURL + "skills.json"),
-        fetch(baseURL + "units.json"),
-        fetch(baseURL + "talents.json")
-      ]);
-      console.log("GAME VERSION: "+gameVersion)
-      console.log("fetching loredata");
-      loreDataCache = await loreRes.json();
-      console.log("fetching skillsdata");
-      skillsData = await skillsRes.json();
-      console.log("fetching damage type");
-      damageTypeMultipliers = normalizeDamageTypeMultipliers(await multiplierRes.json());
-      console.log("fetching units data");
-      unitsData = await unitsRes.json();
-      console.log("fetching talents data");
-      talentsData = await talentsRes.json();
+        loreRaw,
+        multiplierRaw,
+        skillsRaw,
+        unitsRaw,
+        talentsRaw
+      ] = await Promise.all(jsonFiles.map(f => loadJSON(f)));
 
+      // assign
+      console.log("fetching lore")
+      loreDataCache = loreRaw;
+      console.log("fetching skills")
+      skillsData = skillsRaw;
+      console.log("fetching damageTypes")
+      damageTypeMultipliers = normalizeDamageTypeMultipliers(multiplierRaw);
+      console.log("fetching units")
+      unitsData = unitsRaw;
+      console.log("fetching talents")
+      talentsData = talentsRaw;
+
+
+      // post-fetch processing
       const allTypes = Object.keys(damageTypeMultipliers);
-      Object.keys(skillsData).forEach(sk => {
-        skillsData[sk].levelUpEffects = findSkillLevelScalingPaths(skillsData[sk]);
+      Object.values(skillsData).forEach(skill => {
+        skill.levelUpEffects = findSkillLevelScalingPaths(skill);
       });
 
       function formatDamageTypesInText(text) {
         for (const type of allTypes) {
-          const regex = new RegExp(`\\b(${type})\\b`, 'gi');
-          if (regex.test(text)) {
-            text = text.replace(regex, match => `${match} ${getDamageTypeIcon(type)}`);
-          }
+          const rx = new RegExp(`\\b(${type})\\b`, "gi");
+          text = text.replace(rx, m => `${m} ${getDamageTypeIcon(type)}`);
         }
         return text;
       }
 
-      for (const race in loreDataCache.races) {
-        loreDataCache.races[race].bonuses = loreDataCache.races[race].bonuses.map(line =>
-          formatDamageTypesInText(line)
-        );
+      // annotate bonuses
+      for (const r of Object.values(loreDataCache.races)) {
+        r.bonuses = r.bonuses.map(line => formatDamageTypesInText(line));
+      }
+      for (const c of Object.values(loreDataCache.classes)) {
+        c.bonuses = c.bonuses.map(line => formatDamageTypesInText(line));
       }
 
-      for (const cls in loreDataCache.classes) {
-        loreDataCache.classes[cls].bonuses = loreDataCache.classes[cls].bonuses.map(line =>
-          formatDamageTypesInText(line)
-        );
-      }
+      // init conditions
+      Object.values(conditionsData).forEach(cd => cd.init());
     }
-
-    Object.keys(conditionsData).forEach(key => conditionsData[key].init());
+    
     return loreDataCache;
-
-  } catch (e) {
-    console.error(e.stack, e)
-    menuContent.textContent = e.stack;
   }
-}
+
+  // --- ENTRYPOINT ---
+  async function init() {
+    try {
+      document.getElementById("game-ver").textContent = gameVersion
+      // load & process all JSON
+      const lore = await getLoreData();
+
+      // preload spritesheets
+      await Promise.all(spriteFiles.map(f => loadImage(f)));
+
+      // populate class dropdown
+      const classSelect = document.getElementById("char-class");
+      if (classSelect) {
+        classSelect.innerHTML = '<option value="">-- Select a class --</option>';
+        for (const cls of Object.keys(lore.classes)) {
+          const opt = document.createElement("option");
+          opt.value = cls;
+          opt.textContent = cls;
+          classSelect.appendChild(opt);
+        }
+        classSelect.disabled = false;
+      }
+
+      // hide loader & kick off your UI
+      document.getElementById("loading-screen").classList.add("hidden");
+      
+      renderCharacterMenu();
+
+    } catch (err) {
+      console.error("Loader error:", err);
+      const screen = document.getElementById("loading-screen");
+      screen.textContent = "Failed to load. " + err;
+    }
+  }
+
+  // wait for DOM ready
+  document.addEventListener("DOMContentLoaded", init);
+})();
+
 function updateMenuButton(btn, string) {
   const icon = getComputedStyle(btn).getPropertyValue('--icon').trim();
   btn.style.backgroundImage = `${string}, ${icon}`
@@ -1510,20 +1725,7 @@ function normalizeDamageTypeMultipliers(data) {
   }
   return normalized;
 }
-document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    await getLoreData();
-    document.getElementById("loading-screen").classList.add("hidden");
-    initializeMenuButtons();
-    // const saved = localStorage.getItem("playerCharacter");
-    // player = saved ? JSON.parse(saved) : null;
 
-    renderCharacterMenu();
-  } catch (e) {
-    console.error("Failed to load game data:", e);
-    document.getElementById("loading-screen").innerText = "Failed to load. Check console for details.";
-  }
-});
 function setSectionVisibility(id, vis) {
   const el = document.getElementById(id);
   el.style.display = vis == true ? 'block': 'none';
@@ -1536,21 +1738,27 @@ function toggleSection(id) {
 function recalculateStat(unit, statName) {
   const attr = unit.attributes;
   const stat = unit.stats[statName];
-  if (statName == "hp" || statName == "sp" || statName == "mp") {
-    return;
-  }
+  const energyStats = ["hp","mp","sp"]
+  const multiStats = ["damageTaken","damageAmp","cooldownReduction", "spEfficiency", "mpEfficiency"]
   if (!stat) {
-    console.warn(`Stat "${statName}" not found on unit.`);
+    console.warn(`Stat "${statName}" not found on unit. Adding it.`);
+    stat = {}
+  }
+  if(!stat.value){
+    if(multiStats.includes(statName)){
+      stat.value = 1;
+    }else{
+      stat.value = 0;
+    }
+  }
+  if (energyStats.includes(statName)) {
     return;
   }
-  if (isNaN(stat.value)) {
-    console.error("Stat set to 0 from NaN", statName, stat);
-    stat.value = 0;
-  }
+  
 
   let base = getStatValue(statName, stat, unit);
   if (isNaN(base)) {
-    console.error("base is NaN", stat);
+    console.log("base is NaN", stat);
   }
   if(unit.id == 0 && unit.skills.learned){
 const talentEffects = [].concat(...unit.skills.learned
@@ -1620,6 +1828,7 @@ const talentEffects = [].concat(...unit.skills.learned
 
   let oldValue = stat.value;
   stat.value = gearMulti * debuffMulti * buffMulti * base;
+  
 
   const hpStats = ["hp", "maxHp"];
   const spStats = ["sp", "maxSp"];
@@ -1645,7 +1854,6 @@ const talentEffects = [].concat(...unit.skills.learned
 function recalculateDerivedStats(unit) {
   const attr = unit.attributes;
   const stats = unit.stats;
-
   Object.keys(stats).forEach(stat => {
     recalculateStat(unit, stat)
   })
@@ -1682,7 +1890,7 @@ function getEffectiveResistances(targetType) {
 }
 // Character creation handler
 function handleCharacterCreation() {
-
+  loadTopBar("combat")
   document.getElementById("menu-content").classList.remove("hidden")
   const name = document.getElementById("char-name").value.trim();
   const race = document.getElementById("char-race").value;
@@ -1700,11 +1908,16 @@ function handleCharacterCreation() {
     alert("Please select a Class.");
     return;
   }
+  const now = new Date(Date.now());
+  const formattedTimestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+console.log(formattedTimestamp); // Example: "2025-07-04 15:12:45"
   Object.assign(player, {
     name,
     race,
     class: chosenClass,
-    damageType: loreDataCache.races[race].damageType
+    damageType: loreDataCache.races[race].damageType,
+    dateCreated: formattedTimestamp,
+    versionCreated: gameVersion
   });
   
   
@@ -1725,6 +1938,7 @@ function handleCharacterCreation() {
   const zoneLogs = Object.entries(loreDataCache.zones)
   .filter(([zone]) => loreEntry && zone.includes(startingPlanet.split(" ")[0]))
   .map(([zone, desc]) => ">" + zone + ": " + desc);
+  console.log(JSON.stringify(loreDataCache))
   showMenu("journey");
   let damageTypes = "none"
   if (loreDataCache.planets[startingPlanet].damageTypes) {
@@ -1732,8 +1946,9 @@ function handleCharacterCreation() {
     .map(type => getDamageTypeIcon(type))
     .join(", ");
   }
+  initializeMenuButtons();
+  
   document.getElementById("menu-buttons").classList.remove("hidden")
-  document.getElementById("top-bar").style.display = "flex"
   document.getElementById("planet-name").textContent = player.planet
   document.getElementById("zone-name").style.display = "none"
   document.getElementById("encounter-bar").classList.add("hidden")
@@ -1747,14 +1962,11 @@ function handleCharacterCreation() {
   document.getElementById("menu-buttons").style.display = "flex";
 
   // Set main-area to show the planet image
-  document.getElementById("main-area").innerHTML = `
-  <img src="images/${startingPlanet}.png" alt="${startingPlanet}" class="zone-art">
-  `;
 
 
   recalculateDerivedStats(player);
   console.log(player.stats)
-  
+  setTimeShardInterval();
 
   // Set menu-content to load the lore screen
 
@@ -1792,7 +2004,11 @@ function getRaceDamageType(race) {
   };
   return mapping[race] || "Physical";
 }
-
+function getPlanetDiv(name) {
+  const div = document.createElement('div');
+  div.classList.add('planet', name.toLowerCase().replace(/\s+/g, '-'));
+  return div;
+}
 // Menu button listener
 function initializeMenuButtons() {
   document.querySelectorAll("#menu-buttons button").forEach(button => {
@@ -1800,42 +2016,26 @@ function initializeMenuButtons() {
       button.style.position = "relative"
       let spPip = document.createElement('div')
       spPip.id = "skills-pip"
-      spPip.textContent="0"
+      spPip.textContent = player?.classData?.[player?.class]?.skillPoints || 0;
       button.appendChild(spPip)
     }
+    else if(button.id == "character-btn"){
+      button.style.position = "relative"
+      let apPip = document.createElement('div')
+      apPip.id = "attributes-pip"
+      apPip.textContent = player?.attributePoints || 0;
+      button.appendChild(apPip)
+    }
     button.addEventListener("click", () => {
-      const menu = button.dataset.menu;
-      if (player.inCombat && settings.confirmLeaveCombat) {
-        setTimeout(() => showPopup(`
-          <h2 style="color: #d88">Are you sure?</h2>
-          <span>Opening another menu in combat will cancel the encounter. You'll have to restart this fight.</span>
-          <div style="display: flex; margin-top: 70px; position: relative;">
-          <button style="background: linear-gradient(#844,#633); position: absolute; bottom: 1em; left: 1em; border-radius: 1em;" onclick="showMenu('${menu}')">Continue</button>
-          <button style="background: linear-gradient(#484,#363); position: absolute; bottom: 1em; right: 1em; border-radius: 1em;" onclick="document.getElementById('popup-overlay').remove()">Go Back</button>
-          </div>
-          `), 1);
-        return;
-      }
-      showMenu(menu);
-    });
+  const menu = button.dataset.menu;
+  if (player.inCombat && settings.confirmLeaveCombat) {
+    showConfirmLeaveCombatPopup(() => showMenu(button.dataset.menu));
+    return;
+  }
+  showMenu(menu);
+});
   });
 }
-(async () => {
-  const loreData = await fetch('game_lore_data.json').then(res => res.json());
-  const classSelect = document.getElementById("char-class");
-  if (classSelect) {
-    classSelect.innerHTML = '<option value="">-- Select a class --</option>';
-    for (const className in loreData.classes) {
-      const option = document.createElement("option");
-      option.value = className;
-      option.textContent = className;
-      classSelect.appendChild(option);
-    }
-    classSelect.disabled = false;
-
-  }
-});
-
 
 
 
@@ -1942,6 +2142,49 @@ function recalculateTotalResistances(unit) {
         unit.totalResistances[type] = getEffectiveResistanceMultiplier(type, resistances, breakdownMap);
     }
 }
+function resetAttributes(){
+
+  const totalLevel = Object.values(player.classData).reduce((sum, obj) => sum + (obj.level || 0), 0);
+  let totalAttrPoints = totalLevel*3;
+  player.attributesGained =  {
+    strength: 5,
+    dexterity: 5,
+    constitution: 5,
+    intellect: 5,
+    wisdom: 5,
+    willpower: 5
+  };
+  let keys = Object.keys(player.attributes);
+  player.attributePoints = totalAttrPoints;
+  for (let i = 0; i < 6; i++) {
+      player.attributesGained[keys[i]] += loreDataCache.classes[player.class].attributes[i]*totalLevel;
+    }
+    calculateAttributes(player);
+}
+
+function refundSkills() {
+  let refundedPoints = 0;
+  const learnedSkills = player.skills.learned;
+  const skillTree = loreDataCache.classes[player.class].skillTree;
+
+  for (let learned of learnedSkills) {
+    const skill = skillTree.find(s => s.id === learned.id);
+    if (!skill) continue;
+
+    // Add unlock cost once
+    refundedPoints += skill.unlockCost || 0;
+
+    // Add cost per level
+    refundedPoints += (skill.cost || 1) * (learned.level-1);
+  }
+
+  // Clear learned skills and refund points
+  player.skills.learned = [{
+    id: loreDataCache.classes[player.class].starterSkill,
+    level: 1
+  }]
+  player.classData[player.class].skillPoints += (player.classData[player.class].skillPoints || 0) + refundedPoints;
+}
 
 // Sample player and enemy data
 function increaseAttribute(attr) {
@@ -1949,6 +2192,7 @@ function increaseAttribute(attr) {
     player.attributesGained[attr]++;
     player.attributePoints--;
     calculateAttributes(player);
+    updatePips()
     let affectedStats = Object.keys(player.stats).filter(s =>
       player.stats[s].scaling &&
       player.stats[s].scaling.some(sc => sc.stat.toLowerCase() === attr.toLowerCase())
@@ -2086,8 +2330,55 @@ function showCharacterCreation(charId) {
     showMenu("character");
   }
 }
+function getVisitablePlanets() {
+    const allPlanetKeys = Object.keys(loreDataCache.planets);
 
+    const planetsUnlocked = allPlanetKeys.filter(planet =>
+        player.planetsProgress[planet] &&
+        (
+            player.planetsProgress[planet].timesCompleted > 0 ||
+            player.planet === planet ||
+            player.progressingPlanet === planet
+        )
+    );
 
+    const planetsCompleted = planetsUnlocked.filter(planet =>
+        player.planetsProgress[planet] && player.planetsProgress[planet].completed
+    );
+
+    const allPlanetsCompleted = arraysEqual(planetsUnlocked, planetsCompleted);
+
+    return allPlanetKeys.filter(planet =>
+        allPlanetsCompleted
+            ? loreDataCache.planets[planet].startingPlanet || player.planetsProgress[planet]
+            : player.planetsProgress[planet] &&
+              (
+                  player.planetsProgress[planet].timesCompleted > 0 ||
+                  player.planet === planet ||
+                  player.progressingPlanet === planet
+              )
+    );
+}
+function formatTime(seconds) {
+  seconds = Math.floor(seconds); // Ensure it's an integer
+
+  if (seconds < 60) return `${seconds}s`;
+
+  const d = Math.floor(seconds / 86400);
+  const h = Math.floor((seconds % 86400) / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+
+  const pad = (num) => num.toString().padStart(2, '0');
+
+  if (d > 0) {
+    return `${d}:${pad(h)}:${pad(m)}:${pad(s)}`;
+  } else if (h > 0) {
+    return `${(h)}:${pad(m)}:${pad(s)}`;
+  } else {
+    return `${(m)}:${pad(s)}`;
+  }
+}
 
 function arraysEqual(a, b) {
     if (a.length !== b.length) return false;
@@ -2099,13 +2390,120 @@ function arraysEqual(a, b) {
     return true;
 }
 
+function updateTimeShardSpeed(val){
+  settings.timeShardSpeed = val;
+  let ele = document.getElementById("timeshard-usage-text")
+  if(ele){
+  ele.textContent = `Speed: ${settings.timeShardSpeed}x | Usage: ${settings.timeShardSpeed-1}s / second (while in combat)`;
+  }
+  if(player.inCombat){
+    Object.values(regenIntervals).forEach(regi => clearInterval(regi));
+    regenIntervals = {};
+    combatUnits.forEach(unit => {
+      regenIntervals[unit.id] = setInterval(() => {
+      if (player.inCombat && findUnitById(unit.id)) {
+        updateUnitRegens(unit); // Or loop through all allies
+      } else {
+        clearInterval(regenIntervals[unit.id]);
+      }
+    },
+      1000/settings.timeShardSpeed);
+    })
+  }
+}
+function levelUpTimeShardsUpgrade(upgradeIndex){
+  console.log("attempting level up upg", upgradeIndex);
+  let ts = player.timeShards
+  const upgrades = [
+    {
+      key: 0,
+      playerKey: "max",
+      label: "Upgrade Max",
+      cost: Math.floor(800 * Math.pow(2, ts.upgradeLevels[0])),
+      current: ts.max,
+      next: 900* Math.pow(2, player.timeShards.upgradeLevels[0]+1)
+    },
+    {
+      key: 1,
+      playerKey: "accumulation",
+      label: "Upgrade Accumulation",
+      cost: Math.floor(300 * Math.pow(1.75, ts.upgradeLevels[1])),
+      current: ts.accumulation,
+      next: 100* (6 / (1 + 5 * Math.pow(7,(-1*player.timeShards.upgradeLevels[1]+1 )/ 5)))
+    }
+    ]
+    let upg = upgrades[upgradeIndex]
+  if(player.timeShards.count < upg.cost){
+    console.log("not enough timeshards", player.timeShards.count, upg.cost)
+    return;
+  }
+  console.log("upgrading...")
+  player.timeShards.count -= upg.cost
+  player.timeShards.upgradeLevels[upgradeIndex]++;
+  switch(upgradeIndex){
+    case 0:
+      player.timeShards.max = upg.next
 
+      
+      break;
+    case 1:
+      player.timeShards.accumulation = upg.next
+      let accText = document.getElementById("timeshard-acc-text");
+      if(accText){
+        accText.textContent = `${formatTime(player.timeShards.accumulation)} / hr`;
+      }
+      break;
+  }
+  console.log("upgrade successful, updating ui");
+  let countText = document.getElementById("timeshard-count-text");
+      if(countText){
+        countText.textContent = `${formatTime(ts.count)} / ${formatTime(ts.max)}`;
+      }
+      updateTimeshardUpgradeButton(upgradeIndex)
+        let timeshardProgressBar = document.getElementById("timeshard-progress-bar");
+      if(timeshardProgressBar){
+        timeshardProgressBar.style.width = `${Math.min((player.timeShards.count / player.timeShards.max) * 100, 100)}%`
+      }
+}
+function updateTimeshardUpgradeButton(upgradeIndex){
+    let ts = player.timeShards
+  const upgrades = [
+    {
+      key: 0,
+      playerKey: "max",
+      label: "Upgrade Max",
+      cost: Math.floor(800 * Math.pow(2, ts.upgradeLevels[0])),
+      current: ts.max,
+      next: 900* Math.pow(2, player.timeShards.upgradeLevels[0]+1)
+    },
+    {
+      key: 1,
+      playerKey: "accumulation",
+      label: "Upgrade Accumulation",
+      cost: Math.floor(300 * Math.pow(1.75, ts.upgradeLevels[1])),
+      current: ts.accumulation,
+      next: 100* (6 / (1 + 5 * Math.pow(7,(-1*player.timeShards.upgradeLevels[1]+1 )/ 5)))
+    }
+    ]
+    let upg = upgrades[upgradeIndex]
+    let upgBtn = document.getElementById("timeshard-upg-"+upgradeIndex);
+  if(upgBtn){
+    upgBtn.innerHTML = `      ${upg.label}<br>
+      <span style="font-size: 0.8rem; color: #ccc;">Lv: ${ts.upgradeLevels[upgradeIndex]} | Cost: ${formatTime(upg.cost)}</span><br>
+      <span style="font-size: 0.8rem; color: #aaa;">Next: ${formatTime(upg.next)}</span><br>
+      <span style="font-size: 0.8rem; color: #aaa;">(Current: ${formatTime(upg.current)})</span>`
+  }
+}
 function showMenu(menu) {
+  addToDebugLog("debug", "Showing Menu '" + menu+"'")
   document.querySelectorAll(".popup-overlay").forEach(e=>e.remove())
-  saveCharacter()
+  debugEnemy = undefined;
+  debugEnemyTesting = false;
+  saveCharacter(true)
   player.inCombat = false
   updateMenuButton(document.getElementById(menu + "-btn"), "linear-gradient(rgba(255,255,255,0.5),rgba(50,50,50,0.5))")
   const main = document.getElementById("main-area");
+  main.style.height = "30vh"
   const menuContent = document.getElementById("menu-content");
   menuContent.onclick = null
   main.innerHTML = "";
@@ -2114,15 +2512,132 @@ function showMenu(menu) {
     btn.classList.toggle("active",
       btn.dataset.menu === menu);
   });
-  skillIntervals.forEach(ski => clearInterval(ski));
-  regenIntervals.forEach(regi => clearInterval(regi))
-  skillIntervals = []
-  regenIntervals = [];
+  Object.values(skillIntervals).forEach((value) => clearInterval(value))
+  Object.values(regenIntervals).forEach((value) => clearInterval(value))
+
+  skillIntervals = {};
+  regenIntervals = {};
   document.querySelectorAll(".menu-section").forEach(section => {
     section.style.display = section.id === `${menu}-menu` ? "block": "none";
   });
 
   switch (menu) {
+    case "time-shards":
+      console.log("hello(ts)")
+  main.innerHTML = "";
+  menuContent.innerHTML = "";
+
+  const ts = player.timeShards;
+  const count = ts.count;
+  const max = ts.max;
+  const accumulation = ts.accumulation;
+
+  const container = document.createElement("div");
+  container.style.padding = "1rem";
+
+  // Progress bar
+  const progressContainer = document.createElement("div");
+  progressContainer.style.background = "#333";
+  progressContainer.style.border = "0.1rem solid #666";
+  progressContainer.style.borderRadius = "0.5rem";
+  progressContainer.style.height = "1.5rem";
+  progressContainer.style.width = "100%";
+  progressContainer.style.marginBottom = "0.5rem";
+  progressContainer.style.position = "relative";
+
+  const progressFill = document.createElement("div");
+  progressFill.id = "timeshard-progress-bar"
+  progressFill.style.background = "#39f";
+  progressFill.style.height = "100%";
+  progressFill.style.width = `${Math.min((count / max) * 100, 100)}%`;
+  progressFill.style.borderRadius = "0.5rem 0 0 0.5rem";
+
+  progressContainer.appendChild(progressFill);
+  container.appendChild(progressContainer);
+
+  // Count and Accumulation Info
+  const countText = document.createElement("div");
+  countText.id = "timeshard-count-text"
+  countText.style.color = "#fff";
+  countText.style.marginBottom = "0.5rem";
+  countText.style.fontSize = "1rem";
+  countText.textContent = `${formatTime(count)} / ${formatTime(max)}`;
+  container.appendChild(countText);
+
+  const accText = document.createElement("div");
+  accText.id = "timeshard-acc-text"
+  accText.style.color = "#aaa";
+  accText.style.marginBottom = "1rem";
+  accText.style.fontSize = "0.9rem";
+  accText.textContent = `${formatTime(accumulation)} / hr`;
+  container.appendChild(accText);
+  
+  const usageText = document.createElement("div");
+  usageText.id = "timeshard-usage-text"
+  usageText.style.color = "#aaa";
+  usageText.style.marginBottom = "1rem";
+  usageText.style.fontSize = "0.9rem";
+  usageText.textContent = `Speed: ${settings.timeShardSpeed}x | Usage: ${settings.timeShardSpeed-1}s / second (while in combat)`;
+  container.appendChild(usageText);
+  
+  // Tick Speed Buttons
+  const tickButtonRow = document.createElement("div");
+  tickButtonRow.style.display = "flex";
+  tickButtonRow.style.gap = "1rem";
+  tickButtonRow.style.marginBottom = "2rem";
+
+  [1, 2, 3].forEach(val => {
+    const btn = document.createElement("button");
+    btn.textContent = `${val}x`;
+    btn.style.fontSize = "1rem";
+    btn.style.padding = "0.4rem 1rem";
+    btn.onclick = () => updateTimeShardSpeed(val);
+    tickButtonRow.appendChild(btn);
+  });
+
+  container.appendChild(tickButtonRow);
+  
+  // Upgrade Buttons
+  const upgrades = [
+    {
+      key: 0,
+      label: "Upgrade Max",
+      cost: Math.floor(800 * Math.pow(2, ts.upgradeLevels[0])),
+      current: ts.max,
+      next: 900* Math.pow(2, player.timeShards.upgradeLevels[0]+1)
+    },
+    {
+      key: 1,
+      label: "Upgrade Accumulation",
+      cost: Math.floor(300 * Math.pow(1.75, ts.upgradeLevels[1])),
+      current: ts.accumulation,
+      next: 100* (6 / (1 + 5 * Math.pow(7,(-1*player.timeShards.upgradeLevels[1]+1 )/ 5)))
+    }
+  ];
+  let upgBtnContainer = document.createElement('div');
+  upgBtnContainer.style.display = 'flex';
+  upgBtnContainer.style.flexDirection = 'row';
+  upgrades.forEach(upg => {
+    const upgBtn = document.createElement("button");
+    upgBtn.id = "timeshard-upg-"+upg.key
+    upgBtn.style.display = "block";
+    upgBtn.style.marginBottom = "2rem";
+    upgBtn.style.fontSize = "1rem";
+    upgBtn.style.backgroundColor = "#444";
+    upgBtn.style.padding = "0.25rem 0.5rem";
+    upgBtn.style.color = "#ccc";
+    upgBtn.style.width = "50%"
+    upgBtn.style.borderRadius = "1rem"
+    upgBtn.onclick = () => levelUpTimeShardsUpgrade(upg.key);
+        upgBtn.innerHTML = `      ${upg.label}<br>
+      <span style="font-size: 0.8rem; color: #ccc;">Lv: ${ts.upgradeLevels[upg.key]} | Cost: ${formatTime(upg.cost)}</span><br>
+      <span style="font-size: 0.8rem; color: #aaa;">Next: ${formatTime(upg.next)}</span><br>
+      <span style="font-size: 0.8rem; color: #aaa;">(Current: ${formatTime(upg.current)})</span>`
+    upgBtnContainer.appendChild(upgBtn);
+  });
+  container.appendChild(upgBtnContainer)
+  menuContent.appendChild(container);
+  break;
 case "planets":
     let menu = document.getElementById('menu-content');
     if (!menu) {
@@ -2130,20 +2645,15 @@ case "planets":
         break;
     }
     menu.innerHTML = ''; // Clear previous content
-    let planetsUnlocked = Object.keys(loreDataCache.planets).filter(planet => player.planetsProgress[planet] && (player.planetsProgress[planet].timesCompleted>0 || player.planet == planet || player.progressingPlanet == planet));
-    let planetsCompleted = Object.keys(loreDataCache.planets).filter(planet => planetsUnlocked.includes(planet) && player.planetsProgress[planet] && player.planetsProgress[planet].completed);
-    let allPlanetsCompleted = arraysEqual(planetsUnlocked, planetsCompleted)
-    let planetsToDisplay = Object.keys(loreDataCache.planets).filter(p => loreDataCache.planets[p].startingPlanet || player.planetsProgress[p])
-    
-    for (let planetIndex in planetsToDisplay) {
-      let planetKey = planetsToDisplay[planetIndex]
+    let planetsToDisplay = getVisitablePlanets();
+    for (let planetKey of planetsToDisplay) {
+  
         let planet = loreDataCache.planets[planetKey];
-        let progress = player.planetsProgress[planetKey] || { zonesCompleted: 0, completed: false, timesCompleted: 0 };
+
+        let progress = player.planetsProgress[planetKey];
 
         // Skip if never visited, not completed, and not the current planet
-        if (!allPlanetsCompleted && !progress.timesCompleted && !progress.completed && player.planet && player.planet !== planetKey) {
-            continue;
-        }
+        
 
         // --- Create the bar container ---
         let bar = document.createElement('div');
@@ -2165,10 +2675,7 @@ case "planets":
         leftSection.style.display = 'flex';
         leftSection.style.alignItems = 'center';
 
-        let img = document.createElement('img');
-        img.src = `images/${planetKey}.png`;
-        img.alt = planetKey;
-        img.className = 'zone-art';
+        let img = getPlanetDiv(planetKey)
         img.style.width = '64px';
         img.style.height = '64px';
         img.style.marginRight = '1em';
@@ -2187,17 +2694,22 @@ case "planets":
         rightSection.style.textAlign = 'right';
 
         let stateText = document.createElement('div');
-        if (!progress.completed) {
-            if (player.planet !== planetKey) {
+        if (!progress) {
                 stateText.textContent = 'NEVER VISITED';
                 stateText.style.color = 'red';
-            } else {
+        } else {
+          if(!progress.completed) {
+            if(player.planet == planetKey){
                 stateText.textContent = 'IN PROGRESS';
                 stateText.style.color = 'yellow';
-            }
-        } else {
-            stateText.textContent = 'COMPLETED';
+            }else {
+            stateText.textContent = 'DISCOVERED';
             stateText.style.color = '#8f8';
+        }
+          }else{
+            stateText.textContent = 'COMPLETED';
+            stateText.style.color = "#8f8"
+          }
         }
         rightSection.appendChild(stateText);
 
@@ -2228,13 +2740,13 @@ case "planets":
         // Zones completed
         let maxZones = (planet.zones && planet.zones.length) || 0;
         let zonesText = document.createElement('div');
-        zonesText.textContent = `Zones Completed: ${progress.zonesCompleted}/${maxZones}`;
+        zonesText.textContent = `Zones Completed: ${progress?.zonesCompleted || 0}/${maxZones}`;
         infoDiv.appendChild(zonesText);
 
         // Times completed (only if > 0)
-        if (progress.timesCompleted > 0) {
+        if (progress?.timesCompleted > 0) {
             let timesText = document.createElement('div');
-            timesText.textContent = `Completed ${progress.timesCompleted} time${progress.timesCompleted > 1 ? 's' : ''}`;
+            timesText.textContent = `Completed ${progress?.timesCompleted || p} time${progress?.timesCompleted ||2> 1 ? 's' : ''}`;
             infoDiv.appendChild(timesText);
         }
         
@@ -2251,6 +2763,7 @@ case "planets":
             e.stopPropagation(); // Prevent bar click from toggling the infoDiv again
             
             // Replace this with your visit logic:
+            visitPlanet(planetKey)
             console.log(`Visiting ${planetKey}`);
         };
         infoDiv.appendChild(visitButton);
@@ -2314,7 +2827,7 @@ case "planets":
       <div id="character-display">
       <h2>${player.name}</h2>
       <h3>${player.race} ${getDamageTypeIcon(loreDataCache.races[player.race].damageType)} | ${player.class}</h3>
-      <button onclick="backToCharSelect()" id="character-selection-btn">Back to Character Select</button>
+      <button onclick="backToCharSelect()" id="character-selection-btn">Character Select</button>
       </div>
       <div class="menu-header" onclick="toggleSection('attributes-section')"id="attributes-header">Attributes (${player.attributePoints} Points)</div>
       <div id="attributes-section" class="menu-content">
@@ -2387,7 +2900,7 @@ case "planets":
       </div>
 
       <div class="menu-header" onclick="toggleSection('skills-section')">Skills</div>
-      <div id="skills-section" class="menu-content">
+      <div id="skills-section" class="character-menu-content">
       <h2>Equipped</h2>
       <div id="equipped-skills">
       <div class="skill-slot">Slot 1</div>
@@ -2416,96 +2929,13 @@ case "planets":
 
       let statsHTML = `<div class="stat-block">`;
 
-      const statGroups = [{
-        title: "Health (HP)",
-        class: "hp",
-        stats: [{
-          label: "Current", key: "hp"
-        },
-          {
-            label: "Max", key: "maxHp"
-          },
-          {
-            label: "Regen", key: "hpRegen"
-          }]
-      },
-        {
-          title: "Stamina (SP)",
-          class: "sp",
-          stats: [{
-            label: "Current", key: "sp"
-          },
-            {
-              label: "Max", key: "maxSp"
-            },
-            {
-              label: "Regen", key: "spRegen"
-            },
-            {
-              label: "Efficiency", key: "spEfficiency"
-            }]
-        },
-        {
-          title: "Mana (MP)",
-          class: "mp",
-          stats: [{
-            label: "Current", key: "mp"
-          },
-            {
-              label: "Max", key: "maxMp"
-            },
-            {
-              label: "Regen", key: "mpRegen"
-            },
-            {
-              label: "Efficiency", key: "mpEfficiency"
-            }]
-        },
-        {
-          title: "Combat",
-          class: "combat",
-          stats: [{
-            label: "Cooldown Reduction", key: "cooldownReduction"
-          },
-            {
-              label: "Damage Taken", key: "damageTaken"
-            }
-            ]
-        },
-        {
-          title: "Critical",
-          class: "crit",
-          stats: [{
-            label: "Crit Chance", key: "critChance"
-          },
-            {
-              label: "Crit Multiplier", key: "critMulti"
-            }]
-        },
-        {
-          title: "Lifesteal",
-          class: "lifesteal",
-          stats: [{
-            label: "Lifesteal %", key: "lifestealMulti"
-          },
-            {
-              label: "Lifesteal Chance", key: "lifestealChance"
-            }]
-        },
-                {
-          title: "Misc",
-          class: "misc",
-          stats: [{
-            label: "XP Gain Multi", key: "xpGain"
-            
-          }]
-        }];
 
 
       statGroups.forEach(group => {
         statsHTML += `<div class="stat-row stat-header stat-${group.class}">${group.title}</div>`;
         group.stats.forEach(stat => {
           const data = player.stats[stat.key];
+          if(data && data.value){
           let label = stat.label;
           if (data.scaling) {
             label += "("+data.scaling.map(sc => sc.stat=="tier"?"LVL":sc.stat.toUpperCase().slice(0, 3)).join("/") + ")";
@@ -2513,6 +2943,7 @@ case "planets":
           }
           const rowClass = group.class ? ` stat-subrow-${group.class}`: '';
           statsHTML += `<div class="stat-subrow${rowClass}" id="stat-${stat.key}"><span>${label}:</span><span>${data.value.toFixed(2)}</span></div>`;
+          }
         });
       });
 
@@ -2534,13 +2965,12 @@ case "planets":
       break;
 case "journey":
   main.innerHTML = `
-    <img src="images/${player.planet.toLowerCase()}.png" alt="${player.planet.toLowerCase()}" class="zone-art">
+    <div style="position: relative; overflow: hidden; width: 100%; 30vh;"><div style="position: absolute; top: -6em; left: 0px;" class="planet ${player.planet.toLowerCase()}"></div></div>
   `;
 
   if (!player.currentZone || !player.currentZone.name) {
     const zoneMenu = document.createElement("div");
     zoneMenu.id = "zone-menu";
-
     const zones = loreDataCache.planets[player.planet].zones;
     let index = 0;
 
@@ -2559,6 +2989,7 @@ case "journey":
       }
 
       const progress = player.zoneProgress[zoneName]?.count || 1;
+      const planetCompleted = player.planetsProgress[player.planet].timesCompleted;
       const maxTier = zoneData.maxTier;
       const completed = player.zoneProgress[zoneName]?.completed;
       const inProgress = player.progressingZone === zoneName;
@@ -2575,7 +3006,7 @@ case "journey":
         backgroundStyle = "linear-gradient(#141,#030)";
         statusLabel = "<span style='color: #993;'>CURRENTLY ACTIVE</span>";
       } else if (
-        player.progressingZone &&
+        !planetCompleted && player.progressingZone &&
         !player.zoneProgress[player.progressingZone]?.completed
       ) {
         backgroundStyle = "linear-gradient(#411,#300)";
@@ -2615,7 +3046,7 @@ case "journey":
       const levelDiff = (1 / Math.max(1, recLevel - player.classData[player.class].level)) * 255;
       const color = `rgb(${255 - levelDiff},${levelDiff},0)`;
 
-      let locked = player.progressingZone &&
+      let locked = !planetCompleted && player.progressingZone &&
         !player.zoneProgress[player.progressingZone]?.completed &&
         player.progressingZone !== zoneName &&
         (!player.zoneProgress[zoneName] || !player.zoneProgress[zoneName].completed);
@@ -2689,15 +3120,9 @@ zoneMenu.addEventListener("click", (e) => {
       <div class="settingsMenu" style="display: flex; flex-direction: column; align-items: center; gap: 2em; padding-top: 2em;">
 
       <div style="text-align: center;">
-      <button id="hard-reset-btn" onclick="hardReset(${player.characterId})">Hard Reset</button>
       <div style="margin-top: 0.5em;">Confirm before leaving combat</div>
       <label class="toggle-switch">
         <input type="checkbox" id="forceConfirmToggleBtn">
-      <span class="slider"></span>
-      </label>
-      <div style="margin-top: 0.5em;">Show Debug</div>
-      <label class="toggle-switch">
-        <input type="checkbox" id="debug-toggle">
       <span class="slider"></span>
       </label>
       <div>Confirm before trashing items</div>
@@ -2728,10 +3153,21 @@ zoneMenu.addEventListener("click", (e) => {
       <div style="margin-bottom: 0.5em;">AutoContinue Timer: <span id="autoTimerValue">${settings.autoTimer}</span></div>
       <input type="range" id="autoTimerSlider" min="1" max="5" step="1" value="${settings.autoTimer}">
       </div>
+      <div style="background-color: #444; border: 1px solid #666; display: flex; flex-direction: column; text-align: center; border-radius: 0.5rem; gap: 0.2rem; align-items: center; font-size: 1rem;">
+      <label style="font-size: 1.5rem;">Debug Tools</label>
+      <button id="soft-reset-btn" onclick="softReset()">Soft Reset</button>
+            <div style="margin-top: 0.5em;">Show Debug</div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="debug-toggle">
+      <span class="slider"></span>
+      </label>
+      <button onclick="createSkillSelectionPopup()">Skill Designer</button>
+      <button onclick="createUnitSelectionPopup()">Unit Designer</button>
+      </div>
+      </div>
 
       </div>
       `;
-
       trashToggle = document.getElementById("forceConfirmTrashBtn");
       trashToggle.checked = settings.confirmTrashItem;
       trashToggle.addEventListener("change", function () {
@@ -2831,6 +3267,7 @@ function leaveZone() {
   delete player.currentZone.name
   showMenu("journey");
 }
+
 function showZone(zone, force) {
   if (!player.currentZone || player.currentZone.name != zone) {
     
@@ -2855,7 +3292,7 @@ function showZone(zone, force) {
     }
     }
   }
-  if ((!player.progressingZone || player.progressingZone != zone) && !player.zoneProgress[zone].completed) {
+  if ((!player.progressingZone || player.progressingZone != zone) && !player.zoneProgress[zone].completed && !player.planetsProgress[player.planet]?.timesCompleted) {
     player.progressingZone = zone
     player.zoneProgress[zone].starterTier = player.beatenTiers + (5*player.beatenZones);
   }
@@ -2935,8 +3372,8 @@ function initializeCombatUnits(zone) {
   combatUnits = [player];
   let effectiveTier = Math.max(1,player.currentZone.count - (totalUnitCount-1))
   for (let i = 0; i < totalUnitCount; i++) {
-    combatUnits.push(getRandomUnit(false, effectiveTier, player.currentZone.name));
   }
+    combatUnits.push(getRandomUnit(false, effectiveTier, player.currentZone.name));
 }
 function getWeightedRandomIndex(weights) {
   const totalWeight = weights.reduce((sum, w) => sum + w, 0);
@@ -2948,24 +3385,26 @@ function getWeightedRandomIndex(weights) {
     if (rand < cumulative) return i+1;
   }
 }
-function showPopup(html) {
-
+function showPopup(html, stopPropagation) {
+  // Remove existing popup
   const existingPopup = document.getElementById("popup-overlay");
   if (existingPopup) existingPopup.remove();
+
+  // Create overlay
   const overlay = document.createElement("div");
   overlay.id = "popup-overlay";
-  overlay.className="popup-overlay"
+  overlay.className = "popup-overlay";
   overlay.style.position = "fixed";
   overlay.style.top = 0;
   overlay.style.left = 0;
   overlay.style.width = "100vw";
   overlay.style.height = "100vh";
   overlay.style.zIndex = 48;
-  overlay.style.transition = "background-color 1s ease"
-  overlay.style.background = "rgba(0,0,0,0.0)";
-  overlay.addEventListener("click", () =>{
-    document.querySelectorAll(".popup-overlay").forEach(e=>e.remove());
-  } )
+  overlay.style.transition = "background-color 0.5s ease";
+  overlay.style.backgroundColor = "rgba(0,0,0,0.0)";
+  overlay.addEventListener("click", (e) => {
+    overlay.remove();
+  });
 
   // Create popup
   const popup = document.createElement("div");
@@ -2975,19 +3414,46 @@ function showPopup(html) {
   popup.style.top = "50%";
   popup.style.transform = "translate(-50%, -50%)";
   popup.style.zIndex = 1000;
-  popup.style.backgroundColor = "#666";
+  popup.style.backgroundColor = "#222";
   popup.style.color = "#fff";
-  popup.style.padding = "10px";
-  popup.style.border = "2px solid #444";
-  popup.style.borderRadius = "10px";
-  popup.style.maxWidth = "80vw";
+  popup.style.padding = "2rem";
+  popup.style.border = "0.2rem solid #555";
+  popup.style.borderRadius = "1rem";
+  popup.style.width = "min(75%, 30rem)"; // Responsive, but avoids being too skinny
   popup.style.maxHeight = "80vh";
   popup.style.overflowY = "auto";
-  popup.style.boxShadow = "0 0 10px #000";
+  popup.style.boxShadow = "0 0 2rem rgba(0,0,0,0.7)";
+  popup.style.fontSize = "1rem";
+  popup.style.lineHeight = "1.5";
+  popup.onclick = (e) => {
+    if(stopPropagation){
+      e.stopPropagation()
+    }
+  }
+
+  // Close button
+  const closeButton = document.createElement("button");
+  closeButton.textContent = "×";
+  closeButton.style.position = "absolute";
+  closeButton.style.top = "1rem";
+  closeButton.style.right = "1rem";
+  closeButton.style.fontSize = "2rem";
+  closeButton.style.background = "none";
+  closeButton.style.color = "#fff";
+  closeButton.style.border = "none";
+  closeButton.style.cursor = "pointer";
+  closeButton.style.lineHeight = "1";
+  closeButton.addEventListener("click", () => overlay.remove());
+
   popup.innerHTML = html;
+  popup.appendChild(closeButton);
   overlay.appendChild(popup);
-  document.body.appendChild(overlay)
-  setTimeout(() => overlay.style.backgroundColor = "rgba(0,0,0,0.4)", 10);
+  document.body.appendChild(overlay);
+
+  // Trigger fade-in background
+  setTimeout(() => {
+    overlay.style.backgroundColor = "rgba(0,0,0,0.4)";
+  }, 10);
 }
 function startCombat(force) {
   if (!isCombatPaused && !force && player.skills.equipped.length == 0) {
@@ -3008,6 +3474,7 @@ function startCombat(force) {
   }
   
   let main = document.getElementById("main-area")
+  main.style.height = "45vh";
   let menuContent = document.getElementById("menu-content");
   menuContent.innerHTML = "";
   main.innerHTML = `
@@ -3061,7 +3528,7 @@ function startCombat(force) {
         clearInterval(regenIntervals[unit.id]);
       }
     },
-      1000);
+      1000/settings.timeShardSpeed);
     if (!unit.isAlly) {
       initializeEnemyTargets(unit)
     }
@@ -3091,6 +3558,8 @@ function startCombat(force) {
         };
         resetSkillCooldown(unit, skillId);
       }
+      if(!skillIntervals[unit.id+"-"+skillId]){
+        console.log(Object.keys(skillIntervals))
       skillIntervals[unit.id + "-"+skillId] = setInterval(() => {
         if (player.inCombat && findUnitById(unit.id)) {
           updateProgressBar(skillId, unit); // Or loop through all allies
@@ -3099,6 +3568,7 @@ function startCombat(force) {
         }
       },
         updateSpeed);
+      }
     });
 
   })
@@ -3108,13 +3578,15 @@ function startCombat(force) {
   // Zones and begin combat
 
   menuContent.innerHTML = `
-  <div id="combat-log" style="position: relative; width: 100%; height: 200px; background: #111; font-family: monospace;">
+  <div id="combat-log-container">
+  <div id="combat-log" style="position: relative; width: 100vw; height: 20vh; background: #111; font-family: monospace;">
     <div id="combat-log-text" style="width: 100%; height: 100%; overflow-y: auto; color: #0f0; padding: 5px;">
       <!-- Log text goes here -->
     </div>
     <button id="combat-log-filter-btn"
       style="position: absolute; bottom: 0.5em; right: 0.5em; color: #ddd; background-color: #222; border-radius: 1em; border: 1px solid #666;"
       onclick="setTimeout(() => showCombatLogFilterPopup(), 1)">Filters</button>
+  </div>
   </div>
 `;
 
@@ -3214,8 +3686,10 @@ function initializeEnemyTargets(unit){
       })
 }
 function resetIntervals(){
-  skillIntervals.forEach(i => clearInterval(i))
-  regenIntervals.forEach(i => clearInterval(i))
+  Object.values(skillIntervals).forEach((value) => clearInterval(value))
+  skillIntervals = {}
+  Object.values(regenIntervals).forEach(i => clearInterval(i))
+  regenIntervals = {}
   Object.values(burningIntervals).forEach(i => clearInterval(i))
 }
 function resetUnitStatCaps(unit){
@@ -3236,7 +3710,13 @@ function resetSkillCooldown(unit, skillId, init) {
 function updateCombatLog(text, caster, tags, color, colorEnemy) {
   if (!player.inCombat) return;
   const log = document.getElementById("combat-log-text");
+  if(!log){
+    return;
+  }
   const logFilterBtn = document.getElementById("combat-log-filter-btn")
+  if(!logFilterBtn){
+    return;
+  }
   if(!caster){
     if(!color){
       color = "#777";
@@ -3283,7 +3763,7 @@ function getEnemyTarget(unit, skillId, targetType) {
       baseTarget = livingEnemies[Math.floor(Math.random()*livingEnemies.length)]
     }
   } else if (targetType == "singleAlly" || targetType == "randomAlly") {
-    targetType = randomAlly;
+    targetType = "randomAlly";
     livingAllies = combatUnits.filter(u => u.isAlive && u.isAlly == unit.isAlly);
     if (livingAllies.length == 0) {
       checkIfCombatFinished();
@@ -3292,8 +3772,13 @@ function getEnemyTarget(unit, skillId, targetType) {
       baseTarget = livingAllies[Math.floor(Math.random()*livingAllies.length)]
     }
   }
-
-  return getTarget(unit, baseTarget, targetType);
+  let skillContext = {
+        target: baseTarget,
+        caster: unit,
+        id: skillId,
+        statBonuses: skillsData[skillId].statBonuses
+      }
+  return getTarget(unit, baseTarget, targetType, skillContext, skillsData[skillId].targetNames);
 }
 
 function renderSkillTree() {
@@ -3305,11 +3790,12 @@ function renderSkillTree() {
   const mainArea = document.getElementById("main-area");
 
   menuContent.innerHTML = '';
-  mainArea.innerHTML = `<span style="font-size: 26px;">Points: ${player.classData[player.class].skillPoints}<br></span><div style="padding: 1em;"><em>Select a skill to view details</em></div>`;
+  mainArea.style.height = "60vh"; // or "calc(100vh - Xpx)"
+  mainArea.innerHTML = `<span style="font-size: 1rem;">Points: ${player.classData[player.class].skillPoints}<br></span><div style="padding: 1em;"><em>Select a skill to view details</em></div>`;
 
   const treeContainer = document.createElement("div");
   menuContent.onclick = () => {
-    mainArea.innerHTML = `<span style="font-size: 26px;">Points: ${player.classData[player.class].skillPoints}<br></span><div style="padding: 1em;"><em>Select a skill to view details</em></div>`;
+    mainArea.innerHTML = `<span style="font-size: 1rem;">Points: ${player.classData[player.class].skillPoints}<br></span><div style="padding: 1em;"><em>Select a skill to view details</em></div>`;
   };
   treeContainer.className = "skill-tree";
   treeContainer.id = "skill-tree";
@@ -3319,7 +3805,13 @@ function renderSkillTree() {
   linesSvg.classList.add("lines");
   linesSvg.id = "tree-lines";
   treeContainer.appendChild(linesSvg);
-  menuContent.appendChild(treeContainer);
+  let containerContainer = document.createElement('div');
+  containerContainer.style.maxHeight = '50vh'
+  containerContainer.style.overflowY = "scroll"
+  containerContainer.style.overflowX = "scroll"
+  containerContainer.appendChild(treeContainer)
+  menuContent.appendChild(containerContainer);
+  menuContent.style.width = "auto";
 
   const skillMap = {};
   skillTree.forEach(skill => skillMap[skill.id] = { ...skill, children: [] });
@@ -3393,7 +3885,7 @@ function renderSkillTree() {
     }else{
       content.classList.add("skill")
     }
-    content.innerText = `\n${data.name}\n(${currentLevel}/${skill.maxLevel})`;
+    content.innerText = `${data.name}\n(${currentLevel}/${skill.maxLevel})`;
 
     node.appendChild(content);
     node.onclick = (e) => {
@@ -3442,9 +3934,9 @@ function renderSkillTree() {
 
     if (isTalent) {
       node.classList.add("talent");
-      if(skill.recursive){
+    }
+    if(learned?.recursive){
         node.classList.add("recursive")
-      }
     }
 
     treeContainer.appendChild(node);
@@ -3496,11 +3988,98 @@ function updateEncounterBar(){
   prevEncBtn.style.display = "block"
   encounterDisplay.classList.remove("hidden")
   encounterDisplay.style.display = "flex";
+  if(player.currentZone){
   zoneDisplay.textContent = player.currentZone.name;
   zoneDisplay.style.display = "block"
 
-
   document.getElementById("enemy-count").textContent = `${player.currentZone.count} / ${loreDataCache.zones[player.currentZone.name].maxTier}`
+  }
+}
+function visitPlanet(planet) {
+    let visitable = getVisitablePlanets();
+    if (!visitable.includes(planet)) {
+        return;
+    }
+
+    const planetData = loreDataCache.planets[planet];
+    const isNewPlanet = !player.planetsProgress[planet];
+
+    // If already completed, just switch
+    if (player.planetsProgress[planet]?.timesCompleted > 0) {
+        player.planet = planet;
+        showMenu("journey");
+        return;
+    }
+
+    // If it's a starter planet and new → trigger prestige
+    if (isNewPlanet && planetData.startingPlanet) {
+        // Clear skills
+        player.skills.learned = player.skills.learned.filter(sk => sk && sk.recursive);
+        player.skills.equipped = [];
+
+        // Backup current classes before clearing
+        const existingClasses = Object.keys(player.classData);
+
+        // Reset class data
+        player.classData = {};
+        player.unlockedClassCount = 0;
+        existingClasses.forEach(className => unlockClass(className));
+        player.attributesGained = {
+    strength: 5,
+    dexterity: 5,
+    constitution: 5,
+    intellect: 5,
+    wisdom: 5,
+    willpower: 5
+  }
+  player.attributes = {
+    strength: 5,
+    dexterity: 5,
+    constitution: 5,
+    intellect: 5,
+    wisdom: 5,
+    willpower: 5
+  }
+  player.progressingZone = undefined
+  player.currentZone = undefined
+        // Reset base stats
+        player.attributePoints = 0;
+        player.level = 1;
+        player.xp = 0;
+        player.maxXp = 30;
+        player.skillSlots = 2;
+        player.beatenZones = 0;
+        player.beatenTiers = 0;
+        player.progressingPlanet = planet
+        Object.keys(player.planetsProgress).forEach(p => {
+          player.planetsProgress[p].zonesCompleted = 0;
+          player.planetsProgress[p].completed = false;
+          loreDataCache.planets[p].zones.forEach(zone => {
+            player.zoneProgress[zone] = {
+              count: 0,
+              completed: false
+            }
+          })
+        })
+
+        // Unlock starting class if defined
+        if (planetData.startingClass) {
+            unlockClass(planetData.startingClass);
+        }
+    }
+
+    // Initialize planet progress if not already there
+    if (!player.planetsProgress[planet]) {
+        player.planetsProgress[planet] = {
+            zonesCompleted: 0,
+            completed: false,
+            timesCompleted: 0
+        };
+    }
+
+    // Set current planet and continue
+    player.planet = planet;
+    showMenu("journey");
 }
 function updateSkillDisplay(skillId) {
   const skill = loreDataCache.classes[player.class].skillTree.find(s => s.id === skillId);
@@ -3522,7 +4101,7 @@ function updateSkillDisplay(skillId) {
   if (isAvailable && !learned) node.classList.add("available");
   if (learned) node.classList.add("started");
   if (isTalent) node.classList.add("talent");
-  if (skill.recursive) node.classList.add("recursive");
+  if (learned?.recursive) node.classList.add("recursive");
 
   // Update text
   const contentDiv = node.querySelector(".skill-node-content");
@@ -3621,12 +4200,18 @@ function showSkillDetails(skill, isAvailable = false) {
       Requires ${prevSkillData?.name || "(Missing)"} Lv. ${skillTreeData.previousSkillLevelRequired} ${!requirementMet?"("+prevLevel + "/" + skillTreeData.previousSkillLevelRequired + ")":""}
     </span><br>`;
   }
-  let infoBtn = isTalent?"":`<button style="border-radius: 1em;" onclick="setTimeout(() => showSkillPopup('${skill.id}', false, undefined, undefined, '${player.id}'), 1)">i</button>`
+  
+  let recursionBtn = `<button style="background: linear-gradient(#aaa,#666);border-radius: 0.2rem;position: absolute; top: 0.2rem; right: 0.2rem;" id='recursion-btn' onclick="showSkillRecursionPopup('${skill.id}')">Recursion</button>`
+  let infoBtn = isTalent?"":`<button style="border-radius: 2em; width: 2em; height: 2em; margin-left: 1em;" onclick="setTimeout(() => showSkillPopup('${skill.id}', false, undefined, undefined, '${player.id}'), 1)">i</button>`
+  mainArea.removeAttribute("style"); // clears inline styles like fontSize
+mainArea.innerHTML = "";
+mainArea.style.fontSize = "1rem"
   mainArea.innerHTML = `
-    <span style="font-size: 26px;">Points: ${player.classData[player.class].skillPoints}</span>
-    <div style="padding: 1em">
-      <span style="color: #f0f0f0; font-size: 16px;"><strong>${skillData.name}</strong>${infoBtn}</span><br>
-      <em>(${isTalent?(skillTreeData.recursive?"Recursive ":"")+"Talent":"Skill"})</em>
+    <span style="font-size: 1.2em;">Points: ${player.classData[player.class].skillPoints}</span>
+    <div style="position: relative; padding: 1em; font-size: 0.9em;">
+          ${recursionBtn}
+      <span style="color: #f0f0f0; font-size: 0.9em;"><strong>${skillData.name}</strong>${infoBtn}</span><br>
+      <em style="font-size: 0.9em;">(${(learned?.recursive?"Recursive ":"")+isTalent?"Talent":"Skill"})</em>
 <br><br>
       <span style="color:#77a;"><strong>Level:</strong> ${level} / ${skill.maxLevel}</span> |
       <span style="color: #a7a;"><strong> ${level == 0?"Unlock ":""}Cost:</strong> ${skillCost} Skill Point${skillCost !== 1 ? 's' : ''}</span>
@@ -3634,11 +4219,11 @@ function showSkillDetails(skill, isAvailable = false) {
       ${unlockReqs}
       <span style="margin-top: 0.5em">${Array.isArray(skillData.description)?skillData.description.map(line => `<br><span style='color: #9c9;'>- ${line}</span>`).join(""):skillData.description || ""}</span>
       <br>
-      <span style="margin-top: 0.5em">
+      <span style="margin-top: 0.5em;">
       ${formatSkillLevelScalingsWithLabels(skill.id, skillData.levelUpEffects || [])}
       <button
         id="skill-upgrade-btn"
-        style="margin-top: 1em; padding: 0.5em 1em; font-size: 1em;"
+        style="margin-top: 1em; padding: 0.5em 1em; font-size: 0.8em;"
         ${canLevel ? '' : 'disabled'}
       >
         ${buttonLabel}
@@ -3670,36 +4255,47 @@ function levelUpSkill(skillId, cost) {
   const skillTree = loreDataCache.classes[player.class].skillTree;
   const skill = skillTree.find(s => s.id === skillId);
   let learned = player.skills.learned.find(s => s.id === skillId);
+  let equipped = player.skills.equipped.find(s => s.id === skillId);
+
   if (player.classData[player.class].skillPoints >= cost && (!learned || learned.level < skill.maxLevel)) {
     player.classData[player.class].skillPoints -= cost;
+
     if (learned) {
       learned.level += 1;
     } else {
-      player.skills.learned.push({
-        id: skillId, level: 1, type: skill.type || "skill"
-      });
-      learned = player.skills.learned.find(s => s.id === skillId);
+      const newSkill = {
+        id: skillId,
+        level: 1,
+        type: skill.type || "skill",
+        recursive: skill.recursive || "false"
+      };
+      player.skills.learned.push(newSkill);
+      learned = newSkill;
     }
 
+    // If equipped, update the equipped skill too
+    if (equipped) {
+      equipped.level = learned.level;
+    }
   }
-  
-  
-  recalculateDerivedStats(player)
-  if(skill.type == "talent"){
-    if(learned.level == 1){
+
+  recalculateDerivedStats(player);
+
+  if (skill.type === "talent") {
+    if (learned.level === 1) {
       learned.active = true;
-      
     }
+
     let talentData = talentsData[skill.id];
-    if(talentData && talentData.effects){
-      calculateAttributes(player)
+    if (talentData && talentData.effects) {
+      calculateAttributes(player);
     }
   }
-  showSkillDetails(skill, player.classData[player.class].skillPoints >= cost && learned.level < skill.maxLevel)
+
+  showSkillDetails(skill, player.classData[player.class].skillPoints >= cost && learned.level < skill.maxLevel);
   updateAllSkillDisplays(); // re-render to update display
-let spPip = document.getElementById('skills-pip');
-    let skillPoints = player.classData[player.class].skillPoints
-      spPip.textContent = skillPoints <100?skillPoints:""
+
+  updatePips()
 }
 function updateAllSkillDisplays() {
   const skillTree = loreDataCache.classes[player.class].skillTree;
@@ -3713,14 +4309,7 @@ function nextEncounter(force) {
   if (player.currentZone.count >= player.zoneProgress[player.currentZone.name].count) return;
   if (!force && player.inCombat && settings.confirmLeaveCombat) {
 
-    setTimeout(() => showPopup(`
-      <h2 style="color: #d88">Are you sure?</h2>
-      <span>Opening another menu in combat will cancel the encounter. You'll have to restart this fight.</span>
-      <div style="display: flex; margin-top: 70px; position: relative;">
-      <button style="background: linear-gradient(#844,#633); position: absolute; bottom: 1em; left: 1em; border-radius: 1em;" onclick="nextEncounter(true)">Continue</button>
-      <button style="background: linear-gradient(#484,#363); position: absolute; bottom: 1em; right: 1em; border-radius: 1em;" onclick="document.getElementById('popup-overlay').remove()">Go Back</button>
-      </div>
-      `), 1);
+    showConfirmLeaveCombatPopup(() => nextEncounter(true));
     return;
   }
 
@@ -3730,18 +4319,32 @@ function nextEncounter(force) {
   document.getElementById("enemy-count").textContent = `${player.currentZone.count} / ${loreDataCache.zones[player.currentZone.name].maxTier}`
   showMenu("journey");
 }
+function showConfirmLeaveCombatPopup(confirmFunction) {
+  setTimeout(() => {
+    showPopup(`
+      <h2 style="color: #d88">Are you sure?</h2>
+      <span>Opening another menu in combat will cancel the encounter. You'll have to restart this fight.</span>
+      <div style="display: flex; margin-top: 5rem; position: relative;">
+        <button id="popup-confirm" style="background: linear-gradient(#844,#633); font-size: 0.75rem; width: 4rem; height: 2rem; position: absolute; bottom: 1em; left: 1em; border-radius: 1rem;">Continue</button>
+        <button id="popup-cancel" style="background: linear-gradient(#484,#363); font-size: 0.75rem; width: 4rem; height: 2rem; position: absolute; bottom: 1em; right: 1em; border-radius: 1rem;">Go Back</button>
+      </div>
+    `);
+
+    // Add listeners AFTER popup is added
+    document.getElementById("popup-confirm").onclick = () => {
+      document.getElementById("popup-overlay")?.remove();
+      confirmFunction(); // call it from closure
+    };
+    document.getElementById("popup-cancel").onclick = () => {
+      document.getElementById("popup-overlay")?.remove();
+    };
+  }, 1);
+}
 function lastEncounter(force) {
   if (!player.currentZone) return;
   if (player.currentZone.count <= 1) return;
   if (!force && player.inCombat && settings.confirmLeaveCombat) {
-    setTimeout(() => showPopup(`
-      <h2 style="color: #d88">Are you sure?</h2>
-      <span>Opening another menu in combat will cancel the encounter. You'll have to restart this fight.</span>
-      <div style="display: flex; margin-top: 70px; position: relative;">
-      <button style="background: linear-gradient(#844,#633); position: absolute; bottom: 1em; left: 1em; border-radius: 1em;" onclick="lastEncounter(true)">Continue</button>
-      <button style="background: linear-gradient(#484,#363); position: absolute; bottom: 1em; right: 1em; border-radius: 1em;" onclick="document.getElementById('popup-overlay').remove()">Go Back</button>
-      </div>
-      `), 1);
+    showConfirmLeaveCombatPopup(() => lastEncounter(true))
     return;
   }
   player.inCombat = false;
@@ -3961,6 +4564,14 @@ function addItem(item) {
   const inventory = player.inventory.storage;
 
   // Check if there's room
+  
+  if(item?.type != "Gear"){
+    const existingStack = inventory.findIndex(i => i && isEquivalentItem(i, item));
+    if(existingStack > -1){
+      inventory[existingStack].count += item?.count
+      return true;
+    }
+  }
   if (inventory.filter(i => i).length >= player.inventorySlots) {
     console.warn("Inventory is full!");
     return false;
@@ -4002,9 +4613,9 @@ function updateSkillsMenu() {
   menu.appendChild(learnedHeader);
 
   const learnedTable = document.createElement("table");
-  learnedTable.style.width = "100%";
+  learnedTable.style.width = "7rem";
   learnedTable.style.borderCollapse = "collapse";
-  learnedTable.style.marginBottom = "20px";
+  learnedTable.style.marginBottom = "1rem";
   menu.appendChild(learnedTable);
 
   let currentRow = null;
@@ -4017,26 +4628,35 @@ function updateSkillsMenu() {
     }
 
     const cell = currentRow.insertCell();
-    cell.style.border = "1px solid #555";
-    cell.style.padding = "6px";
-    cell.style.verticalAlign = "middle";
+cell.style.padding = "0"; // Remove padding from the <td>
 
+const wrapper = document.createElement("div");
+wrapper.className = "skill-slot";
+wrapper.style.borderRadius = "1rem";
+wrapper.style.border = "2px solid #555";
+wrapper.style.padding = "0.4rem";
+wrapper.style.backgroundColor = "#111"; // Match equipped style
+wrapper.style.display = "flex";
+wrapper.style.alignItems = "center";
+wrapper.style.justifyContent = "space-between";
+wrapper.style.gap = "6px";
+
+cell.appendChild(wrapper);
     const name = document.createElement("span");
   
     name.textContent = `${skill.name} (${sk.level})`;
     name.style.color = "#0bf";
     name.style.cursor = "pointer";
     name.style.marginRight = "6px";
-    name.style.fontSize = "12px"
+    name.style.fontSize = "0.7rem"
     name.onclick = () => setTimeout(() => showSkillPopup(skillId, false, player), 1);
 
-    cell.appendChild(name);
+    wrapper.appendChild(name);
 
     if (player.skills.equipped.length == 0 || !player.skills.equipped.map(s => s && s.id).includes(skillId)) {
       const equipBtn = document.createElement("button");
       equipBtn.className = "equip-btn";
       equipBtn.textContent = "Equip";
-      equipBtn.style.fontSize = "12px"
       equipBtn.style.marginLeft = "8px";
       equipBtn.onclick = () => {
         if (player.inCombat) {
@@ -4047,7 +4667,7 @@ function updateSkillsMenu() {
         console.log(`Select a slot to equip ${skill.name}`);
         updateSkillsMenu();
       };
-      cell.appendChild(equipBtn);
+      wrapper.appendChild(equipBtn);
     } else {
       const unequipBtn = document.createElement("button");
       unequipBtn.textContent = "Unequip";
@@ -4055,15 +4675,13 @@ function updateSkillsMenu() {
       unequipBtn.className = "unequip-btn";
       unequipBtn.onclick = () => {
 
-        if (player.inCombat) {
-          log("Can't unequip during combat.");
-          return;
-        }
-
-        player.skills.equipped[player.skills.equipped.find(skill => skill.id == skillId)] = undefined;
+        const index = player.skills.equipped.findIndex(skill => skill.id === skillId);
+if (index !== -1) {
+    player.skills.equipped[index] = undefined;
+}
         updateSkillsMenu();
       };
-      cell.appendChild(unequipBtn)
+      wrapper.appendChild(unequipBtn)
     }
   });
 
@@ -4076,8 +4694,8 @@ function updateSkillsMenu() {
   const slotsContainer = document.createElement("div");
   slotsContainer.style.display = "flex";
   slotsContainer.style.flexWrap = "wrap";
-  slotsContainer.style.gap = "10px";
-  slotsContainer.style.maxWidth = "400px";
+  slotsContainer.style.gap = "0.4rem";
+  slotsContainer.style.maxWidth = "15rem";
   menu.appendChild(slotsContainer);
 
   for (let i = 0; i < player.skillSlots; i++) {
@@ -4085,11 +4703,11 @@ function updateSkillsMenu() {
     const skillId = sk?sk.id: null
     const slot = document.createElement("div");
     slot.style.border = "2px solid #555";
-    slot.style.borderRadius = "6px";
-    slot.style.padding = "6px";
-    slot.style.width = "120px";
+    slot.style.borderRadius = "0.4rem";
+    slot.style.padding = "0.4rem";
+    slot.style.width = "8rem";
     slot.style.textAlign = "center";
-    slot.style.background = skillId ? "#222": skillToEquip ? "#447": "#111";
+    slot.style.background = skillToEquip ? "#447": "#222";
 
     if (skillId) {
       const skill = skillsData[skillId];
@@ -4103,10 +4721,6 @@ function updateSkillsMenu() {
       unequipBtn.textContent = "Unequip";
       unequipBtn.className = "unequip-btn";
       unequipBtn.onclick = () => {
-        if (player.inCombat) {
-          log("Can't unequip during combat.");
-          return;
-        }
         player.skills.equipped[i] = null;
         updateSkillsMenu();
       };
@@ -4157,7 +4771,7 @@ function updateAttributesSection() {
     }
 
     // Build the attribute rows
-    Object.keys(player.attributes).forEach(attr => {
+    ["strength", "dexterity", "constitution", "intellect", "wisdom", "willpower"].forEach(attr => {
         const base = player.attributes[attr];
         const bonus = (classAttributeBonuses[attrIndex] || 0);
         const hasAttributePoints = player.attributePoints > 0;
@@ -4268,6 +4882,7 @@ function buildUnitTable(member, isAlly, isPlayer) {
     },
       3);
   }
+  div.style.fontSize = "clamp(0.2rem, 2vw, 1rem)"
   div.style.position = "relative"
   div.innerHTML = `
   <strong>${member.name}</strong><br />
@@ -4414,8 +5029,148 @@ function updateCombatBar(member, stat) {
   const percentage = (current / max) * 100;
   textBar.style.overflow = "auto"
   fillBar.style.width = `${percentage}%`;
-  resizeTextToFitParent(textBar)
   textBar.textContent = `${stat.toUpperCase()} (${current.toFixed(1)}/${max.toFixed(1)})`;
+  resizeTextToFitParent(textBar)
+  
+}
+function showSkillRecursionPopup(skillId) {
+  const html = getSkillRecursionPopupHTML(skillId);
+  setTimeout(() => showPopup(html, true), 1);
+}
+function hasEssences(damageType, essenceType, amount){
+  return player.inventory.storage.some(item => item && item.type == capitalize(essenceType) && item.name == capitalize(damageType)+" "+capitalize(essenceType) && item.count >= amount)
+}
+function getEssences(damageType, essenceType){
+  return player.inventory.storage.find(item => item && item.type == capitalize(essenceType) && item.name == capitalize(damageType)+" "+capitalize(essenceType))?.count || 0
+}
+function getSkillRecursionPopupHTML(skillId) {
+  const skill = skillsData[skillId] || talentsData[skillId];
+  if (!skill) return `<p style="color: #faa;">Skill or Talent not found: ${skillId}</p>`;
+
+  const isTalent = !!talentsData[skillId];
+  const name = skill.name ?? skillId;
+  const learnedSkill = player.skills.learned.find(sk => sk.id == skillId);
+  const unlocked = learnedSkill?.recursive
+  const recursionLevel = learnedSkill?.recursionLevel || 0;
+  
+
+  const costObj = (unlocked ? skill.recursionLevelUpCost : skill.recursionUnlockCost) || {};
+  const costTitle = unlocked ? "Upgrade Cost" : "Unlock Cost";
+  const essenceNames = ["Essence", "Shards", "Gemstones"];
+  const canAfford = Object.keys(costObj).every(dt => costObj[dt].every((val, index) => hasEssences(dt, essenceNames[index], val)))
+
+  const costLines = Object.keys(costObj).map(dt => {
+    
+    const costArray = costObj[dt];
+    
+    let costs = costArray.filter(val => val > 0).map((val, index) => {
+      const current = getEssences(dt, essenceNames[index]);
+      const has = current >= val;
+      const color = has?"#282":"#822";
+      return `<span style="color: ${color};font-size: 0.55rem;">${getDamageTypeIcon(dt)} ${current}/${val} ${capitalize(dt)} ${essenceNames[index]}</span>`;
+ 
+    })
+    return costs.join("<br>")
+  });
+  
+  const statusBox = !player.recursionUnlocked
+  ? `<div style="background:#331111;color:#aa4444;padding:0.2rem;border-radius:0.5rem; min-height: 10rem;display: flex; justify-content: center; align-items: center;">RECURSION LOCKED</div>`
+  : !learnedSkill?`<div style="background:#331111;color:#aa4444;padding:0.2rem;border-radius:0.5rem; min-height: 10rem;display: flex; justify-content: center; align-items: center;">MUST LEARN ${isTalent?"TALENT":"SKILL"} FIRST</div>`:`<div style="background:#222;color:#ccc;border-radius:0.5rem; line-height: 0.8rem; white-space:normal; font-family:monospace; padding: 0.5rem;">
+        <span style='font-size: 0.9rem; color: #eee;'>${name}${isTalent ? " (Talent)" : " (Skill)"}</span>
+      
+      <label style="font-size: 0.7rem;"><br>Active: <input onchange="toggleRecursion('${skillId}')" type="checkbox" id="recursion-checkbox" ${learnedSkill.recursionActive == true?"checked":""}></label>
+      ${learnedSkill.recursive?'<div style="font-size: 0.7rem;"><br>Recursion Level: '+(learnedSkill.recursionLevel || 1)+'</div>':''}
+      <div style="font-size: 0.7rem; margin-bottom: 0.2rem;"><br>${costTitle}:</div>
+      <div style="line-height: 1rem; margin: 0; padding: 0;">
+        ${costLines.map(line => `<div style="font-size: 0.6rem; margin: 0;">${line}</div>`).join("")}
+      </div>
+      <div style="margin-top: 1rem;">
+        <button onclick="attemptRecursionUpgrade('${skillId}')" style="border-radius: 0.25rem; background: linear-gradient(${canAfford ? "#797,#464" : "#533,#422"});">
+          ${canAfford?unlocked ? "Level Up Recursion" : "Unlock Recursion":"Cant Afford"}
+        </button>
+      </div>
+    </div>`;
+
+  return `
+    <div class="recursion-popup dark" style="background:#111;color:#eee;border-radius:1rem; line-height: 1rem;">
+    <div style='padding: 0.2rem; background: #444; border-radius: 0.5rem;margin-bottom: 0.2rem;'>
+      <span style="font-size: 0.9rem; color: #eee;">Recursion</span>
+      <br>
+      <p style="font-size: 0.5rem; color:#999; line-height: 0.6rem;">
+        Recursive skills and talents are retained between prestiges. You can spend Essences, Shards, and Gemstones to unlock and then level up the Recursion levels. Each ${isTalent ? "talent" : "skill"} has different costs based on its design and theme.
+      </p>
+      </div>
+      ${statusBox}
+    </div>
+  `;
+}
+function toggleRecursion(skillId){
+  const learnedSkill = player.skills.learned.find(sk => sk.id == skillId);
+  if(!learnedSkill){
+    return;
+  }
+  if(learnedSkill.recursive){
+    learnedSkill.recursionActive = !learnedSkill.recursionActive
+  }
+  const checkBox = document.getElementById("recursion-checkbox");
+  if(checkBox){
+    checkBox.checked = learnedSkill.recursionActive
+  }
+}
+function attemptRecursionUpgrade(skillId){
+  let learnedSkill = player.skills.learned.find(sk => sk.id == skillId);
+  if(!learnedSkill){
+    console.log("RECURSION", "SKILL NOT LEARNED", skillId)
+    return;
+  }
+  let skillData = skillsData[skillId] || talentsData[skillId];
+  let cost = skillData?.recursionLevelUpCost;
+  if(!learnedSkill.recursive){
+    cost = skillData?.recursionUnlockCost;
+  }
+  const essenceNames = ["Essence", "Shards", "Gemstones"]
+  const canAfford = Object.keys(cost).every(dt => cost[dt].every((val, index) => hasEssences(dt, essenceNames[index], val)))
+  if(!canAfford){
+    console.log("cant afford recursion for "+skillId)
+    return;
+  }
+  
+  Object.keys(cost).forEach(damageType => {
+    cost[damageType].forEach((val, index) => {
+      const essenceType = essenceNames[index]
+      const itemIndex = player.inventory.storage.findIndex(item => item && item.type == essenceType && item.name == capitalize(damageType)+" "+essenceType)
+      if(itemIndex > -1){
+        console.log("taking item at index", itemIndex, val)
+      takeItem(itemIndex, val)
+      }
+    });
+  })
+  if(learnedSkill){
+    console.log("RECURSION", skillId, "Skill is learned")
+    if(!learnedSkill.recursive){
+      console.log("RECURSION", skillId, "Skill is recursive");
+      learnedSkill.recursive = true;
+      learnedSkill.recursionLevel = 1
+      learnedSkill.recursionActive = true
+    }else{
+      console.log("RECURSION", skillId, "Skill is not recursive");
+      if(!learnedSkill.recursionLevel){
+      console.log("RECURSION", skillId, "Skill has no recursive level");
+        learnedSkill.recursionLevel = 1
+      }else{
+      console.log("RECURSION", skillId, "Skill has a recursionLevel", learnedSkill.recursionLevel);
+        learnedSkill.recursionLevel++;
+      }
+    }
+  }
+  showSkillRecursionPopup(skillId)
+}
+function takeItem(index, amount){
+  const item = player.inventory.storage[index];
+  item.count = Math.max(0, item.count-amount)
+  if(item.count == 0){
+    player.inventory.storage.splice(index, 1);
+  }
 }
 function resizeTextToFitParent(element, maxFontSize = 100, minFontSize = 1) {
   if (!element || !element.parentElement) {
@@ -4447,6 +5202,7 @@ function updateProgressBar(skillId, member) {
   let castsLeft = getCastsLeft(member, skillId);
   if(castsLeft == 0){
     member.skills.combatData.targets[skillId].active = false;
+    member.skills.combatData.targets[skillId].target = undefined
   }
   const combatData = member.skills.combatData;
   const skillData = combatData.targets?.[skillId] || {};
@@ -4459,11 +5215,31 @@ function updateProgressBar(skillId, member) {
   const innerBar = document.querySelector(`.progress-inner-bar[data-skill-id="${skillId}-${member.id}"]`);
   const barContainer = document.querySelector(`.progress-outer-bar[data-skill-id="${skillId}-${member.id}"]`);
   if (!barContainer || !innerBar || !combatData) return;
-  let isStunned = member.conditions && member.conditions["Stunned"];
-  
-  if ((isCombatPaused || isStunned) && combatData.lastUsed[skillId]) {
-    combatData.lastUsed[skillId] += updateSpeed
+let isStunned = member.conditions && member.conditions["Stunned"];
+let cdr = 1;
+
+if (member.stats.cooldownReduction && member.stats.cooldownReduction.value > 0) {
+  cdr = member.stats.cooldownReduction.value;
+} else {
+  console.error(`Unit ${member.name} has no cdr`);
+  cdr = 1;
+}
+
+if (combatData.lastUsed[skillId]) {
+  let differential = 0;
+
+  if (isCombatPaused || isStunned) {
+    differential = updateSpeed;  // time doesn't progress
+  } else {
+    // Time progresses faster or slower based on timeshards and CDR
+    differential = -1*updateSpeed * (settings.timeShardSpeed-1) * cdr;
   }
+  let extraTimeFromCDR = settings.timeShardSpeed*(updateSpeed * ((1 / cdr) - 1));
+  
+  differential -= extraTimeFromCDR;
+      
+  combatData.lastUsed[skillId] += differential;
+}
   const lastUse = combatData.lastUsed[skillId] || 0;
   const cooldown = calculateSkillCooldown(member, skillId) || 0;
   if (cooldown == 0) {
@@ -4495,9 +5271,9 @@ function updateProgressBar(skillId, member) {
 
 
   //if(player.inCombat){
-  if (pct >= 1 && isOn && player.inCombat && member.isAlive) {
+  if (pct >= 1 && isOn && player.inCombat && member.isAlive && (hasTarget || !requiresTarget)) {
     //console.log(pct)
-    castSkill(skillId, member, skillData && skillData.target != undefined?findUnitById(skillData.target): null)
+    castSkill(skillId, member, skillData && skillData.target != undefined?findUnitById(skillData.target): undefined)
 
   }
   if (pct < 1) {
@@ -4510,37 +5286,34 @@ function updateProgressBar(skillId, member) {
     member.skills.combatData.targets[skillId].target = potentialTargets[0].id
   } else {}
   let label = document.getElementById(`${member.id}-${skillId}-target-display`)
-  if(label && castsLeft == 0){
-    label.textContent = "Out of casts";
-  }else if (label && isStunned) {
-
-    label.textContent = "Stunned";
-
-  } else {
-    if (hasTarget && label) {
-
+  if(label){
+    if(castsLeft == 0){
+      label.textContent = "Out of casts";
+    }else if (isStunned) {
+      label.textContent = "Stunned";
+    } else if(hasTarget) {
       label.textContent = findUnitById(skillData.target).name;
-    }
-    if (!requiresTarget && label) {
+    }else if (!requiresTarget && label) {
       label.textContent = fromCamelCase(skill.target);
+    }else if(!canUnitAfford){
+      let costText = Object.keys(skill.cost).filter(c => skill.cost[c] > 0 && skill.cost[c] > member.stats[c].value).map(s => s.toUpperCase()).join(", ");
+      label.textContent="Not Enough " + costText;
     }
+    resizeTextToFitParent(label, 300)
   }
-  if(!canUnitAfford && label){
-    let costText = Object.keys(skill.cost).filter(c => skill.cost[c] > 0 && skill.cost[c] > member.stats[c].value).map(s => s.toUpperCase()).join(", ");
-    label.textContent="Not Enough " + costText;
-  }
-  innerBar.style.background = isStunned?"linear-gradient(#838, #515)": canUnitAfford?!member.isAlive?"linear-gradient(#c44, #844)":isOn
+  innerBar.style.background = castsLeft == 0?"linear-gradient(#c44,#844)":isStunned?"linear-gradient(#838, #515)": canUnitAfford?!member.isAlive?"linear-gradient(#c44, #844)":isOn
   ? "linear-gradient(#4c4, #282)": !requiresTarget || (hasTarget && isTargetAlive)?"linear-gradient(#cb4,#863)":"linear-gradient(#c44, #844)":"linear-gradient(#080,#040)";
   innerBar.style.width = `${Math.floor(pct * 100)}%`;
-  barContainer.style.background = isStunned?'#000': canUnitAfford?!member.isAlive?"linear-gradient(#c44,#844)":isOn
+  barContainer.style.background = castsLeft == 0? "linear-gradient(#c44, #844)":isStunned?'#000': canUnitAfford?!member.isAlive?"linear-gradient(#c44,#844)":isOn
   ? "linear-gradient(#474, #252)": !requiresTarget || (hasTarget && isTargetAlive)?"linear-gradient(#874,#652)": "linear-gradient(#744, #522)":"linear-gradient(#050,#030)";
-  if (label) {
-    resizeTextToFitParent(label)
-  }
   
   //  }
 }
 function fromCamelCase(text) {
+  if(!text){
+    console.log(new Error().stack);
+    return "";
+  }
   return text
   .replace(/([a-z])([A-Z])/g, '$1 $2') // insert space before capital letters
   .replace(/^./, str => str.toUpperCase()); // capitalize first letter
@@ -4893,7 +5666,7 @@ function createUnit(unitType, isAlly, tier) {
   unitBase.isAlly = isAlly;
   unitBase.tier = tier;
   Object.keys(unitBase.attributes).forEach(attr => {
-    unitBase.attributes[attr] = unitBase.attributes[attr] + Math.floor(unitBase.attributesPerLevel[attr]*tier);
+    unitBase.attributes[attr] = (unitBase.attributes[attr] + unitBase.attributesPerLevel[attr]*tier).toFixed(1)
   })
   unitBase.skills.equipped = unitBase.skills.equipped.filter(skill => {
   return !skill.tierRequired || skill.tierRequired <= unitBase.tier;
@@ -4923,24 +5696,8 @@ function getIcon(key) {
     console.warn(`Icon key "${key}" is not recognized.`);
     icon.classList.add('unknown');
   }
-  const div = document.createElement('div');
-  div.style.display = "flex";
-  div.style.position = "relative"
-  div.style.width = "100%";
-  div.style.height = "100%";
-  icon.style.position = "absolute";
-  icon.style.top = "0px"
-  icon.style.bottom = "0px"
-  icon.style.left = "0px"
-  icon.style.right = "0px"
-  div.appendChild(icon)
-  setTimeout(() => {
-const computed = window.getComputedStyle(icon);
-console.log('Position:', computed.backgroundPosition);
-console.log('Size:', computed.backgroundSize);
-console.log('Element size:', JSON.stringify(icon.getBoundingClientRect(), null, 2));
-  }, 5)
-  return div;
+  
+  return icon;
 }
 function getDamageTypeIcon(damageType, clickable=true) {
   const onClick = clickable
@@ -4999,8 +5756,8 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
   let mpEfficiency = member.stats?.mpEfficiency.value || 1;
   let spEfficiency = member.stats?.spEfficiency.value || 1;
   const costParts = [];
-  if (skill.cost?.mp * mpEfficiency) costParts.push(`${skill.cost.mp} MP`);
-  if (skill.cost?.sp * spEfficiency) costParts.push(`${skill.cost.sp} SP`);
+  if (skill.cost?.mp) costParts.push(`${(skill.cost.mp * mpEfficiency).toFixed(2)} MP`);
+  if (skill.cost?.sp) costParts.push(`${(skill.cost.sp * spEfficiency).toFixed(2)} SP`);
   if (skill.cost?.hp) costParts.push(`${skill.cost.hp} HP`);
   const costString = costParts.length ? costParts.join(", "): "No cost";
 
@@ -5015,98 +5772,149 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
       skillLevel = skillFound.level
     }
   if (skill.effects) {
-    effectsTableRows = skill.effects.map(e => {
-      let desc = "";
-      switch (e.type) {
-        case "damage":
-          const isPhysicalType = isPhysical(e.damageType);
+  effectsTableRows = skill.effects.map(e => {
+    e = JSON.parse(JSON.stringify(e))
+    let desc = "";
+    let scalingText = "";
+    let durationScalingText = "";
 
-          let targetFlag = false;
-          let scalingText = "";
-          if (e.scaling) {
-            e.scaling.forEach(sc => {
-              scalingText += ` + (${sc.scale} x ${fromCamelCase(sc.target)} ${fromCamelCase(sc.stat)})`
-              if (sc.target != "caster") {
-                targetFlag = true;
-              }
-            })
-          }
+    // Use targetFlag like damage does
+    let targetFlag = e.scaling && e.scaling.some(s => s.target != "caster" || s.stat == "damageDealt");
+
+    switch (e.type) {
+      case "damage":
+        const isPhysicalType = isPhysical(e.damageType);
+        if (e.scaling) scalingText = getScalingString(e);
+        if (!targetFlag) {
+          desc = `Deal ${calculateEffectiveValue(e, skillId, member, undefined, skillLevel)} damage. `;
+        } else {
+          desc = `Deal damage equal to `;
+        }
+        desc += `${scalingText}`;
+        break;
+
+      case "summon":
+        let isAlly = e.isAlly;
+        let unitName = e.unit;
+        scalingText = getScalingString(e.tier);
+        if (!targetFlag) {
+          let unitTier = calculateEffectiveValue(e.tier, skillId, member, undefined, skillLevel);
+          desc = `Summon an ${isAlly ? "allied" : "enemy"} ${unitName} (Tier ${unitTier})${scalingText ? " " + scalingText : ""}`;
+        } else {
+          desc = `Summon an ${isAlly ? "allied" : "enemy"} ${unitName} of tier ${scalingText}`;
+        }
+        break;
+
+      case "cleanse":
+        let toCleanse = e.name;
+        let stacks = "";
+        if (typeof e.stacks == "string") {
+          stacks = e.stacks;
+        } else {
+          scalingText = getScalingString(e.stacks);
           if (!targetFlag) {
-            desc = `Deal ${calculateEffectiveValue(e, skillId,  member, undefined, skillLevel)} damage. `;
+            stacks = calculateEffectiveValue(e.stacks, skillId, member, undefined, skillLevel);
           } else {
-            desc = `Deal damage equal to `
+            stacks = "";
           }
-          desc += `<span style="color: #999">(${e.base.toFixed(2)}${scalingText})</span>`
-          break;
-        
-        case "summon":
-          let isAlly = e.isAlly
-          let unitName = e.unit;
-          let unitTier = e.tier;
-          desc = `Summon an ${isAlly?"allied": "enemy"} ${unitName} (${unitTier})`
-          break;
-        case "cleanse":
-          let toCleanse = e.name;
-          let stacks = e.stacks || "all"
-          desc = `Cleanse ${stacks} stacks of ${toCleanse}`
-          break;
-        case "energySiphon":
-          let amount = calculateEffectiveValue(e, skillId, member, null, skillLevel)
-          desc = `Steal ${amount} ${capitalize(e.energyType)} from the enemy.`
-          break;
-        case "taunt":
-          desc = `Force a unit to target you.`
-          break;
-        case "buff":
-        case "debuff":
-          e.value = calculateEffectiveValue(e.value, skillId, member, undefined, skillLevel)
-          const sign = (e.effect === "multi" ? "×":e.type == "buff"? "+":"-");
-          
-          e.duration = calculateEffectiveValue(e.duration, skillId, member, undefined, skillLevel)
-          if(e.resistanceType){
-            desc = `${capitalize(e.resistanceType)} Damage Taken * ${(e.value).toFixed(2)} for ${(e.duration/1000).toFixed(2)}s`
-            break;
-          }
-          value = e.value.toFixed(2);
-          
-          desc = `${sign}${value} ${fromCamelCase(e.stat)} for ${(e.duration / 1000).toFixed(2)}s`;
+        }
+        desc = `Cleanse ${stacks}${scalingText ? " " + scalingText : ""} stacks of ${toCleanse}`;
+        break;
 
-          break;
-        case "dot":
-          desc = `${e.base} ${edamageType || "neutral"} over ${e.duration}s`;
-          break;
-        case "condition":
-          if (e.name && conditionsData[e.name] && e.stacks) {
-            let targetFlag = false;
-            let scalingText = "";
-            if (e.stacks.scaling) {
-              e.stacks.scaling.forEach(sc => {
-                if (sc.target == "caster") {
-                  scalingText += ` + (${sc.scale} ^ ${sc.target}'s ${fromCamelCase(sc.stat)})`
-                } else {
-                  targetFlag = true;
-                }
-              })
-            }
-            desc = `Apply ${calculateEffectiveValue(e.stacks, skillId,
-              member,
-              undefined,
-              skillLevel)} stack(s) of ${e.name} <span style="color: #999">(${e.stacks.base.toFixed(2)}${scalingText})</span>`;
-          }
-          break;
-        default:
-          desc = "Unknown effect";
+      case "siphonEnergy":
+        scalingText = getScalingString(e);
+        gainScalingText = getScalingString(e.multi);
+        if (!targetFlag) {
+          let amount = calculateEffectiveValue(e, skillId, member, null, skillLevel);
+          let multi = calculateEffectiveValue(e.multi, skillId, member, null, skillLevel);
+          desc = `Siphon ${amount}${scalingText ? " " + scalingText : ""} ${capitalize(e.energyType)} from the enemy and gain ${multi}x${gainScalingText ? " " + gainScalingText : ""} that much.`;
+        } else {
+          desc = `Siphon ${scalingText} ${capitalize(e.energyType)} from the enemy and gain ${gainScalingText ? gainScalingText + " " : ""}that much.`;
+        }
+        break;
+
+      case "gainEnergy":
+        scalingText = getScalingString(e);
+        if (!targetFlag) {
+          let gainAmount = calculateEffectiveValue(e, skillId, member, null, skillLevel);
+          desc = `Grant the target ${gainAmount}${scalingText ? " " + scalingText : ""} ${capitalize(e.energyType)}.`;
+        } else {
+          desc = `Grant the target ${scalingText} ${capitalize(e.energyType)}.`;
+        }
+        break;
+
+      case "taunt":
+        desc = `Force a unit to target you.`;
+        break;
+
+      case "buff":
+      case "debuff":
+        scalingText = getScalingString(e.value);
+        let durationScaling = e.duration;
+
+if (durationScaling?.base !== undefined) {
+  durationScaling = {
+    ...durationScaling,
+    base: durationScaling.base / 1000,
+    scaling: Array.isArray(durationScaling.scaling)
+      ? durationScaling.scaling.map(s => ({
+          ...s,
+          scale: s.effect === "multi" ? s.scale : s.scale / 1000
+        }))
+      : []
+  };
+}
+
+const durationScalingText = getScalingString(durationScaling);
+        const sign = (e.effect === "multi" ? "×" : e.type == "buff" ? "+" : "-");
+        if (!targetFlag) {
+          e.value = calculateEffectiveValue(e.value, skillId, member, undefined, skillLevel);
+          console.log(JSON.stringify(e.duration))
+          e.duration.value = calculateEffectiveValue(e.duration, skillId, member, undefined, skillLevel);
         }
 
-        return `
-        <tr>
-        <td style="border: 1px solid #333; padding: 4px;">${e.type == "damage" || e.type == "dot"?getDamageTypeIcon(e.damageType) + " ": ""}${e.type}</td>
-        <td style="border: 1px solid #333; padding: 4px;">${e.target ? fromCamelCase(e.target): skill.target ? fromCamelCase(skill.target): "-"}</td>
-        <td style="border: 1px solid #333; padding: 4px;">${desc}</td>
-        </tr>
-        `;
-      }).join("");
+        if (e.resistanceType) {
+          desc = `${capitalize(e.resistanceType)} Damage Taken * ${!targetFlag ? e.value.toFixed(2) : ""}${scalingText ? " " + scalingText : ""} for ${!targetFlag ? (e.duration.value / 1000).toFixed(2) : ""}s${durationScalingText ? " " + durationScalingText : ""}`;
+          break;
+        }
+
+        let value = !targetFlag ? e.value.toFixed(2) : "";
+        let duration = !targetFlag ? (e.duration.value / 1000).toFixed(2) : "";
+        desc = `${sign}${value} ${fromCamelCase(e.stat)}${scalingText ? " " + scalingText : ""} for ${duration}s${durationScalingText ? " " + durationScalingText : ""}`;
+        break;
+
+      case "dot":
+        scalingText = getScalingString(e);
+        durationScalingText = getScalingString({ duration: e.duration });
+        letdamageText = !targetFlag ? `${calculateEffectiveValue(e, skillId, member, undefined, skillLevel)}` : scalingText;
+        desc = `${damageText} ${e.damageType || "neutral"} damage over ${e.duration}s${durationScalingText ? " " + durationScalingText : ""}`;
+        break;
+
+      case "condition":
+        if (e.name && conditionsData[e.name] && e.stacks) {
+          scalingText = getScalingString(e.stacks);
+          let stacksVal = "";
+          if (!targetFlag) {
+            e.stacks.value = calculateEffectiveValue(e.stacks, skillId, member, undefined, skillLevel);
+            stacksVal = e.stacks.value;
+          }
+          desc = `Apply ${stacksVal}${scalingText ? " " + scalingText : ""} stack(s) of ${e.name}`;
+        }
+        break;
+
+      default:
+        desc = "Unknown effect";
     }
+
+    return `
+      <tr>
+        <td style="border: 1px solid #333; padding: 4px;">${e.type == "damage" || e.type == "dot" ? getDamageTypeIcon(e.damageType) + " " : ""}${fromCamelCase(e.type)}</td>
+        <td style="border: 1px solid #333; padding: 4px;">${e.target ? fromCamelCase(e.target) : skill.target ? fromCamelCase(skill.target) : "-"} ${e.targetNames ? "(" + e.targetNames.join(", ") + ")" : ""}</td>
+        <td style="border: 1px solid #333; padding: 4px;">${desc}</td>
+      </tr>
+    `;
+  }).join("");
+}
     let initCdHtml = "";
     if(skill.initialCooldown){
       initCdHtml = `<tr><th style="text-align:left; border-bottom: 1px solid #444;">Initial Cooldown</th><td style="border-bottom: 1px solid #444;">${skill.initialCooldown.toFixed(2)}s</td></tr>`
@@ -5119,7 +5927,12 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
               undefined,
               skillLevel)}</td></tr>`
     }
-
+    let targetNames = "";
+    if(skill.targetNames){
+      targetNames = `
+          <tr><th style="text-align:left; border-bottom: 1px solid #444;">Target Units</th><td style="border-bottom: 1px solid #444;">${skill.targetNames.join(", ")}</td></tr>
+          `
+    }
     popup.innerHTML = `
     <div style="font-size: 18px; font-weight: bold; color: #0bf;">${skill.name}</div>
     <div style="color: #aaa; margin-top: 6px;">${Array.isArray(skill.description)?skill.description.join("<br>- "):skill.description || "No description provided."}</div>
@@ -5136,6 +5949,7 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
       ${initCdHtml}
       ${perCombatMaxHtml}
     <tr><th style="text-align:left; border-bottom: 1px solid #444;">Target</th><td style="border-bottom: 1px solid #444;">${fromCamelCase(skill.target) || "None"}</td></tr>
+    ${targetNames}
     </table>
 
     ${effectsTableRows ? `
@@ -5164,6 +5978,65 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
         detailsSection.style.display = isVisible ? "none": "block";
         toggleBtn.textContent = isVisible ? "See More": "See Less";
       });
+}
+function setTimeShardInterval(){
+  if(timeshardConsumptionInterval){
+    clearInterval(timeshardConsumptionInterval)
+  }
+  timeshardConsumptionInterval = setInterval(() => {
+  if(settings?.timeShardSpeed){
+    if(player?.timeShards?.count > 0){
+      if(player.inCombat){
+        addToDebugLog('DEBUG', "consuming timeshards", "current: " + player.timeShards.count, "consuming:" + ((settings.timeShardSpeed || 1)-1));
+        player.timeShards.count = Math.max(player.timeShards.count-((settings.timeShardSpeed || 1)-1), 0);
+        if(player.timeShards.count == 0){
+          updateTimeShardSpeed(1)
+        }
+        
+      }
+    }
+  }
+}, 1000);
+}
+function getScalingString(e) {
+  if (!e || e.base == undefined){
+    return "";
+  }
+  let scalingText = `(${e.base?.toFixed(2) ?? 0}`;
+  if(!Array.isArray(e.scaling) || e.scaling.length === 0) {
+    return ""
+  }
+
+  const targetMap = {
+    caster: "caster's",
+    target: "target's",
+    all: "all units'",
+    allEnemies: "all enemies'",
+    allAllies: "all allies'",
+    player: "player's"
+  };
+
+  
+
+  e.scaling.forEach(sc => {
+    const scaleSymbol = sc.effect === "multi" ? "^" : "×";
+    const targetName = targetMap[sc.target] || `${sc.target}'s`;
+    let statName = fromCamelCase(sc.stat);
+
+    // Handle "missing" and "percent" logic via stat name prefix
+    if (statName.toLowerCase().startsWith("missing ")) {
+      statName = "missing " + statName.slice(8);
+    }
+    if (statName.toLowerCase().startsWith("percent ")) {
+      statName = "percentage of " + statName.slice(8);
+    }
+
+    scalingText += ` ${sc.effect == "multi"?"×":"+"} (${sc.scale} ${scaleSymbol} ${targetName} ${statName})`;
+  });
+
+  scalingText += ")";
+
+  return `<span style="color: #999;">${scalingText}</span>`;
 }
   function findSkillLevelScalingPaths(obj) {
     const results = [];
@@ -5196,13 +6069,7 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
       console.error("calculateTalentCooldown error");
       return 0;
     }
-        let cdr = 1;
-    if (unit.stats.cooldownReduction && unit.stats.cooldownReduction.value > 0) {
-      cdr = unit.stats.cooldownReduction.value;
-    } else {
-      console.error(`Unit ${unit.name} has no cdr`)
-      cdr = 1;
-    }
+
     
     let skillLevel = 0;
 
@@ -5212,14 +6079,14 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
     }else{
       console.error("SKILL NOT FOUND", talentId)
     }
-    let cd = cdr*calculateEffectiveValue(effectcooldown, skillId, unit, undefined, skillLevel);
+    let cd = calculateEffectiveValue(effectcooldown, skillId, unit, undefined, skillLevel);
     if(skill.cooldown.min){
       cd = Math.max(skill.cooldown.min, cd);
     }
     if(skill.cooldown.max){
       cd = Math.min(skill.cooldown.max, cd);
     }
-    return Math.max(updateSpeed/1000,
+    return Math.max(updateSpeed/10,
       cd);
   }
   function calculateSkillCooldown(unit, skillId) {
@@ -5229,13 +6096,7 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
       return 0;
       
     }
-    let cdr = 1;
-    if (unit.stats.cooldownReduction && unit.stats.cooldownReduction.value > 0) {
-      cdr = unit.stats.cooldownReduction.value;
-    } else {
-      console.error(`Unit ${unit.name} has no cdr`)
-      cdr = 0.01;
-    }
+    
     let skillFound = unit.skills.equipped.find(s => s && s.id === skillId);
     let skillLevel = 0;
     if(!skillFound || !skillFound.level){
@@ -5245,9 +6106,9 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
     if(skillFound && skillFound.level){
       skillLevel = skillFound.level;
     }else{
-      console.error("SKILL NOT FOUND", skillId)
+      skillLevel = 1;
     }
-    let cd = cdr*calculateEffectiveValue(skill.cooldown, skillId,unit, undefined, skillLevel);
+    let cd = calculateEffectiveValue(skill.cooldown, skillId,unit, undefined, skillLevel);
     if(skill.cooldown.min){
       cd = Math.max(skill.cooldown.min, cd);
     }
@@ -5455,9 +6316,13 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
     spendResources(caster, skill.cost);
     
     caster.skills.combatData.lastUsed[skillId] = Date.now();
+    if(!target && skill.requiresTarget){
+      caster.skills.combatData.targets[skillId].target = getPotentialTargets(caster, skill.target)[0].id
+    }
     // Execute effects (if any)
     let originalTarget = target;
-    target = getTarget(caster, target, skill.target);
+    target = getTarget(caster, target, skill.target, undefined, skill.targetNames);
+    console.log(target)
     if(skill.flavorText){
       updateCombatLog(skill.flavorText.replaceAll("{casterName}", caster.name).replaceAll("{targetName}", !Array.isArray(target)?target.name:"Fix Later"), caster, ["flavorText", caster.isAlly?"ally":"enemy"])
     }
@@ -5477,7 +6342,10 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
 
     // Execute custom code if defined
     potentialTargets = getPotentialTargets(caster, skill.target)
-    if (potentialTargets.length > 0 && settings.autoTarget && (!originalTarget || !originalTarget.isAlive)) {
+    if (skill.requiresTarget && potentialTargets.length > 0 && settings.autoTarget && (!originalTarget || !originalTarget.isAlive)) {
+      if(!caster.skills.combatData.targets[skillId]){
+        caster.skills.combatData.targets[skillId] = {}
+      }
       caster.skills.combatData.targets[skillId].target = potentialTargets[0].id
       caster.skills.combatData.targets[skillId].active = true
     }
@@ -5485,7 +6353,7 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
   }
   function createListenerCallback(effect, unit, talentId) {
   return (event) => {
-    if (!passesTriggerConditions(effect, event, unit, talentId)) return;
+    if (!passesTrigConditions(effect, event, unit, talentId)) return;
     if(!unit.skills.combatData.perCombat){
       unit.skills.combatData.perCombat={};
     }
@@ -5505,7 +6373,7 @@ function showSkillPopup(skillId, inCombat, member, unitByName, unitById) {
     }
     
     if(!event.target && event.unitSummoned){
-      event.target = event.unitSummoned
+      event.target = event.unitSummoned.id
     }
     for (let eff of effect.effects) {
     applyEffect(eff, unit, event.target, talentId, undefined, skillContext);
@@ -5523,10 +6391,8 @@ function passesTriggerConditions(effect, event, unit, talentId) {
   const trigger = effect.trigger;
   if (trigger.condition && event.effect?.name !== trigger.condition) return false;
   if (trigger.target && trigger.target !== "any") {
-    console.log("uh",event)
     const targets = getPotentialTargets(unit, undefined, trigger.target, talentId);
     if (!targets.includes(event.target)) return false;
-    console.log("passed")
   }
   if (trigger.caster && trigger.caster !== "any") {
     const casters = getPotentialTargets(unit, trigger.caster);
@@ -5661,76 +6527,89 @@ function passesTriggerConditions(effect, event, unit, talentId) {
 
     return effective;
   }
-  function getTarget(caster, target, targetType, skillContext) {
+  function getTarget(caster, target, targetType, skillContext, targetNames) {
+
     if(targetType == "singleAlly" || targetType == "singleEnemy"){
       if(!target){
-        console.error("no target found", new Error().stack)
+        console.log("forcing retarget", caster, targetType)
+        if(settings.autoTarget){
+          let potentialTargets = getPotentialTargets(caster, targetType);
+          target = potentialTargets[0].id
+        }else{
+        console.error("no target found", caster.name, JSON.stringify(skillContext, null, 2), new Error().stack)
+        }
       }
-      return target;
-    }
-    let livingUnits = combatUnits.filter(u => u && u.isAlive);
-    if (targetType) {
-
-      switch (targetType) {
-      case "allEnemies":
-        target = combatUnits.filter(unit => unit.isAlive && unit.isAlly != caster.isAlly);
-        break;
-
-      case "allAllies":
-        target = combatUnits.filter(unit => unit.isAlive && unit.isAlly == caster.isAlly);
-        break;
-
-      case "all":
-        target = combatUnits.filter(unit => unit.isAlive);
-        break;
-      case "random":
-        target = livingUnits[Math.floor(Math.random()*livingUnits.length)]
-        break;
-      case "randomAlly":
-        let filteredAllies = combatUnits.filter(u => u.isAlly == caster.isAlly && u.isAlive)
-        target = filteredAllies[Math.floor(Math.random()*filteredAllies.length)]
-        break;
-      case "randomEnemy":
-        let filteredEnemies = combatUnits.filter(u => u.isAlly != caster.isAlly && u.isAlive);
-        target = filteredEnemies[Math.floor(Math.random()*filteredEnemies.length)];
-        break;
-      case "caster":
-      case "self":
-        target = caster;
-        break;
-      case "adjacent":
-        const origin = Array.isArray(target)?target[0]: target;
-        const adjacentTargets = [origin];
-        const unitId = origin.id;
-
-        // Check left
-        if (unitId > 0) {
-          const left = findUnitById(unitId - 1);
-          if (left && left.isAlly === origin.isAlly && left.isAlive) {
-            adjacentTargets.push(left);
+    }else{
+      let livingUnits = combatUnits.filter(u => u && u.isAlive);
+      if (targetType) {
+  
+        switch (targetType) {
+        case "allEnemies":
+          target = combatUnits.filter(unit => unit.isAlive && unit.isAlly != caster.isAlly);
+          break;
+  
+        case "allAllies":
+          target = combatUnits.filter(unit => unit.isAlive && unit.isAlly == caster.isAlly);
+          break;
+  
+        case "all":
+          target = combatUnits.filter(unit => unit.isAlive);
+          break;
+        case "random":
+          target = livingUnits[Math.floor(Math.random()*livingUnits.length)]
+          break;
+        case "randomAlly":
+          let filteredAllies = combatUnits.filter(u => u.isAlly == caster.isAlly && u.isAlive)
+          target = filteredAllies[Math.floor(Math.random()*filteredAllies.length)]
+          break;
+        case "randomEnemy":
+          let filteredEnemies = combatUnits.filter(u => u.isAlly != caster.isAlly && u.isAlive);
+          target = filteredEnemies[Math.floor(Math.random()*filteredEnemies.length)];
+          break;
+        case "caster":
+        case "self":
+          target = caster;
+          break;
+        case "adjacent":
+          const origin = Array.isArray(target)?target[0]: target;
+          const adjacentTargets = [origin];
+          const unitId = origin.id;
+  
+          // Check left
+          if (unitId > 0) {
+            const left = findUnitById(unitId - 1);
+            if (left && left.isAlly === origin.isAlly && left.isAlive) {
+              adjacentTargets.push(left);
+            }
           }
-        }
-
-        // Check right
-        if (unitId < combatUnits.length - 1) {
-          const right = findUnitById(unitId + 1);
-          if (right && right.isAlly === origin.isAlly && right.isAlive) {
-            adjacentTargets.push(right);
+  
+          // Check right
+          if (unitId < combatUnits.length - 1) {
+            const right = findUnitById(unitId + 1);
+            if (right && right.isAlly === origin.isAlly && right.isAlive) {
+              adjacentTargets.push(right);
+            }
           }
-        }
-
-        target = adjacentTargets;
-        break;
+  
+          target = adjacentTargets;
+          break;
         case "skillTarget":
           if(!skillContext){
             console.error("skill context not found", targetType, new Error().stack)
           }
-          return skillContext.target;
+          target = skillContext.target;
           break;
+        }
+      } else {
+        target = getPotentialTargets(caster, targetType);
       }
-    } else {
-      target = getPotentialTargets(caster, targetType);
-      }
+    }
+    if(targetNames){
+      let includesPlayer = targetNames.includes("player");
+      
+      
+      return target.filter(u => u && targetNames.includes(u.name) || (includesPlayer && u.isPlayer))
+    }
     return target;
 
   }
@@ -5761,15 +6640,15 @@ function passesTriggerConditions(effect, event, unit, talentId) {
     if (!skillId) {
       console.error("no skill defined");
     }
+    let foundSkill = findSkill(caster, skillId)
     
-    if (!caster.skills.combatData.targets[skillId] && caster.skills.learned.find(s=> s.id == skillId).type != "talent") {
-      console.error("no skill found", caster.skills.combatData)
+    if (!caster.skills.combatData.targets[skillId] && foundSkill && foundSkill.type != "talent") {
       return;
     }
     // Always treat target as array
 
     if (effect.target) {
-      target = getTarget(caster, originalTarget, effect.target, skillContext);
+      target = getTarget(caster, originalTarget, effect.target, skillContext, effect.targetNames);
     }
     if (!Array.isArray(target)) target = [target];
     
@@ -5783,12 +6662,21 @@ function passesTriggerConditions(effect, event, unit, talentId) {
     }
     let sign = "";
     let value = ""
-    console.log(skillId, effect, "made it this far")
+    console.log(skillId, effect, target, "made it this far")
+    if(skillContext == undefined){
+      skillContext = {}
+    } 
+    if(skillContext.damageDealt == undefined){
+      skillContext.damageDealt = 0;
+    }
+    applyEffectEvent.emit({effect: effect, caster: caster, target: target, skillId: skillId, skillContext: skillContext})
     // Apply effect to each target in the array
     for (let unit of Array.isArray(target)?target: [target]) {
       if (!unit) {
         continue;
+        
       }
+      let desc = ""
       switch (effect.type) {
       case "damage":
         if(skillContext && skillContext.statBonuses){
@@ -5801,9 +6689,10 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         }
         let total = critMulti*calculateEffectiveValue(effect, skillId, caster, unit, skillLevel, skillContext)
         let finalDamage = damageUnit(caster, unit, effect.damageType, total, skillContext)
+        skillContext.damageDealt+=finalDamage
 
 
-        updateCombatLog(`${critMulti > 1? "CRITICAL HIT! ":""}${caster.name} deals ${finalDamage.toFixed(2)} ${getDamageTypeIcon(effect.damageType)} damage to ${unit.name}`, caster, ["damage", caster.isAlly?"ally":"enemy"]);
+      updateCombatLog(`${critMulti > 1? "CRITICAL HIT! ":""}${caster.name} deals ${finalDamage.toFixed(2)} ${getDamageTypeIcon(effect.damageType)} damage to ${unit.name}`, caster, ["damage", caster.isAlly?"ally":"enemy"]);
         break;
       case "interrupt":
         let interruptAmount = calculateEffectiveValue(effect, skillId, caster, undefined, skillLevel, skillContext);
@@ -5826,6 +6715,15 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         let unitToSummon = effect.unit;
         let tier = calculateEffectiveValue(effect.tier, skillId, caster, undefined, skillLevel, skillContext)
         let unitData = createUnit(unitToSummon, effect.isAlly, tier);
+        unitData.stats.hp = {
+          value: 1
+        }
+        unitData.stats.sp = {
+          value: 1
+        }
+        unitData.stats.mp = {
+          value: 1
+        }
         const crewContainer = document.getElementById("player-crew");
         const enemyContainer = document.getElementById("enemy-crew");
         unitData.isAlly = effect.isAlly?caster.isAlly: !caster.isAlly
@@ -5833,6 +6731,8 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         unitData.buffs = [];
         unitData.conditions = [];
         unitData.isSummon = true;
+        recalculateTotalResistances(unitData);
+        recalculateDerivedStats(unitData);
         combatUnits.push(unitData)
 
         if (unitData.isAlly || unitData.isPlayer) {
@@ -5843,11 +6743,19 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         unitData.isAlive = true
         isPlayer = false
 
-        recalculateTotalResistances(unitData);
-        recalculateDerivedStats(unitData);
-        unitData.stats.hp.value = unitData.stats.maxHp.value;
-        unitData.stats.sp.value = unitData.stats.maxSp.value;
-        unitData.stats.mp.value = unitData.stats.maxMp.value;
+        
+        unitData.stats.hp = {
+          value: unitData.stats.maxHp.value
+        }
+        unitData.stats.sp = {
+          value: unitData.stats.maxSp.value
+        }
+        unitData.stats.mp = {
+          value: unitData.stats.maxMp.value
+        }
+        updateCombatBar(unitData, "hp");
+        updateCombatBar(unitData, "sp");
+        updateCombatBar(unitData, "mp");
         regenIntervals[unitData.id] = setInterval(() => {
           if (player.inCombat && findUnitById(unitData.id)) {
             updateUnitRegens(unitData); // Or loop through all allies
@@ -5855,7 +6763,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
             clearInterval(regenIntervals[unitData.id]);
           }
         },
-          1000);
+          1000/settings.timeShardSpeed);
         if (!unitData.isAlly) {
           unitData.skills.equipped.forEach(s => {
             let enemyTarget = getEnemyTarget(unitData,
@@ -5885,14 +6793,18 @@ function passesTriggerConditions(effect, event, unit, talentId) {
               active: true
             }
           }
+          
+          if(!skillIntervals[unitData.id+"-"+skillId]){
+            
           skillIntervals[unitData.id+"-"+skillId] = setInterval(() => {
             if (player.inCombat && findUnitById(unitData.id)) {
-              updateProgressBar(skillId, unitData); // Or loop through all allies
+            updateProgressBar(skillId, unitData); // Or loop through all allies
             } else {
               clearInterval(skillIntervals[unitData.id+"-"+skillId])
             }
           },
             updateSpeed);
+        }
         })
         summonUnitEvent.emit({
           effect: effect,
@@ -5901,7 +6813,6 @@ function passesTriggerConditions(effect, event, unit, talentId) {
           skillId: skillId
         })
         updateCombatLog(`${caster.name} summoned an ${unitData.isAlly?"ally":"enemy"} ${unitData.name}(${unitData.tier})`, caster, ["summon", caster.isAlly?"ally":"enemy"])
-
         break;
       case "cleanse":
         let toCleanse = effect.name;
@@ -5913,15 +6824,15 @@ function passesTriggerConditions(effect, event, unit, talentId) {
             stacks = unit.conditions[toCleanse].stacks/2
           }
           unit.conditions[toCleanse].stacks = Math.max(0,unit.conditions[toCleanse].stacks - stacks);
-          let desc = `${caster.name} cleansed ${stacks} stacks of ${toCleanse} on ${unit.name}`;
+          desc = `${caster.name} cleansed ${stacks} stacks of ${toCleanse} on ${unit.name}`;
           updateCombatLog(desc, "cleanse", caster.isAlly?"ally":"enemy");
         }
         break;
       case "gainEnergy":
         let amt = calculateEffectiveValue(effect, skillId, caster, target, skillLevel, skillContext);
         let type = effect.energyType;
-        caster.stats[type].value = Math.min(caster.stats[`max${capitalize(type)}`].value,amt+caster.stats[type].value);
-        let desc = `${caster.name} gained ${amt.toFixed(2)} ${capitalize(type)}.`
+        unit.stats[type].value = Math.min(unit.stats[`max${capitalize(type)}`].value,amt+unit.stats[type].value);
+        desc = `${unit.name} gained ${amt.toFixed(2)} ${capitalize(type)}.`
         updateCombatLog(desc,
         caster, ["gainEnergy",caster.isAlly?"ally":"enemy"]);
         updateCombatBar(caster, type)
@@ -5938,7 +6849,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
           if(gainDiff*multi != 0){
             desc += `, gaining ${(gainDiff*multi).toFixed(2)}`
           }else{desc+="."}
-          console.log(unit, caster)
+          
             updateCombatLog(desc,
           caster, ["siphon",caster.isAlly?"ally":"enemy"]);
           updateCombatBar(unit, energyType)
@@ -6169,7 +7080,7 @@ function passesTriggerConditions(effect, event, unit, talentId) {
   break;
       }
     }
-  applyEffectEvent.emit({effect: effect, caster: caster, target: target, skillId: skillId, skillContext: skillContext})
+  
   }
   function removeTalentListeners(unit) {
   unit.skills.combatData.perCombat = {};
@@ -6366,7 +7277,11 @@ function passesTriggerConditions(effect, event, unit, talentId) {
       document.querySelectorAll('.unit-box').forEach(box => {
         let unitId = parseInt(box.id.match(/\d+/)[0]);
         console.log("removing", unitId + '-hitChance')
-        document.getElementById(unitId + '-hitChance').remove();
+        let hitChanceDiv = document.getElementById(unitId + '-hitChance')
+        if(unitId && hitChanceDiv){
+          hitChanceDiv.remove();
+        }
+
         resetUnitBorder(unitId);
       })
       
@@ -6476,7 +7391,8 @@ function findUnitById(id) {
       // Check if the stat exists on the player
       if (!player.stats[key]) return false;
       // Check if the player has enough of that stat
-      if (player.stats[key].value < cost[key]) return false;
+      let efficiency = player.stats[key + "Efficiency"]?.value;
+      if (player.stats[key].value < cost[key]*efficiency) return false;
     }
     return true;
   }
@@ -6595,7 +7511,23 @@ function findUnitById(id) {
     overlay.appendChild(popup);
     document.body.appendChild(overlay);
 }
-
+function softReset(force){
+  if(!force){
+    setTimeout(() => showPopup(`
+          <h2 style="color: #d88">Are you sure?</h2>
+          <span>Soft reset will refund all attribute points and skill points. This is a debug feature and will not be permanent.</span>
+          <div style="display: flex; margin-top: 70px; position: relative;">
+          <button style="background: linear-gradient(#844,#633); position: absolute; bottom: 1em; left: 1em; border-radius: 1em;" onclick="softReset(true)">Soft Reset</button>
+          <button style="background: linear-gradient(#484,#363); position: absolute; bottom: 1em; right: 1em; border-radius: 1em;" onclick="document.getElementById('popup-overlay').remove()">Go Back</button>
+          </div>
+          `), 1);
+          return;
+  }
+  resetAttributes();
+  refundSkills();
+  showMenu("character");
+  
+}
 function getAvailableSkills() {
   const learnedSkills = Object.fromEntries(
     player.skills.learned.map(s => [s.id, s.level])
@@ -6649,22 +7581,33 @@ function getAvailableSkills() {
     }
   }
   function finishCombat(win) {
+
   document.querySelectorAll(".popup").forEach(e => e.remove());
   let menuContent = document.getElementById("menu-content");
   menuContent.innerHTML = "";
   combatUnits.forEach(u => {
-    u.skills.combatData.target = [];
+    u.skills.combatData.targets = [];
     removeTalentListeners(u);
   });
   player.inCombat = false;
-  skillIntervals.forEach(ski => clearInterval(ski));
-  regenIntervals.forEach(regi => clearInterval(regi));
-  skillIntervals = [];
-  regenIntervals = [];
+  Object.values(skillIntervals).forEach((value) => clearInterval(value))
+  Object.values(regenIntervals).forEach((value) => clearInterval(value))
+
+  skillIntervals = {};
+  regenIntervals = {}
 
   let defeated = combatUnits.filter(unit => !unit.isAlive && !unit.isAlly && !unit.isSummon);
   combatUnits = [];
-
+    if(debugEnemyTesting){
+      setTimeout(() => {
+      debugEnemyTesting = false;
+      showMenu("settings")
+      if(debugEnemy)
+      createUnitDesignerPopup(debugEnemy);
+      debugEnemy = undefined
+      return;
+    }, 1000);
+    }
   let finDiv = document.createElement("div");
   finDiv.style.display = "flex";
   finDiv.style.flexDirection = "column";
@@ -6704,16 +7647,47 @@ function getAvailableSkills() {
     if (!player.discoveredEnemies) player.discoveredEnemies = [];
 
     defeated.forEach(unit => {
-      let xpModifier = Math.min(2,(50 + unit.tier) / (50 + player.classData[player.class].level)) * player.stats.xpGain.value;
-      let xpGained = Math.floor((unit.xp * unit.tier / 2 + unit.tier) * xpModifier);
+      let xpModifier = Math.min(2,(50 + unit.tier) / (50 + player.classData[player.class].level/2)) * player.stats.xpGain.value;
+      let xpGained = Math.floor((Math.pow(1.2,player.unlockedClassCount-1 || 0))*(unit.xp * (1+ unit.tier / 2) + unit.tier) * xpModifier);
 
       // XP gain
       messageDiv.innerHTML += `<div><span>${unit.name} defeated: </span><span style="color: #d8a">${xpGained} xp!</span></div>`;
+            const essenceNames = ["Essence","Shards","Gemstones"];
+      const essenceDropLevels = [100,1000,10000]
+      const essenceQualities = ["uncommon", "epic", "mythic"];
+      const unitTierReplacement = 10000000;
+      [0,1,2].forEach(e => {
+          const factor = Math.log(unit.tier) / Math.log(Math.sqrt(essenceDropLevels[e]));
+          const scaledTier = rollLogRandom(unit.tier, 0, essenceDropLevels[e] / 1.5);
+          const dropAmount = Math.floor(factor * scaledTier+0.99);
+          
+          if(dropAmount > 0){
+          let essenceDrop = {
+            name: capitalize(unit.damageType)+" "+essenceNames[e],
+            type: essenceNames[e],
+            count: dropAmount,
+            quality: essenceQualities[e]
+          }
+          if(addItem(essenceDrop)){
+                      let dropDiv = document.createElement("div");
+          let itemSpan = document.createElement("span");
+          let dropCountText = essenceDrop.count > 1?"x"+essenceDrop.count:""
+          itemSpan.textContent = `[ ${essenceDrop.name} ]${dropCountText}`;
+
+          itemSpan.style.color = itemQualities[essenceDrop.quality];
+          itemSpan.style.cursor = "pointer";
+          itemSpan.onclick = () => setTimeout(()=>showItemPopup(essenceDrop),1);
+          dropDiv.innerText = "Received ";
+          dropDiv.appendChild(itemSpan);
+          messageDiv.appendChild(dropDiv);
+          }
+          }
+      })
 
       // Item drops
-      let dropAmount = Math.min(3,rollLogRandom(Math.pow(unit.tier, 1.2) * 10));
-      if (dropAmount) {
-        for (let drop = 0; drop < dropAmount; drop++) {
+      let gearDropAmount = Math.min(3,rollLogRandom(Math.pow(unit.tier, 1.2) * 10));
+      if (gearDropAmount) {
+        for (let drop = 0; drop < gearDropAmount; drop++) {
           let randomSlotType = Object.keys(player.inventory.equipped).random();
 
           let filteredGearEntries = Object.entries(gearTypes).filter(([name, data]) => data.slot === randomSlotType);
@@ -6792,6 +7766,13 @@ function getAvailableSkills() {
       let reward = loreDataCache.zones[player.currentZone.name].reward;
       player.skillSlots = Math.min(6, player.skillSlots + 1);
       player.zoneProgress[player.currentZone.name].completed = true;
+      player.planetsProgress[player.planet].zonesCompleted= (player.planetsProgress[player.planet].zonesCompleted || 0) +1
+      let maxZones = (loreDataCache.planets[player.planet].zones && loreDataCache.planets[player.planet].zones.length) || 0;
+      let zonesCompleted = player.planetsProgress[player.planet].zonesCompleted;
+      if(zonesCompleted == maxZones){
+        player.planetsProgress[player.planet].timesCompleted += 1;
+        player.planetsProgress[player.planet].completed = true;
+      }
       player.beatenZones++;
       player.beatenTiers += max;
       delete player.progressingZone;
@@ -6829,7 +7810,7 @@ function getAvailableSkills() {
     mainArea.appendChild(levelUpDiv);
   }
 
-  saveCharacter();
+  saveCharacter(true);
   initializeCombatUnits(player.currentZone.name);
 
   if (win) {
@@ -6910,7 +7891,7 @@ function addHint(elementId, useOverlay) {
     overlay.style.transition = "background-color 1s ease"
     overlay.onclick = function() {
       isCombatPaused = false;
-        target.style.zIndex = hintData.riginalZ;
+        target.style.zIndex = hintData.originalZ;
         target.style.border = hintData.originalBorder;
         hintData = undefined;
         document.querySelectorAll(".popup-overlay").forEach(e => e.remove());
@@ -7065,10 +8046,14 @@ function unlockClass(className){
     level: 1,
     skillPoints: 0
   }
+  player.unlockedClassCount = player.unlockedClassCount+1 || 1
   if(loreDataCache.classes[className] && loreDataCache.classes[className].starterSkill && skillsData[loreDataCache.classes[className].starterSkill]){
     let starterSkill = {
     id: loreDataCache.classes[className].starterSkill,
-    level: 1
+    level: 1,
+    recursive: true,
+    recursionLevel: 1,
+    recursionActive: true
   };
   player.skills.learned.push(starterSkill)
   if(player.skills.equipped.filter(s => s).length < player.skillSlots){
@@ -7086,8 +8071,8 @@ function showClassDetails(className){
     player.xp -= player.maxXp;
     player.level += 1;
     player.classData[player.class].level += 1;
-    player.maxXp += 20 + player.classData[player.class].level*3;
-    let keys = Object.keys(player.attributes);
+    player.maxXp += 20 + player.classData[player.class].level;
+    let keys =     ["strength", "dexterity", "constitution", "intellect", "wisdom", "willpower"]
     for (let i = 0; i < 6; i++) {
       player.attributesGained[keys[i]] += loreDataCache.classes[player.class].attributes[i];
     }
@@ -7100,13 +8085,17 @@ function showClassDetails(className){
       updateMenuButton(document.getElementById("skills-btn"), "linear-gradient(rgba(50,230,50,0.5),rgba(30,180,30,0.5))")
       
     }
-    let spPip = document.getElementById('skills-pip');
-    let skillPoints = player.classData[player.class].skillPoints
-      spPip.textContent = skillPoints <100?skillPoints:""
+    updatePips()
     return 1+checkLevelUp();
   }
   
-  
+  function updatePips(){
+    let spPip = document.getElementById('skills-pip');
+    let apPip = document.getElementById('attributes-pip');
+    apPip.textContent = player.attributePoints < 100?player.attributePoints:""
+    let skillPoints = player.classData[player.class].skillPoints
+      spPip.textContent = skillPoints <100?skillPoints:""
+  }
   function countdownAutoClick(button, text, durationInMs, onClick) {
     const bar = button.querySelector('.progress-fill');
     const label = button.querySelector('.label');
@@ -7190,10 +8179,10 @@ function showClassDetails(className){
 
     requestAnimationFrame(update);
   }
-function getEvasionChance(attackerAccuracy, targetEvasion, K = 9, x = 1) {
+function getEvasionChance(attackerAccuracy, targetEvasion, K = 9) {
   
-  const hitChance = Math.pow(targetEvasion, x) / 
-                    (Math.pow(targetEvasion, x) + Math.pow(attackerAccuracy, x) * K);
+  const hitChance = targetEvasion/ 
+                    (targetEvasion + attackerAccuracy * K);
 
   const evasionChance = hitChance;
 
@@ -7228,107 +8217,145 @@ function getStatValue(statName, block, caster, target, skillLevel, skillContext)
 }
   function calculateEffectiveValue(block, parentObject, caster, target, skillLevel, skillContext) {
     if (!block) {
-      console.error("No block defined", new Error().stack);
-      return null;
+        console.error("No block defined", new Error().stack);
+        return null;
     }
 
     if (block.base === undefined) {
-      if (block.value === undefined) {
-        console.error("Block doesn't have a .base or .value", JSON.stringify(block, null, 2), JSON.stringify(parentObject, null, 2), new Error().stack);
-        return block;
-      } else {
-        block.base = block.value;
-      }
+        if (block.value === undefined) {
+            console.error("Block doesn't have a .base or .value", JSON.stringify(block, null, 2), JSON.stringify(parentObject, null, 2), new Error().stack);
+            return block;
+        } else {
+            block.base = block.value;
+        }
     }
 
     let value = block.base;
 
     if (Array.isArray(block.scaling) && block.scaling.length > 0) {
+        for (const scaleEntry of block.scaling) {
+            const targets = getTarget(caster, target, scaleEntry.target || "self", skillContext, scaleEntry.targetNames);
+            const targetList = Array.isArray(targets) ? targets : [targets];
+            const energyStats = ["hp", "sp", "mp"];
+            const stat = scaleEntry.stat;
+            const statModifiers = scaleEntry.statModifiers;
+            const scale = scaleEntry.scale;
+            const effect = scaleEntry.effect || "add";
 
-    for (const scaleEntry of block.scaling) {
-      
-      const targets = getTarget(caster, target, scaleEntry.target || "self", skillContext);
+            for (let entity of targetList) {
+                let statValue = 0;
+                if (entity.attributes?.[stat] !== undefined) {
+                    statValue = entity.attributes[stat];
+                } else if (entity.stats?.[stat]?.value !== undefined) {
+                    if (statModifiers && energyStats.includes(stat)) {
+                        const useMissing = statModifiers.includes("missing");
+                        const usePercentage = statModifiers.includes("percent");
+                        const total = entity.stats[stat].value;
+                        const max = entity.stats["max" + capitalize(stat)];
 
-      target = Array.isArray(targets)?targets:[targets];
-      
-      const stat = scaleEntry.stat;
-      const scale = scaleEntry.scale;
-      const effect = scaleEntry.effect || "add";
-      let statValue = 0;
-      let statType = "";
-      for(let entity of target){
-      if (entity.attributes?.[stat] !== undefined) {
-        statType = "Attribute"
-        statValue = entity.attributes[stat];
-      } else if (entity.stats?.[stat]?.value !== undefined) {
-        statType="Stat"
-        statValue = entity.stats[stat].value;
+                        if (!max || max === 0) {
+                            statValue = total;
+                        } else {
+                            const missing = max - total;
+                            const percentage = (useMissing ? missing / max : total / max) * 100;
+                            statValue = usePercentage ? percentage : (useMissing ? missing : total);
+                        }
+                    } else {
+                        statValue = entity.stats[stat].value;
+                    }
+                } else if (conditionsData[stat]) {
+                    statValue = entity.conditions[stat]?.stacks || 0;
+                } else if (stat === "skillLevel") {
+                    statValue = skillLevel - 1;
+                } else if (stat === "tier") {
+                    let tier = 0;
+                    if (entity.isPlayer) {
+                        tier = entity.classData[player.class].level;
+                    } else {
+                        tier = entity.tier || 0;
+                    }
+                    statValue = tier;
+                } else if (stat === "damageDealt") {
+                    statValue = skillContext?.damageDealt || 0;
+                } else {
+                    console.warn(`Stat "${stat}" not found in ${scaleEntry.target}`, scaleEntry);
+                    console.log(entity.conditions, entity.conditions[stat], stat);
+                }
 
-      } else if(conditionsData[stat]){
-        statValue = entity.conditions[stat]?.stacks || 0;
-      } else if (stat === "skillLevel") {
-        statValue = skillLevel;
-      }else if (stat === "tier"){
-        let tier = 0;
-        if(entity.isPlayer){
-          tier = entity.classData[player.class].level;
-        }else{
-          tier = entity.tier || 0;
-        }
-        statValue = tier;
-      } else if(stat == "skillTarget"){
-        
-        }else {
-        console.warn(`Stat "${stat}" not found in ${scaleEntry.target}`, scaleEntry);
-        console.log(entity.conditions, entity.conditions[stat], stat)
-      }
+                // Apply effect
+                if (typeof(value) !== "number") {
+                    
+                    if(typeof(value) == "string" && Number(value) != NaN){
+                      value = Number(value)
+                    }else{
+                      console.error("Value is not a number", typeof(value),value);
+                    }
+                }
 
-      if (typeof value !== "number") {
-        console.error("Value is not a number", value);
-      }
-      if(!effect || effect == "add"){
-      value += statValue * scale;
-      }
-      else{
-        value *= Math.pow(scale, statValue);
-      }
-    }
-      
+let contribution = 0;
 
-    
-    }
-    }
-if (typeof block.min === "number") {
-  value = Math.max(value, block.min);
+if (!effect || effect === "add") {
+    contribution = statValue * scale;
+} else if (effect === "multi") {
+    contribution = Math.pow(scale, statValue);
+} else if (effect === "addMulti") {
+    contribution = scale * statValue;
+} else {
+    console.warn(`Unknown effect type: "${effect}"`);
+    continue;
 }
-if (typeof block.max === "number") {
-  value = Math.min(value, block.max);
-}
 
-// Apply multipliers if defined
-if (block.modifiers && typeof block.modifiers === "object") {
+// Apply per-entry min/max if defined
+if (typeof scaleEntry.min === "number") {
+    contribution = Math.max(contribution, scaleEntry.min);
+}
+if (typeof scaleEntry.max === "number") {
   
-  for (const key of Object.keys(block.modifiers)) {
-    const multiplierFn = block.modifiers[key];
-    if (typeof multiplierFn === "function") {
-      try {
-        value = multiplierFn(value, {
-          caster,
-          target,
-          skillLevel,
-          skillContext,
-          parentObject,
-          block
-        });
-      } catch (e) {
-        console.error(`Error applying multiplier "${key}":`, e);
-      }
-    } else {
-      console.warn(`Multiplier "${key}" is not a function`);
-    }
-  }
+    contribution = Math.min(contribution, scaleEntry.max);
+  
 }
-return value;
+
+// Apply contribution to total value
+if (effect === "add" || effect === "addMulti") {
+    value += contribution;
+} else if (effect === "multi") {
+    value *= contribution;
+}
+            }
+        }
+    }
+
+    if (typeof block.min === "number") {
+        value = Math.max(value, block.min);
+    }
+    if (typeof block.max === "number") {
+        value = Math.min(value, block.max);
+    }
+
+    // Apply modifiers if defined
+    if (block.modifiers && typeof block.modifiers === "object") {
+        for (const key of Object.keys(block.modifiers)) {
+            const multiplierFn = block.modifiers[key];
+            if (typeof multiplierFn === "function") {
+                try {
+                    value = multiplierFn(value, {
+                        caster,
+                        target,
+                        skillLevel,
+                        skillContext,
+                        parentObject,
+                        block
+                    });
+                } catch (e) {
+                    console.error(`Error applying multiplier "${key}":`, e);
+                }
+            } else {
+                console.warn(`Multiplier "${key}" is not a function`);
+            }
+        }
+    }
+
+    return value;
 }
   
   function setStatValue(entity, stat, value) {
@@ -7660,110 +8687,65 @@ function getEffectiveResistanceMultiplier(type, resistances, breakdownMap) {
     return finalMultiplier;
 }
 
-
-function hardReset(characterId) {
-  const now = Date.now();
-  const btn = document.getElementById('hard-reset-btn');
-  const { hardReset } = settings;
-
-  if (now - hardReset.lastClick > hardReset.timeout) {
-    hardReset.clickCount = 0;
-  }
-
-  hardReset.lastClick = now;
-  hardReset.clickCount++;
-
-  if (hardReset.resetTimer) {
-    clearTimeout(hardReset.resetTimer);
-  }
-
-  hardReset.resetTimer = setTimeout(() => {
-    hardReset.clickCount = 0;
-    btn.textContent = "Hard Reset";
-  }, hardReset.timeout);
-
-  if (hardReset.clickCount === 1) {
-    btn.textContent = "Click 2 more times to confirm reset...";
-  } else if (hardReset.clickCount === 2) {
-    btn.textContent = "1 more click to confirm reset...";
-  } else if (hardReset.clickCount >= 3) {
-    const confirmed = confirm("Are you sure you want to hard reset? This will delete all data.");
-    if (confirmed) {
-      localStorage.removeItem(`mythos-character-slot-${characterId}`);
-      location.reload();
-    } else {
-      btn.textContent = "Hard Reset";
-    }
-    hardReset.clickCount = 0;
-    clearTimeout(hardReset.resetTimer);
-  }
+function reroute(page){
+  window.location.href = "/"+page;
 }
-
+window.onload = function () {
+  const params = new URLSearchParams(window.location.search);
+  const msg = params.get("msg");
+  if (msg === "loggedin") {
+    alert("Alert: You are already logged in!");
+    reroute('mythos')
+  }
+};
 
 function renderCharacterMenu() {
   const container = document.getElementById('main-area');
-  container.innerHTML = ''; // Clear previous content
+  container.style.height = "100%";
+  container.innerHTML = '';
+  
 
-  const saveKey = `mythos-saveData`;
-  const saveString = localStorage.getItem(saveKey);
   let unlockedSlots = 3;
-  if (saveString) {
-    try {
-      const saveData = JSON.parse(saveString);
-      unlockedSlots = saveData.characterSlots || 3;
-    } catch (e) {
-      console.warn("Failed to parse global save data:", e);
-    }
-  }
 
-  for (let i = 1; i <= 5; i++) {
-    const key = `mythos-character-slot-${i}`;
-    const data = localStorage.getItem(key);
-    const slot = document.createElement('div');
-    slot.className = 'character-slot';
+  function renderSlots(characterMap = {}) {
+    for (let i = 1; i <= 5; i++) {
+      const slot = document.createElement('div');
+      slot.className = 'character-slot';
 
-    // Locked slot
-    if (i > unlockedSlots) {
-      slot.classList.add("locked");
-      slot.innerHTML = `<h3>Slot ${i}: Locked</h3>`;
-      container.appendChild(slot);
-      continue;
-    }
+      if (i > unlockedSlots) {
+        slot.classList.add("locked");
+        slot.innerHTML = `<h3>Slot ${i}: Locked</h3>`;
+        container.appendChild(slot);
+        continue;
+      }
 
-    // Used slot
-    if (data) {
-      try {
-        const parsed = JSON.parse(data);
-        const char = parsed.playerData;
+      const data = characterMap[i];
+
+      if (data) {
+        const char = data.playerData;
+        const classLevel = (char.classData?.[char.class]?.level) || 0;
 
         slot.classList.add("used");
 
-        const classLevel = (char.classData?.[char.class]?.level) || 0;
-
-        // Slot container
         const charContainer = document.createElement('div');
         charContainer.className = "character-info-container";
         charContainer.style.display = "flex";
         charContainer.style.alignItems = "center";
         charContainer.style.position = "relative";
 
-        // Info button
         const infoBtn = document.createElement('button');
         infoBtn.className = "char-info-btn";
         infoBtn.textContent = "i";
         infoBtn.onclick = () => showCharacterPopup(i);
         charContainer.appendChild(infoBtn);
 
-        // Class icon
         const icon = getIcon(char.class);
-        icon.style.display = "block"
-        icon.style.width = "128px;"
-        icon.style.height = "128px;"
+        icon.style.display = "block";
+        icon.style.width = "128px";
+        icon.style.height = "128px";
         charContainer.appendChild(icon);
 
-        // Info section
         const info = document.createElement('div');
-
         const title = document.createElement('h3');
         title.textContent = `Slot ${i}: ${char.name} (Lv ${char.level})`;
         info.appendChild(title);
@@ -7772,7 +8754,6 @@ function renderCharacterMenu() {
         subtitle.textContent = `${char.race} - ${char.class} (Class Lv ${classLevel})`;
         info.appendChild(subtitle);
 
-        // Buttons
         const buttonRow = document.createElement('div');
         buttonRow.className = 'slot-buttons';
 
@@ -7791,90 +8772,278 @@ function renderCharacterMenu() {
         info.appendChild(buttonRow);
         charContainer.appendChild(info);
         slot.appendChild(charContainer);
-      } catch (e) {
-        console.warn(`Failed to parse character slot ${i}:`, e);
-        deleteCharacter(i);
-        slot.classList.add("error");
-        slot.innerHTML = `<h3>Slot ${i}: Corrupted Data</h3>`;
+      } else {
+        slot.classList.add("empty");
+        slot.innerHTML = `
+          <h3>Slot ${i}: Empty</h3>
+          <div class="slot-buttons">
+            <button class="create-char-btn" onclick="showCharacterCreation(${i})"><strong>Create New Character</strong></button>
+          </div>
+        `;
       }
-    }
-    // Empty slot
-    else {
-      slot.classList.add("empty");
-      slot.innerHTML = `
-        <h3>Slot ${i}: Empty</h3>
-        <div class="slot-buttons">
-          <button onclick="showCharacterCreation(${i})">Create New Character</button>
-        </div>
-      `;
-    }
 
-    container.appendChild(slot);
+      container.appendChild(slot);
+    }
   }
+
+  // Attempt online fetch
+  fetch('/api/characters', {
+    method: "GET",
+    credentials: "include"
+  })
+    .then(async res => {
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      const contentType = res.headers.get("content-type");
+      if (!contentType.includes("application/json")) {
+        const text = await res.text();
+        console.error("Expected JSON but got:", text);
+        throw new Error("Server returned non-JSON response");
+      }
+      return res.json();
+    })
+    .then(characters => {
+      isSignedIn = true;
+      loadTopBar("characterSelect");
+      const characterMap = {};
+      characters.forEach(c => characterMap[c.slot] = c.data);
+      renderSlots(characterMap);
+    })
+    .catch(err => {
+      console.warn("Falling back to offline mode due to error:", err);
+      loadTopBar("characterSelect");
+
+
+      const characterMap = {};
+      for (let i = 1; i <= 5; i++) {
+        const key = `mythos-character-slot-${i}`;
+        const data = localStorage.getItem(key);
+        if (data) {
+          try {
+            characterMap[i] = JSON.parse(data);
+          } catch (e) {
+            console.warn(`Failed to parse character slot ${i}:`, e);
+            deleteCharacter(i);
+          }
+        }
+      }
+      renderSlots(characterMap);
+    });
+    
 }
 
 function backToCharSelect(){
-  saveCharacter();
+  saveCharacter(true);
   player = JSON.parse(JSON.stringify(originalPlayer))
   document.getElementById("menu-content").classList.add("hidden")
   document.getElementById("menu-buttons").classList.add("hidden")
   renderCharacterMenu();
 }
 
-function selectCharacter(slot) {
-  // Replace with your character loading logic
-  console.log(`Character in slot ${slot} selected.`);
-  
-  
-  const key = `mythos-character-slot-${slot}`;
-    const data = JSON.parse(localStorage.getItem(key));
-    const char = data.playerData;
-    player = char;
-    settings = data.settingsData
-    let testGear = false;
-    if(testGear){
+async function selectCharacter(slot) {
+  let data;
+
+  if (isSignedIn) {
+    try {
+      const res = await fetch('/api/characters');
+      const characters = await res.json();
+      const charData = characters.find(c => c.slot === slot);
+      if (!charData) {
+        console.warn("Character not found.");
+        return;
+      }
+      data = charData.data;
+    } catch (err) {
+      console.error("Failed to fetch characters", err);
+      return;
+    }
+  } else {
+    const key = `mythos-character-slot-${slot}`;
+    const stored = localStorage.getItem(key);
+    if (!stored) {
+      console.warn("No local save found.");
+      return;
+    }
+    try {
+      data = JSON.parse(stored);
+    } catch (err) {
+      console.error("Failed to parse local save", err);
+      return;
+    }
+  }
+
+  // Load character data
+  player = data.playerData;
+  player.recursionUnlocked = true;
+  addItem({
+    name: "Heat Essence",
+    type: "Essence",
+    quality: "uncommon",
+    count: 50000
+  })
+  addItem({
+    name: "Heat Shards",
+    type: "Shards",
+    quality: "uncommon",
+    count: 50000
+  })
+  settings = data.settingsData;
+
+  // Dev tools: Add test gear if enabled
+  const testGear = false;
+  if (testGear) {
     Object.keys(gearTypes).forEach(gt => {
-      let inputOres = []
-          for (let i = 0; i < gearTypes[gt].oreRequired; i++) {
-            const oreName = Object.keys(oresData)
-              .random();
-            const existing = inputOres.find(entry => Object.keys(entry)[0] === oreName);
-            if (existing) existing[oreName]++;
-            else inputOres.push({ [oreName]: 1 });
-          }
+      let inputOres = [];
+      for (let i = 0; i < gearTypes[gt].oreRequired; i++) {
+        const oreName = Object.keys(oresData).random();
+        const existing = inputOres.find(entry => Object.keys(entry)[0] === oreName);
+        if (existing) existing[oreName]++;
+        else inputOres.push({ [oreName]: 1 });
+      }
 
-      Object.keys(itemQualities).slice(0,6).forEach(quality => {
+      Object.keys(itemQualities).slice(0, 6).forEach(quality => {
+        player.inventory.storage.push(buildGear(gt, 1, quality, inputOres));
+      });
+    });
+  }
 
-        player.inventory.storage.push(buildGear(gt, 1, quality, inputOres))
-      })
-    })
-    }
-    document.getElementById("menu-content").classList.remove("hidden")
-    document.getElementById("planet-name").textContent = player.planet
-    document.getElementById("top-bar").style.display = "flex"
-    document.getElementById("menu-buttons").classList.remove("hidden")
-    showMenu("journey")
-    if(runAnalysis){
-    planetAnalysis();
-    }
+  // Dev tool: Reset progress if enabled
+  const reset = false;
+  if (reset) {
+    if (player.zoneProgress[player.currentZone.name])
+      player.zoneProgress[player.currentZone.name].completed = false;
+    if (player.planetsProgress[player.planet])
+      player.planetsProgress[player.planet].zonesCompleted = 8;
+  }
+
+  // UI and game setup
+  loadTopBar('combat');
+  document.getElementById("menu-content").classList.remove("hidden");
+  document.getElementById("planet-name").textContent = player.planet;
+  document.getElementById("top-bar").style.display = "flex";
+  document.getElementById("menu-buttons").classList.remove("hidden");
+  showMenu("journey");
+
+  if (runAnalysis) planetAnalysis();
+  initializeMenuButtons();
+  // Offline reward for Time Shards
+if (data.saveTime) {
+  const offlineMs = Date.now() - data.saveTime;
+  if (offlineMs >= 60_000) { // more than 1 minute
+    const offlineHours = offlineMs / 3600000;
+    let gain = Math.floor(offlineHours * player.timeShards.accumulation);
+
+if (gain + player.timeShards.count > player.timeShards.max) {
+  gain = player.timeShards.max - player.timeShards.count;
+  if (gain < 0) gain = 0; // safeguard in case count > max
 }
 
+player.timeShards.count += gain;
+    if (gain > 0) {
+      player.timeShards.count = Math.min(
+        player.timeShards.count + gain,
+        player.timeShards.max
+      );
+      showPopup(`<span>Gained ${formatTime(gain)} worth of Time Shards from ${formatTime(offlineMs/1000)} time spent away.</span>
+      <button>Okay</button>`);
+    }
+  }
+}
+  setTimeShardInterval();
+}
 function deleteCharacter(slot) {
-  if (confirm('Are you sure you want to delete the character in slot '+slot+' ?')) {
-    localStorage.removeItem(`mythos-character-slot-${slot}`);
+  if (!confirm(`Are you sure you want to delete the character in slot ${slot}?`)) return;
+  if(isSignedIn){
+  fetch(`/api/characters/${slot}`, {
+    method: 'DELETE'
+  })
+  .then(res => res.json())
+  .then(result => {
+    console.log("Delete result:", result);
     renderCharacterMenu();
+  })
+  .catch(err => {
+    console.error("Failed to delete character:", err);
+  });
+  }else{
+    localStorage.removeItem(`mythos-character-slot-${slot}`);
+    renderCharacterMenu()
   }
 }
+function hashString(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+}
 
-function saveCharacter(){
-  let saveData = {
+let lastSaveHash = null;
+let lastSaveTime = 0;
+
+function saveCharacter(isFull = true, partialData = {}) {
+  const now = Date.now();
+  if (now - lastSaveTime < 3000) return; // Limit saves to once every 3s
+  lastSaveTime = now;
+
+  const fullSaveData = {
     settingsData: settings,
-    playerData: player
+    playerData: player,
+    saveTime: lastSaveTime
+  };
+  partialData.saveTime = lastSaveTime
+
+  if (!isSignedIn) {
+    try {
+      const jsonStr = JSON.stringify(fullSaveData);
+      const slot = player.characterId || 1; // fallback to slot 1 if not defined
+      localStorage.setItem(`mythos-character-slot-${slot}`, jsonStr);
+      console.log(`Saved to localStorage: mythos-character-slot-${slot}`);
+    } catch (err) {
+      console.error("Failed to save to localStorage", err);
+    }
+    return;
   }
-  localStorage.setItem(`mythos-character-slot-${player.characterId}`, JSON.stringify(saveData))
+
+  if (!player.characterId) {
+    console.warn("Missing character ID");
+    return;
+  }
+
+  if (isFull) {
+    try {
+      const jsonStr = JSON.stringify(fullSaveData);
+      const currentHash = hashString(jsonStr);
+
+      if (currentHash === lastSaveHash) {
+        console.log("No changes to full save.");
+        return;
+      }
+
+      lastSaveHash = currentHash;
+
+      fetch(`/api/characters/${player.characterId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: jsonStr
+      })
+        .then(res => res.json())
+        .then(data => console.log("Full save complete", data))
+        .catch(err => console.error("Full save failed", err));
+    } catch (err) {
+      console.error("Failed to stringify full save data", err);
+    }
+  } else {
+    fetch(`/api/characters/${player.characterId}/partial`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(partialData)
+    })
+      .then(res => res.json())
+      .then(data => console.log("Partial save complete", data))
+      .catch(err => console.error("Partial save failed", err));
+  }
 }
-
-
 function showCharacterPopup(id) {
   const data = localStorage.getItem(`mythos-character-slot-${id}`);
   if (!data) return alert("Character not found.");
@@ -8166,11 +9335,14 @@ function invertedWeightedRandom(dict) {
   return invertedWeights[0];
 }
 
+function logToBase(val, logBase){
+  return Math.log(val) / Math.log(logBase)
+}
 // Returns 0, 1, or 2 depending on power level
-function rollLogRandom(power) {
-  if (power < 10) return 0;
+function rollLogRandom(power, minPower=10, logVal=10) {
+  if (power < minPower) return 0;
 
-  const logP = Math.log10(power);
+  const logP = logToBase(power, logVal)
   const maxTier = Math.floor(logP);
   const weights = [];
 
@@ -8296,14 +9468,15 @@ function showDebugPopup() {
     popup.style.overflowY = "auto";
     popup.style.boxShadow = "0 0 10px #000";
     let logText = ""
+    if(errorLog && errorLog.length > 0){
+      logText += errorLog.join('\n')
+    }
     if(debugLog && debugLog.length > 0){
-      logText = debugLog.join('\n');
+      logText += debugLog.join('\n');
     }else{
       logText = "There is nothing here";
     }
-    logText +=`\nPLAYERDATA: ${JSON.stringify(player, null, 2)}`
-    logText +=`\nCOMBATUNITS: ${JSON.stringify(combatUnits, null, 2)}`
-    logText +=`\nSETTINGS: ${JSON.stringify(settings, null, 2)}`
+
     
     const html = `
         <div style="background: linear-gradient('#555','#222'); display: flex; flex-direction: column; width: 100%;">
@@ -8323,8 +9496,10 @@ function showDebugPopup() {
             <button id='copy-btn'>
                 Copy to Clipboard
             </button>
+            <button onclick="reportBug()">Report Bug</button>
         </div>
     `;
+    
     popup.innerHTML = html;
     overlay.appendChild(popup);
     document.body.appendChild(overlay);
@@ -8346,7 +9521,7 @@ function addSkillWhileInCombat(unit, skillId, level = 1) {
     skillsContainer.appendChild(skillFrame);
   }
 
-  // Set combat data (first target for now)
+  // Set combat data (firsttarget for now)
   const potentialTargets = getPotentialTargets(unit, skillsData[skillId].target);
   unit.skills.combatData.targets[skillId] = {
     target: potentialTargets[0]?.id,
@@ -8354,6 +9529,8 @@ function addSkillWhileInCombat(unit, skillId, level = 1) {
   };
 
   // Set interval for skill progress bar
+  if(!skillIntervals[unit.id+"-"+skillId]){
+    
   skillIntervals[unit.id + '-' + skillId] = setInterval(() => {
     if (player.inCombat && findUnitById(unit.id)) {
       updateProgressBar(skillId, unit);
@@ -8361,7 +9538,7 @@ function addSkillWhileInCombat(unit, skillId, level = 1) {
       clearInterval(skillIntervals[unit.id + '-' + skillId]);
     }
   }, updateSpeed);
-
+  }
   resetSkillCooldown(unit, skillId);
 }
 function addModifier(unit, skillLevel, statName, key, fn){
@@ -8387,8 +9564,1261 @@ function getCastsLeft(unit, skillId){
     let skill = skillsData[skillId]
     
     let perCombatMax = 0;
-    if(skill.perCombatMax){calculateEffectiveValue(skill.perCombatMax, skill, unit, undefined, findSkill(unit, skillId).level)}
+    if(skill.perCombatMax){
+      perCombatMax = calculateEffectiveValue(skill.perCombatMax, skill, unit, undefined, findSkill(unit, skillId).level)}
     let castsLeft = -1;
     if(perCombatMax) castsLeft = perCombatMax - castsThisCombat
     return castsLeft
 }
+
+//UNIT DESIGNER
+(function() {
+  // Default lists
+  
+  const scalingTargets = ["caster","target","allEnemies","allAllies","all"];
+  const scalingStats = [
+    "strength","dexterity","constitution","wisdom","intellect","willpower",
+    "maxHp","hp","hpRegen","maxMp","mp","mpRegen","mpEfficiency",
+    "maxSp","sp","spRegen","spEfficiency","damageTaken","critChance",
+    "critMulti","lifestealChance","lifestealMulti","evasion","accuracy",
+    "cooldownReduction","xpGain","skillLevel","tier"
+  ];
+  const stats = [
+    "maxHp","hpRegen","maxMp","mpRegen","mpEfficiency",
+    "maxSp","spRegen","spEfficiency","damageTaken","critChance",
+    "critMulti","lifestealChance","lifestealMulti","evasion","accuracy",
+    "cooldownReduction","xpGain"
+  ];
+
+  const resistanceTypes = ["undefined",
+    "heat","water","shock","cold","nature","poison","arcane","holy",
+    "corrupt","elemental","blight","radiant","blood","force","void",
+    "spirit","sonic","gravity","psychic","ethereal","slashing","piercing","blunt"
+  ];
+  const damageTypes = [
+    "heat","water","shock","cold","nature","poison","arcane","holy",
+    "corrupt","elemental","blight","radiant","blood","force","void",
+    "spirit","sonic","gravity","psychic","ethereal","slashing","piercing","blunt"
+  ];
+
+  // Helper to create input elements
+  function createInput(type, name, placeholder) {
+    const inp = document.createElement('input');
+    inp.type = type;
+    inp.name = name;
+    if (placeholder) inp.placeholder = placeholder;
+    inp.classList.add('sd-input');
+    return inp;
+  }
+
+  // Helper to create select elements
+  function createSelect(options, name) {
+    const sel = document.createElement('select');
+    sel.name = name;
+    sel.classList.add('sd-select');
+    options.forEach(o => {
+      const opt = document.createElement('option'); opt.value = o; opt.textContent = o;
+      sel.appendChild(opt);
+    });
+    return sel;
+  }
+
+  // Helper to create buttons
+  function createButton(text, cls) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = text;
+    if (cls) btn.classList.add(cls);
+    return btn;
+  }
+
+  // Scaling block
+  function makeScaleBlock(prefix) {
+    const wrapper = document.createElement('div'); wrapper.classList.add('sd-scale-block');
+    wrapper.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Scaling' }));
+    wrapper.appendChild(createSelect(scalingTargets, `${prefix}_target`));
+    wrapper.appendChild(createSelect(scalingStats, `${prefix}_stat`));
+    wrapper.appendChild(createInput('number', `${prefix}_scale`, 'scale'));
+    wrapper.appendChild(createSelect(['add','multi', 'addMulti'], `${prefix}_effect`));
+    const del = createButton('-', 'sd-remove');
+    del.addEventListener('click', () => wrapper.remove());
+    wrapper.appendChild(del);
+    return wrapper;
+  }
+
+  // Dynamic name block
+  function makeSkillBlock(name) {
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('sd-skill-block');
+
+  wrapper.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Skill Id' }));
+  const inp = createInput('text', 'skillId', 'skillId');
+  wrapper.appendChild(inp);
+
+  // 👇 Add this block for tierRequired
+  wrapper.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Tier Required' }));
+  const tierInput = createInput('number', 'tierRequired', 'Tier Required');
+  tierInput.min = 1;
+  tierInput.value = 1;
+  wrapper.appendChild(tierInput);
+
+  const del = createButton('-', 'sd-remove');
+  del.addEventListener('click', () => wrapper.remove());
+  wrapper.appendChild(del);
+
+  return wrapper;
+}
+
+
+  // Main popup creator
+  // Add parameters: skillId and existingData (optional)
+window.createUnitDesignerPopup = function(unitName = null, existingData = null) {
+    const overlay = document.createElement('div'); overlay.classList.add('sd-overlay');
+    document.body.appendChild(overlay);
+
+    const modal = document.createElement('div'); modal.classList.add('sd-modal');
+    overlay.appendChild(modal);
+
+    const title = document.createElement('h2');
+title.textContent = unitName ? `Edit Unit: ${unitName}` : 'Design New Unit';
+modal.appendChild(title);
+
+    const form = document.createElement('form'); form.classList.add('sd-form');
+    modal.appendChild(form);
+    form.style.lineHeight = "0.5rem;";
+    form.style.fontSize = "0.5rem;";
+
+    // Basic info
+    ['name', 'race', 'planet', 'discoveryXp', 'xp'].forEach(field => {
+      form.appendChild(Object.assign(document.createElement('h4'), { textContent: field.charAt(0).toUpperCase() + field.slice(1) }));
+      form.appendChild(createInput('text', field, field.charAt(0).toUpperCase() + field.slice(1)));
+    });
+        // Skill target dropdown & requiresTarget
+    form.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Damage Type' }));
+    const damageTypeField = createSelect(damageTypes, 'damageType')
+    form.appendChild(damageTypeField);
+    // Attr section
+    const attrSect = document.createElement('div'); attrSect.classList.add('sd-section');
+    attrSect.appendChild(Object.assign(document.createElement('h3'), { textContent: 'Attributes' }));
+    ['Strength', 'Dexterity', 'Constitution', 'Intellect', 'Wisdom', 'Willpower'].forEach(res => {
+      attrSect.appendChild(Object.assign(document.createElement('h4'), { textContent: res.toUpperCase() }));
+      attrSect.appendChild(createInput('number', `attr_${res}`, res.toUpperCase()));
+    });
+    form.appendChild(attrSect);
+    
+    const aplSect = document.createElement('div'); aplSect.classList.add('sd-section');
+    aplSect.appendChild(Object.assign(document.createElement('h3'), { textContent: 'Attributes Per Level' }));
+    ['Strength', 'Dexterity', 'Constitution', 'Intellect', 'Wisdom', 'Willpower'].forEach(res => {
+      aplSect.appendChild(Object.assign(document.createElement('h4'), { textContent: res.toUpperCase() }));
+      aplSect.appendChild(createInput('number', `apl_${res}`, res.toUpperCase()));
+    });
+    form.appendChild(aplSect);
+    const multiStats = ["damageTaken","damageAmp","cooldownReduction", "spEfficiency", "mpEfficiency"]
+    const statsSect = document.createElement('div'); statsSect.classList.add('sd-section');
+    statsSect.appendChild(Object.assign(document.createElement('h3'), { textContent: 'Stats' }));
+    stats.forEach(res => {
+      statsSect.appendChild(Object.assign(document.createElement('h4'), { textContent: res.toUpperCase() }));
+      statsSect.appendChild(Object.assign(document.createElement('h4'), { textContent: "Base" }));
+      statsSect.appendChild(createInput('number', `stats_${res}_base`, multiStats.includes(res)?1:0));
+      const scCont = document.createElement('div'); scCont.classList.add('sd-scale-container');
+      const scAdd = createButton('+ Scale','sd-add-scale');
+      scAdd.addEventListener('click', () => scCont.appendChild(makeScaleBlock(`stats_${res}_scaling`)));
+      statsSect.append(scAdd, scCont);
+    });
+    form.appendChild(statsSect);
+    
+    const skillsSect = document.createElement('div'); skillsSect.classList.add('sd-section');
+    skillsSect.appendChild(Object.assign(document.createElement('h3'), { textContent: 'Skills' }));
+    const skillContainer = document.createElement('div'); skillContainer.classList.add('sd-skills-container')
+    const addSkillBtn = createButton('+ Skill','sd-add-skillName');
+
+    addSkillBtn.addEventListener('click', () => skillContainer.appendChild(makeSkillBlock()));
+    skillsSect.appendChild(skillContainer)
+    skillsSect.appendChild(addSkillBtn);
+    form.appendChild(skillsSect)
+    // JSON output area
+    const output = document.createElement('pre'); output.classList.add('sd-json-output');
+    form.appendChild(output);
+    const genBtn = createButton('Generate JSON', 'sd-gen');
+    genBtn.addEventListener('click', () =>{
+      output.textContent = JSON.stringify(generateUnitFromForm(form), null, 2);
+    })
+    form.appendChild(genBtn);
+    const copyBtn = createButton('Copy to clipboard', 'sd-copy');
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(output.textContent.replace(/`/g, '\\`'));
+    })
+    form.appendChild(copyBtn)
+    // Generate JSON button
+    const saveBtn = createButton('Save Unit', 'sd-save');
+saveBtn.addEventListener('click', () => {
+  saveUnit(generateUnitFromForm(form));
+  alert("Unit Saved");
+});
+form.appendChild(saveBtn);
+const fightBtn = createButton("Save and Fight", 'fight-btn');
+fightBtn.addEventListener('click', () => {
+  const result = generateUnitFromForm(form);
+
+  // Grab tier value
+  // set it on the unit
+
+  saveUnit(result);
+  let unfinishedSkills = result.skills.equipped.filter(sk => !skillsData[sk.id]).map(sk => sk.id).join(", ");
+  if(unfinishedSkills){
+    alert("Cant test fight until following skills are defined: " + unfinishedSkills);
+    return;
+  }
+  const tier = +tierInput.value || 1;
+  result.tier = tier; 
+  testFight(result);
+  overlay.remove();
+});
+const tierLabel = document.createElement('label');
+tierLabel.textContent = "Tier: ";
+tierLabel.style.marginRight = "8px";
+
+const tierInput = createInput('number', 'unitTier', 'Tier');
+tierInput.min = 1;
+tierInput.value = 1; // default value
+
+const tierWrapper = document.createElement('div');
+tierWrapper.style.display = 'flex';
+tierWrapper.style.alignItems = 'center';
+tierWrapper.style.gap = '8px';
+tierWrapper.appendChild(tierLabel);
+tierWrapper.appendChild(tierInput);
+form.appendChild(tierWrapper);
+form.appendChild(fightBtn)
+    // Dismiss on background click
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  };
+  function saveUnit(result){
+    const newUnitName = result.name
+  // Save or overwrite in global skillsData
+  const idx = unitsData.findIndex(u => u.name == newUnitName);
+if (idx >= 0) {
+  unitsData[idx] = result;
+} else {
+  unitsData.push(result);
+}
+
+  // Close the popup
+  }
+  
+  function testFight(result){
+    result = JSON.parse(JSON.stringify(result))
+    debugEnemyTesting = true;
+    debugEnemy = result.name
+    combatUnits = [player, result];
+    result.debuffs = [];
+  result.buffs = [];
+  result.conditions = [];
+  result.isAlive = true;
+    result.id = generateUniqueUnitID();
+  result.isAlly = false;
+  Object.keys(result.attributes).forEach(attr => {
+    console.log(attr, result.attributes[attr], result.attributesPerLevel[attr], result.tier)
+    result.attributes[attr] = Number(result.attributes[attr]) + Math.floor(result.attributesPerLevel[attr]*result.tier);
+  })
+  result.skills.equipped = result.skills.equipped.filter(skill => {
+  return !skill.tierRequired || skill.tierRequired <= result.tier;
+});
+  recalculateDerivedStats(result);
+  result.stats.hp.value = result.stats.maxHp.value;
+    startCombat(true)
+  }
+function generateUnitFromForm(form) {
+  const data = {};
+  const fd = new FormData(form);
+  data.name = fd.get('name');
+  data.race = fd.get('race');
+  data.damageType = fd.get("damageType");
+  data.planet = fd.get('planet');
+  data.discoveryXp = fd.get('discoveryXp');
+  data.xp = fd.get('xp');
+  data.attributes = {
+    strength: Number(fd.get('attr_Strength')),
+    dexterity: Number(fd.get('attr_Dexterity')),
+    constitution: Number(fd.get('attr_Constitution')),
+    intellect: Number(fd.get('attr_Intellect')),
+    wisdom: Number(fd.get('attr_Wisdom')),
+    willpower: Number(fd.get('attr_Willpower'))
+  }
+  data.attributesPerLevel = {
+    strength: Number(fd.get('apl_Strength')),
+    dexterity: Number(fd.get('apl_Dexterity')),
+    constitution: Number(fd.get('apl_Constitution')),
+    intellect: Number(fd.get('apl_Intellect')),
+    wisdom: Number(fd.get('apl_Wisdom')),
+    willpower: Number(fd.get('apl_Willpower'))
+  }
+  
+  data.stats = {}
+  stats.forEach(res => {
+    data.stats[res] = {
+      base: fd.get(`stats_${res}_base`),
+      scaling: []
+    }
+    form.querySelectorAll('.sd-scale-block').forEach(sb => {
+      const targetSelect = sb.querySelector('select[name$="_target"]');
+      const prefix = targetSelect.name.replace(/_target$/, '');
+      const t = targetSelect.value;
+      const s = sb.querySelector(`select[name="${prefix}_stat"]`).value;
+      const sc = +sb.querySelector(`input[name="${prefix}_scale"]`).value;
+      const e = sb.querySelector(`select[name="${prefix}_effect"]`).value;
+      if (prefix === `stats_${res}_scaling`) {
+        data.stats[res].scaling.push({ target: t, stat: s, scale: sc, effect: e });
+      }
+    });
+  });
+  data.stats.hp = { value: 0 }
+  data.stats.mp = { value: 0 }
+  data.stats.sp = { value: 0 }
+  
+  data.skills = {
+    combatData: {
+      targets: {},
+      lastUsed: {}
+    },
+    equipped: [],
+    learned: []
+  }
+  form.querySelectorAll('.sd-skill-block').forEach(sb => {
+  const idInput = sb.querySelector('input[name="skillId"]');
+  const tierInput = sb.querySelector('input[name="tierRequired"]');
+
+  const skillId = idInput?.value.trim();
+  const tier = tierInput ? parseInt(tierInput.value) || 1 : 1;
+
+  if (skillId) {
+    data.skills.equipped.push({ id: skillId, level: 1, tierRequired: tier });
+  }
+});
+  
+  
+  return data;
+}
+  // Inject basic styles
+  const style = document.createElement('style'); style.textContent = `
+    .sd-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; }
+    .sd-modal { background:#fff; padding:20px; border-radius:8px; max-height:90%; overflow-y:auto; width:600px; box-shadow:0 4px 12px rgba(0,0,0,0.3); }
+    .sd-input, .sd-select { margin:4px 2px; width:calc(100% - 12px); }
+    .sd-section { margin:12px 0; }
+    .sd-scale-block, .sd-effect-block, .sd-name-block { border:1px solid #ccc; padding:8px; margin:6px 0; position:relative; }
+    .sd-remove { background:#fdd; border:1px solid #faa; margin-left:8px; cursor:pointer; }
+    .sd-add-scale, .sd-add-effect, .sd-add-targetName, .sd-generate { margin:8px 0; cursor:pointer; }
+    .sd-json-output { background:#f4f4f4; padding:8px; max-height:200px; overflow:auto; }
+  `;
+  document.head.appendChild(style);
+  // Add at the bottom of the IIFE after injecting styles
+
+  window.createUnitSelectionPopup = function() {
+    const overlay = document.createElement('div'); overlay.classList.add('sd-overlay');
+    document.body.appendChild(overlay);
+
+    const modal = document.createElement('div'); modal.classList.add('sd-modal');
+    overlay.appendChild(modal);
+
+    const title = document.createElement('h2'); title.textContent = 'Select an Option';
+    modal.appendChild(title);
+
+    const newBtn = createButton('New Unit');
+    const loadBtn = createButton('Load Existing Unit');
+
+    modal.append(newBtn, loadBtn);
+
+    // Dropdown container
+    const dropdownCont = document.createElement('div');
+    dropdownCont.style.display = 'none';
+
+    const unitSelect = createSelect(unitsData.map(u => u.name), 'existingUnit');
+    const confirmBtn = createButton('Load');
+    dropdownCont.append(unitSelect, confirmBtn);
+    modal.appendChild(dropdownCont);
+
+    // Event Listeners
+    newBtn.addEventListener('click', () => {
+      overlay.remove();
+      createUnitDesignerPopup(); // empty
+    });
+
+    loadBtn.addEventListener('click', () => {
+      dropdownCont.style.display = 'block';
+    });
+
+    confirmBtn.addEventListener('click', () => {
+      const selectedId = unitSelect.value;
+      overlay.remove();
+      createUnitDesignerPopup(selectedId);
+      // wait for popup to be created, then fill it
+      setTimeout(() => populateUnitForm(unitsData.find(u => u.name == selectedId)), 100);
+    });
+
+    // Close on background click
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  };
+
+  // Populate form with skill data
+function populateUnitForm(data) {
+  const form = document.querySelector('.sd-form');
+  if (!form) return;
+
+  // --- Basic Info ---
+  form.querySelector('input[name="name"]').value         = data.name           || '';
+  form.querySelector('input[name="race"]').value         = data.race           || '';
+  form.querySelector('input[name="planet"]').value       = data.planet         || '';
+  form.querySelector('input[name="discoveryXp"]').value  = data.discoveryXp    || 0;
+  form.querySelector('input[name="xp"]').value           = data.xp             || 0;
+  form.querySelector('select[name="damageType"]').value  = data.damageType     || '';
+
+  // --- Attributes ---
+  const attrs = data.attributes || {};
+  ['Strength','Dexterity','Constitution','Intellect','Wisdom','Willpower']
+    .forEach(stat => {
+      const el = form.querySelector(`input[name="attr_${stat}"]`);
+      if (el) el.value = attrs[stat.toLowerCase()] ?? 0;
+    });
+
+  // --- Attributes Per Level ---
+  const apl = data.attributesPerLevel || {};
+  ['Strength','Dexterity','Constitution','Intellect','Wisdom','Willpower']
+    .forEach(stat => {
+      const el = form.querySelector(`input[name="apl_${stat}"]`);
+      if (el) el.value = apl[stat.toLowerCase()] ?? 0;
+    });
+
+  // --- Stats: Base + Scaling ---
+  // assume you have a global `stats` array matching your designer (e.g. ['hp','mp','sp', ...])
+  const statsData = data.stats || {};
+  stats.forEach(statKey => {
+    // base value
+    const baseInput = form.querySelector(`input[name="stats_${statKey}_base"]`);
+    if (baseInput) {
+      baseInput.value = statsData[statKey]?.base ?? 0;
+    }
+
+    // remove existing scaling blocks for this stat
+    form.querySelectorAll('.sd-scale-block').forEach(sb => {
+      const tgt = sb.querySelector('select[name$="_target"]')?.name;
+      if (tgt && tgt.startsWith(`stats_${statKey}_scaling`)) {
+        sb.remove();
+      }
+    });
+
+    // re-create scaling blocks
+(statsData[statKey]?.scaling || []).forEach(scale => {
+  const block = makeScaleBlock(`stats_${statKey}_scaling`);
+  block.querySelector(`select[name="stats_${statKey}_scaling_target"]`).value = scale.target;
+  block.querySelector(`select[name="stats_${statKey}_scaling_stat"]`).value   = scale.stat;
+  block.querySelector(`input[name="stats_${statKey}_scaling_scale"]`).value   = scale.scale;
+  block.querySelector(`select[name="stats_${statKey}_scaling_effect"]`).value = scale.effect || "add";
+
+  // ✅ Find the correct scale container directly after the stat's base input
+  const baseInput = form.querySelector(`input[name="stats_${statKey}_base"]`);
+  let next = baseInput?.nextElementSibling;
+  while (next && !next.classList.contains('sd-scale-container')) {
+    next = next.nextElementSibling;
+  }
+  next?.appendChild(block);
+});
+  });
+
+  // --- Skills ---
+  const skillsContainer = form.querySelector('.sd-skills-container');
+  console.log("checkng cynt");
+  if (skillsContainer) {
+    console.log('cnf exists', JSON.stringify(data, null, 2))
+    skillsContainer.innerHTML = '';
+(data.skills?.equipped || []).forEach(({ id, level, tierRequired }) => {
+  const block = makeSkillBlock('unit_skills');
+  const idInput = block.querySelector('input[name="skillId"]');
+  const tierInput = block.querySelector('input[name="tierRequired"]');
+
+  if (idInput) idInput.value = id;
+  if (tierInput) tierInput.value = tierRequired ?? 1;
+
+  skillsContainer.appendChild(block);
+});
+  }
+}
+})();
+// Provides amodal popup UI for designing complex RPG skills with dynamic scaling, effects, and target names
+
+(function() {
+  // Default lists
+  const skillTargets = ["singleEnemy","singleAlly","randomEnemy","randomAlly","random","allEnemies","allAllies","all","self"];
+  const effectTargets = ["undefined","singleEnemy","singleAlly","randomEnemy","randomAlly","random","allEnemies","allAllies","all","self"];
+  const scalingTargets = ["caster","target","allEnemies","allAllies","all"];
+  const stats = [
+    "strength","dexterity","constitution","wisdom","intellect","willpower",
+    "maxHp","hp","hpRegen","maxMp","mp","mpRegen","mpEfficiency",
+    "maxSp","sp","spRegen","spEfficiency","damageTaken","critChance",
+    "critMulti","lifestealChance","lifestealMulti","evasion","accuracy",
+    "cooldownReduction","xpGain","skillLevel","tier"
+  ];
+  const buffStats = [
+    "strength","dexterity","constitution","wisdom","intellect","willpower",
+    "maxHp","hp","hpRegen","maxMp","mp","mpRegen","mpEfficiency",
+    "maxSp","sp","spRegen","spEfficiency","damageTaken","critChance",
+    "critMulti","lifestealChance","lifestealMulti","evasion","accuracy",
+    "cooldownReduction","xpGain"
+  ];
+  const effectTypes = [
+    "damage","heal","interrupt","summon","cleanse","gainEnergy",
+    "siphonEnergy","taunt","buff","debuff","revive","condition"
+  ];
+  const resistanceTypes = ["undefined",
+    "heat","water","shock","cold","nature","poison","arcane","holy",
+    "corrupt","elemental","blight","radiant","blood","force","void",
+    "spirit","sonic","gravity","psychic","ethereal","slashing","piercing","blunt"
+  ];
+  const damageTypes = [
+    "heat","water","shock","cold","nature","poison","arcane","holy",
+    "corrupt","elemental","blight","radiant","blood","force","void",
+    "spirit","sonic","gravity","psychic","ethereal","slashing","piercing","blunt"
+  ];
+
+  // Helper to create input elements
+  function createInput(type, name, placeholder) {
+    const inp = document.createElement('input');
+    inp.type = type;
+    inp.name = name;
+    if (placeholder) inp.placeholder = placeholder;
+    inp.classList.add('sd-input');
+    return inp;
+  }
+
+  // Helper to create select elements
+  function createSelect(options, name) {
+    const sel = document.createElement('select');
+    sel.name = name;
+    sel.classList.add('sd-select');
+    options.forEach(o => {
+      const opt = document.createElement('option'); opt.value = o; opt.textContent = o;
+      sel.appendChild(opt);
+    });
+    return sel;
+  }
+
+  // Helper to create buttons
+  function createButton(text, cls) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = text;
+    if (cls) btn.classList.add(cls);
+    return btn;
+  }
+
+  // Scaling block
+  function makeScaleBlock(prefix) {
+    const wrapper = document.createElement('div'); wrapper.classList.add('sd-scale-block');
+    wrapper.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Scaling' }));
+    wrapper.appendChild(createSelect(scalingTargets, `${prefix}_target`));
+    wrapper.appendChild(createSelect(stats, `${prefix}_stat`));
+    wrapper.appendChild(createInput('number', `${prefix}_scale`, 'scale'));
+    wrapper.appendChild(createSelect(['add','multi'], `${prefix}_effect`));
+    const del = createButton('-', 'sd-remove');
+    del.addEventListener('click', () => wrapper.remove());
+    wrapper.appendChild(del);
+    return wrapper;
+  }
+
+  // Dynamic name block
+  function makeNameBlock(name) {
+    const wrapper = document.createElement('div'); wrapper.classList.add('sd-name-block');
+    wrapper.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Name' }));
+    const inp = createInput('text', name, 'name');
+    wrapper.appendChild(inp);
+    const del = createButton('-', 'sd-remove');
+    del.addEventListener('click', () => wrapper.remove());
+    wrapper.appendChild(del);
+    return wrapper;
+  }
+
+  // Effect block
+  function makeEffectBlock() {
+    const block = document.createElement('div'); block.classList.add('sd-effect-block');
+    block.appendChild(Object.assign(document.createElement('h3'), { textContent: 'Effect' }));
+
+    // Effect target names
+    const tnLabel = Object.assign(document.createElement('h4'), { textContent: 'Target Names' });
+    const tnContainer = document.createElement('div'); tnContainer.classList.add('sd-names-container');
+    const addTnBtn = createButton('+ Name','sd-add-targetName');
+    addTnBtn.addEventListener('click', () => tnContainer.appendChild(makeNameBlock('effect_targetNames[]')));
+    block.append(tnLabel, addTnBtn, tnContainer);
+
+    // Effect type
+    block.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Type' }));
+    const typeSel = createSelect(effectTypes, 'effect_type');
+    block.appendChild(typeSel);
+
+    // Fields container
+    const fieldsContainer = document.createElement('div'); fieldsContainer.classList.add('sd-effect-fields');
+    block.appendChild(fieldsContainer);
+
+    // Populate dynamic fields
+    function populateFields(type) {
+      fieldsContainer.innerHTML = '';
+    
+        fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Target' }));
+        fieldsContainer.appendChild(createSelect(effectTargets, 'effect_target'));
+      // … inside populateFields(type) …
+      switch(type) {
+        case 'damage':
+        case 'heal':
+          fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Base' }));
+          fieldsContainer.appendChild(createInput('number','effect_base','base'));
+          if (type==='damage') {
+            fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Damage Type' }));
+            fieldsContainer.appendChild(createSelect(damageTypes,'damageType'));
+          }
+          const scCont = document.createElement('div'); scCont.classList.add('sd-scale-container');
+          const scAdd = createButton('+ Scale','sd-add-scale');
+          scAdd.addEventListener('click', () => scCont.appendChild(makeScaleBlock('effect_scaling')));
+          fieldsContainer.append(scAdd, scCont);
+          break;
+
+        case 'interrupt':
+          fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Override Cooldown' }));
+          fieldsContainer.appendChild(createSelect(['true','false'],'overrideCooldown'));
+          fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Base' }));
+          fieldsContainer.appendChild(createInput('number','effect_base','base'));
+          const intCont = document.createElement('div'); intCont.classList.add('sd-scale-container');
+          const intAdd = createButton('+ Scale','sd-add-scale');
+          intAdd.addEventListener('click', () => intCont.appendChild(makeScaleBlock('effect_scaling')));
+          fieldsContainer.append(intAdd, intCont);
+          break;
+
+case 'summon':
+  // Unit Name Input
+  fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Unit Name' }));
+  fieldsContainer.appendChild(createInput('text', 'summon_unit_name', 'Unit Name'));
+
+  // Ally of Caster Checkbox
+  const allyLabel = document.createElement('label');
+  const allyCheckbox = document.createElement('input');
+  allyCheckbox.type = 'checkbox';
+  allyCheckbox.name = 'summon_is_ally';
+  allyLabel.append(allyCheckbox, document.createTextNode(' Is Ally of Caster'));
+  fieldsContainer.appendChild(allyLabel);
+
+  // Tier Base Input
+  fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Tier Base' }));
+  fieldsContainer.appendChild(createInput('number', 'effect_tier_base', 'base'));
+
+  // Tier Scaling Container
+  const tierCont = document.createElement('div');
+  tierCont.classList.add('sd-scale-container');
+  const tierAdd = createButton('+ Tier Scale', 'sd-add-scale');
+  tierAdd.addEventListener('click', () => tierCont.appendChild(makeScaleBlock('effect_tier')));
+  fieldsContainer.append(Object.assign(document.createElement('h4'), { textContent: 'Tier Scaling' }), tierAdd, tierCont);
+  break;
+
+case 'cleanse':
+    fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Condition Name' }));
+    fieldsContainer.appendChild(createInput('text','conditionName','condition'));
+
+    // Stacks Base
+    fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Stacks Base' }));
+    fieldsContainer.appendChild(createInput('number','effect_stacks_base','base'));
+    // Stacks Scaling
+    const clScaleCont = document.createElement('div'); clScaleCont.classList.add('sd-scale-container');
+    const clAdd = createButton('+ Scale','sd-add-scale');
+    clAdd.addEventListener('click', () => clScaleCont.appendChild(makeScaleBlock('effect_stacks')));
+    fieldsContainer.append(clAdd, clScaleCont);
+    break;
+
+
+        case 'gainEnergy':
+          fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Energy Type' }));
+          fieldsContainer.appendChild(createSelect(['sp','mp'],'energyType'));
+          fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Base' }));
+          fieldsContainer.appendChild(createInput('number','effect_base','base'));
+          const geCont = document.createElement('div'); geCont.classList.add('sd-scale-container');
+          const geAdd = createButton('+ Scale','sd-add-scale');
+          geAdd.addEventListener('click', () => geCont.appendChild(makeScaleBlock('effect_scaling')));
+          fieldsContainer.append(geAdd, geCont);
+          break;
+
+        case 'siphonEnergy':
+          fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Energy Type' }));
+          fieldsContainer.appendChild(createSelect(['sp','mp'],'energyType'));
+          fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Base' }));
+          fieldsContainer.appendChild(createInput('number','effect_base','base'));
+          const seCont = document.createElement('div'); seCont.classList.add('sd-scale-container');
+          const seAdd = createButton('+ Scale','sd-add-scale');
+          seAdd.addEventListener('click', () => seCont.appendChild(makeScaleBlock('effect_scaling')));
+          fieldsContainer.append(seAdd, seCont);
+          const muCont = document.createElement('div'); muCont.classList.add('sd-scale-container');
+          const muAdd = createButton('+ Multi Scale','sd-add-scale');
+          muAdd.addEventListener('click', () => muCont.appendChild(makeScaleBlock('effect_multi')));
+          fieldsContainer.append(muAdd, muCont);
+          break;
+
+        case 'taunt':
+        case 'revive':
+          // no extra fields
+          break;
+
+        case 'buff':
+  case 'debuff':
+    if (type === 'buff') {
+      fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Resistance Type' }));
+      fieldsContainer.appendChild(createSelect(resistanceTypes,'resistanceType'));
+    }
+    fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Stat' }));
+    fieldsContainer.appendChild(createSelect(buffStats,'buff_stat'));
+    
+    fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'StatType' }));
+    fieldsContainer.appendChild(createSelect(["stat","attribute"],'buff_statType'));
+    
+    fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Effect' }));
+    fieldsContainer.appendChild(createSelect(["add","multi","addMulti"],'buff_effect'));
+
+    // Value Base + Scaling
+    fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Value Base' }));
+    fieldsContainer.appendChild(createInput('number','effect_value_base','base'));
+    const bvScaleCont = document.createElement('div'); bvScaleCont.classList.add('sd-scale-container');
+    const bvAdd = createButton('+ Value Scale','sd-add-scale');
+    bvAdd.addEventListener('click', () => bvScaleCont.appendChild(makeScaleBlock('effect_value')));
+    fieldsContainer.append(bvAdd, bvScaleCont);
+
+    // Duration Base + Scaling
+    fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Duration Base' }));
+    fieldsContainer.appendChild(createInput('number','effect_duration_base','base'));
+    const bdScaleCont = document.createElement('div'); bdScaleCont.classList.add('sd-scale-container');
+    const bdAdd = createButton('+ Duration Scale','sd-add-scale');
+    bdAdd.addEventListener('click', () => bdScaleCont.appendChild(makeScaleBlock('effect_duration')));
+    fieldsContainer.append(bdAdd, bdScaleCont);
+    break;
+
+case 'condition':
+    // Condition name dropdown
+    fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Condition Name' }));
+    const condSel = createSelect(['Stunned','Burning','Corruption'],'conditionName');
+    fieldsContainer.appendChild(condSel);
+
+    // Stacks Base + Scaling (always)
+    fieldsContainer.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Stacks Base' }));
+    fieldsContainer.appendChild(createInput('number','effect_stacks_base','base'));
+    const csScaleCont = document.createElement('div'); csScaleCont.classList.add('sd-scale-container');
+    const csAdd = createButton('+ Scale','sd-add-scale');
+    csAdd.addEventListener('click', () => csScaleCont.appendChild(makeScaleBlock('effect_stacks')));
+    fieldsContainer.append(csAdd, csScaleCont);
+
+    // Duration Base + Scaling (only for Stunned)
+    const durBlock = document.createElement('div');
+    durBlock.style.display = 'undefined';
+    durBlock.classList.add('sd-condition-duration');
+    durBlock.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Duration Base' }));
+    durBlock.appendChild(createInput('number','effect_duration_base','base'));
+    const cdScaleCont = document.createElement('div'); cdScaleCont.classList.add('sd-scale-container');
+    const cdAdd = createButton('+ Duration Scale','sd-add-scale');
+    cdAdd.addEventListener('click', () => cdScaleCont.appendChild(makeScaleBlock('effect_duration')));
+    durBlock.append(cdAdd, cdScaleCont);
+    fieldsContainer.appendChild(durBlock);
+
+    // show/hide duration when Stunned is selected
+    condSel.addEventListener('change', e => {
+      durBlock.style.display = (e.target.value === 'Stunned' ? '' : 'undefined');
+    });
+    break;
+      }
+    }
+
+    typeSel.addEventListener('change', e => populateFields(e.target.value));
+    populateFields(typeSel.value);
+
+    // Remove effect button
+    const rem = createButton('-', 'sd-remove');
+    rem.addEventListener('click', () => block.remove());
+    block.appendChild(rem);
+
+    return block;
+  }
+
+  // Main popup creator
+  // Add parameters: skillId and existingData (optional)
+window.createSkillDesignerPopup = function(skillId = null, existingData = null) {
+    const overlay = document.createElement('div'); overlay.classList.add('sd-overlay');
+    document.body.appendChild(overlay);
+
+    const modal = document.createElement('div'); modal.classList.add('sd-modal');
+    overlay.appendChild(modal);
+
+    const title = document.createElement('h2');
+title.textContent = skillId ? `Edit Skill: ${skillId}` : 'Design New Skill';
+modal.appendChild(title);
+
+    const form = document.createElement('form'); form.classList.add('sd-form');
+    modal.appendChild(form);
+    form.style.lineHeight = "0.5rem;"
+    form.style.fontSize = "0.5rem;"
+    // Skill ID
+    form.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Skill ID' }));
+    form.appendChild(createInput('text','skill_id','Skill ID'));
+
+    // Skill-level target names
+    
+
+    // Basic info
+    ['name','flavorText','description'].forEach(field => {
+      form.appendChild(Object.assign(document.createElement('h4'), { textContent: field.charAt(0).toUpperCase() + field.slice(1) }));
+      form.appendChild(createInput('text', field, field.charAt(0).toUpperCase() + field.slice(1)));
+    });
+
+    // Cooldown section
+    const cdSect = document.createElement('div'); cdSect.classList.add('sd-section');
+    cdSect.appendChild(Object.assign(document.createElement('h3'), { textContent: 'Cooldown' }));
+    cdSect.appendChild(createInput('number','cooldown_base','Base'));
+    cdSect.appendChild(createInput('number','cooldown_value','Value'));
+    const cdScCont = document.createElement('div'); cdScCont.classList.add('sd-scale-container');
+    const cdAdd = createButton('+ Scale','sd-add-scale');
+    cdAdd.addEventListener('click', () => cdScCont.appendChild(makeScaleBlock('cooldown_scaling')));
+    cdSect.append(cdAdd, cdScCont);
+    form.appendChild(cdSect);
+
+    // Cost section
+    const costSect = document.createElement('div'); costSect.classList.add('sd-section');
+    costSect.appendChild(Object.assign(document.createElement('h3'), { textContent: 'Cost' }));
+    ['sp','mp','hp'].forEach(res => {
+      costSect.appendChild(Object.assign(document.createElement('h4'), { textContent: res.toUpperCase() }));
+      costSect.appendChild(createInput('number', `cost_${res}`, res.toUpperCase()));
+    });
+    form.appendChild(costSect);
+
+    // Skill target dropdown & requiresTarget
+    form.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Target' }));
+    const targetField = createSelect(skillTargets, 'target')
+    targetField.addEventListener("change", () => {
+      document.getElementById('requiresTarget').checked = targetField.value == "singleEnemy" || targetField.value == "singleAlly"
+    })
+    form.appendChild(targetField);
+    const reqLabel = document.createElement('label');
+    const reqChk = document.createElement('input'); reqChk.type='checkbox'; reqChk.id="requiresTarget"; reqChk.name='requiresTarget'; reqChk.disabled = true
+    reqLabel.append(reqChk, document.createTextNode(' Requires Target'));
+    form.appendChild(reqLabel);
+    form.appendChild(Object.assign(document.createElement('h4'), { textContent: 'Skill Target Names' }));
+    const stnContainer = document.createElement('div'); stnContainer.classList.add('sd-names-container');
+    const addStnBtn = createButton('+ Name','sd-add-targetName');
+    addStnBtn.addEventListener('click', () => stnContainer.appendChild(makeNameBlock('skill_targetNames[]')));
+    form.append(addStnBtn, stnContainer);
+
+    // Effects section
+    const effSect = document.createElement('div'); effSect.classList.add('sd-section');
+    effSect.appendChild(Object.assign(document.createElement('h3'), { textContent: 'Effects' }));
+    const effCont = document.createElement('div'); effCont.classList.add('sd-effects-container');
+    const addEff = createButton('+ Add Effect','sd-add-effect');
+    addEff.addEventListener('click', () => effCont.appendChild(makeEffectBlock()));
+    effSect.append(addEff, effCont);
+    form.appendChild(effSect);
+
+    // JSON output area
+    const output = document.createElement('pre'); output.classList.add('sd-json-output');
+    form.appendChild(output);
+    const genBtn = createButton('Generate JSON', 'sd-gen');
+    genBtn.addEventListener('click', () =>{
+      output.textContent = JSON.stringify(generateSkillFromForm(form), null,2);
+    })
+    form.appendChild(genBtn);
+    const copyBtn = createButton('Copy to clipboard', 'sd-copy');
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(output.textContent.replace(/`/g, '\\`'));
+    })
+    form.appendChild(copyBtn)
+    // Generate JSON button
+    const saveBtn = createButton('Save Skill', 'sd-save');
+saveBtn.addEventListener('click', () => {
+  const result = generateSkillFromForm(form);
+  const newSkillId = Object.keys(result)[0];
+
+  // Save or overwrite in global skillsData
+  skillsData[newSkillId] = result[newSkillId];
+
+  // Close the popup
+  document.querySelector('.sd-overlay')?.remove();
+});
+form.appendChild(saveBtn);
+    // Dismiss on background click
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  };
+function generateSkillFromForm(form) {
+  const data = {};
+  const fd = new FormData(form);
+  const skillId = fd.get('skill_id');
+  data.name = fd.get('name');
+  data.flavorText = fd.get('flavorText');
+  data.description = fd.get('description');
+
+  data.cooldown = { base:+fd.get('cooldown_base'), value:+fd.get('cooldown_value'), scaling:[] };
+  form.querySelectorAll('.sd-scale-block').forEach(sb => {
+    const targetSelect = sb.querySelector('select[name$="_target"]');
+    const prefix = targetSelect.name.replace(/_target$/, '');
+    const t = targetSelect.value;
+    const s = sb.querySelector(`select[name="${prefix}_stat"]`).value;
+    const sc = +sb.querySelector(`input[name="${prefix}_scale"]`).value;
+    const e = sb.querySelector(`select[name="${prefix}_effect"]`).value;
+    if (prefix === 'cooldown_scaling') {
+      data.cooldown.scaling.push({ target: t, stat: s, scale: sc, effect: e });
+    }
+  });
+
+  data.cost = { sp:+fd.get('cost_sp')||0, mp:+fd.get('cost_mp')||0, hp:+fd.get('cost_hp')||0 };
+  data.target = fd.get('target');
+  data.requiresTarget = form.querySelector('#requiresTarget').checked
+  const skillTargetNamesQuery = form.querySelectorAll('input[name="skill_targetNames[]"]');
+  if(skillTargetNamesQuery.length > 0){
+    data.targetNames = [];
+    skillTargetNamesQuery.forEach(i => data.targetNames.push(i.value));
+  }
+
+  // === EFFECTS ===
+  data.effects = [];
+  form.querySelectorAll('.sd-effect-block').forEach(block => {
+    const type = block.querySelector('select[name="effect_type"]').value;
+    const ev = { type };
+
+    const targetSel = block.querySelector('select[name="effect_target"]');
+    if (targetSel?.value && targetSel.value !== 'undefined') ev.target = targetSel.value;
+
+    const names = [...block.querySelectorAll('input[name="effect_targetNames[]"]')].map(e => e.value).filter(Boolean);
+    if (names.length) ev.targetNames = names;
+
+    if (type === 'damage') ev.damageType = block.querySelector('select[name="damageType"]').value;
+    if (['damage','heal','interrupt','gainEnergy','siphonEnergy'].includes(type)) {
+      ev.base = +block.querySelector('input[name="effect_base"]').value || 0;
+      ev.scaling = [];
+    }
+
+    if (type === 'siphonEnergy' && block.querySelector('input[name="effect_multi_base"]')) {
+      ev.multi = {
+        base: +block.querySelector('input[name="effect_multi_base"]').value || 0,
+        scaling: []
+      };
+    }
+if (type === 'summon') {
+  ev.unitName = block.querySelector('input[name="summon_unit_name"]')?.value || '';
+  ev.isAlly = block.querySelector('input[name="summon_is_ally"]')?.checked || false;
+  ev.tier = {
+    base: +block.querySelector('input[name="effect_tier_base"]')?.value || 0,
+    scaling: []
+  };
+}
+
+    if (type === 'buff' || type === 'debuff') {
+      if (type === 'buff') {
+        const r = block.querySelector('select[name="resistanceType"]')?.value;
+        if (r && r !== 'undefined') ev.resistanceType = r;
+      }
+      ev.stat = block.querySelector('select[name="buff_stat"]').value;
+      ev.effect = block.querySelector('select[name="buff_effect"]').value;
+      ev.value = {
+        base: +block.querySelector('input[name="effect_value_base"]').value || 0,
+        scaling: []
+      };
+      ev.duration = {
+        base: +block.querySelector('input[name="effect_duration_base"]').value || 0,
+        scaling: []
+      };
+    }
+
+    if (type === 'condition' || type === 'cleanse') {
+      ev.name = block.querySelector('[name="conditionName"]').value;
+      ev.stacks = {
+        base: +block.querySelector('input[name="effect_stacks_base"]').value || 0,
+        scaling: []
+      };
+      if (type === 'condition' && ev.name === 'Stunned') {
+        ev.duration = {
+          base: +block.querySelector('input[name="effect_duration_base"]').value || 0,
+          scaling: []
+        };
+      }
+    }
+
+    block.querySelectorAll('.sd-scale-block').forEach(sb => {
+      const targetSelect = sb.querySelector('select[name$="_target"]');
+      const prefix = targetSelect.name.replace('_target','');
+      const scaleObj = {
+        target: targetSelect.value,
+        stat: sb.querySelector(`select[name="${prefix}_stat"]`).value,
+        scale: +sb.querySelector(`input[name="${prefix}_scale"]`).value,
+        effect: sb.querySelector(`select[name="${prefix}_effect"]`).value
+      };
+
+      if (prefix === 'effect_value' && ev.value) ev.value.scaling.push(scaleObj);
+      else if (prefix === 'effect_duration' && ev.duration) ev.duration.scaling.push(scaleObj);
+      else if (prefix === 'effect_stacks' && ev.stacks) ev.stacks.scaling.push(scaleObj);
+      else if (prefix === 'effect_multi' && ev.multi) ev.multi.scaling.push(scaleObj);
+      else if (prefix === 'effect_tier' && ev.tier) ev.tier.scaling.push(scaleObj);
+      else if (prefix.startsWith('effect')) (ev.scaling ||= []).push(scaleObj);
+    });
+
+    data.effects.push(ev);
+  });
+  console.log(JSON.stringify({[skillId]: data}, null, 2));
+  return { [skillId]: data };
+}
+  // Inject basic styles
+  const style = document.createElement('style'); style.textContent = `
+    .sd-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; }
+    .sd-modal { background:#fff; padding:20px; border-radius:8px; max-height:90%; overflow-y:auto; width:600px; box-shadow:0 4px 12px rgba(0,0,0,0.3); }
+    .sd-input, .sd-select { margin:4px 2px; width:calc(100% - 12px); }
+    .sd-section { margin:12px 0; }
+    .sd-scale-block, .sd-effect-block, .sd-name-block { border:1px solid #ccc; padding:8px; margin:6px 0; position:relative; }
+    .sd-remove { background:#fdd; border:1px solid #faa; margin-left:8px; cursor:pointer; }
+    .sd-add-scale, .sd-add-effect, .sd-add-targetName, .sd-generate { margin:8px 0; cursor:pointer; }
+    .sd-json-output { background:#f4f4f4; padding:8px; max-height:200px; overflow:auto; }
+  `;
+  document.head.appendChild(style);
+  // Add at the bottom of the IIFE after injecting styles
+
+  window.createSkillSelectionPopup = function() {
+    const overlay = document.createElement('div'); overlay.classList.add('sd-overlay');
+    document.body.appendChild(overlay);
+
+    const modal = document.createElement('div'); modal.classList.add('sd-modal');
+    overlay.appendChild(modal);
+
+    const title = document.createElement('h2'); title.textContent = 'Select an Option';
+    modal.appendChild(title);
+
+    const newBtn = createButton('New Skill');
+    const loadBtn = createButton('Load Existing Skill');
+
+    modal.append(newBtn, loadBtn);
+
+    // Dropdown container
+    const dropdownCont = document.createElement('div');
+    dropdownCont.style.display = 'none';
+
+    const skillSelect = createSelect(Object.keys(skillsData), 'existingSkill');
+    const confirmBtn = createButton('Load');
+    dropdownCont.append(skillSelect, confirmBtn);
+    modal.appendChild(dropdownCont);
+
+    // Event Listeners
+    newBtn.addEventListener('click', () => {
+      overlay.remove();
+      createSkillDesignerPopup(); // empty
+    });
+
+    loadBtn.addEventListener('click', () => {
+      dropdownCont.style.display = 'block';
+    });
+
+    confirmBtn.addEventListener('click', () => {
+      const selectedId = skillSelect.value;
+      overlay.remove();
+      createSkillDesignerPopup();
+      // wait for popup to be created, then fill it
+      setTimeout(() => populateSkillForm(selectedId, skillsData[selectedId]), 100);
+    });
+
+    // Close on background click
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  };
+
+  // Populate form with skill data
+  function populateSkillForm(skillId, data) {
+  const form = document.querySelector('.sd-form');
+  if (!form) return;
+
+  // Basic Info
+  form.querySelector('input[name="skill_id"]').value = skillId;
+  form.querySelector('input[name="name"]').value = data.name || '';
+  form.querySelector('input[name="flavorText"]').value = data.flavorText || '';
+  form.querySelector('input[name="description"]').value = data.description || '';
+  form.querySelector('input[name="cooldown_base"]').value = data.cooldown?.base || 0;
+  form.querySelector('input[name="cooldown_value"]').value = data.cooldown?.value || 0;
+  form.querySelector('select[name="target"]').value = data.target || 'singleEnemy';
+  form.querySelector('#requiresTarget').checked = ['singleEnemy', 'singleAlly'].includes(data.target);
+
+  // Skill Target Names
+  form.querySelectorAll('input[name="skill_targetNames[]"]').forEach(e => e.parentNode.remove());
+  const skillTargetNames = data.targetNames || [];
+  skillTargetNames.forEach(name => {
+    const container = form.querySelector('.sd-names-container');
+    const block = makeNameBlock('skill_targetNames[]');
+    block.querySelector('input').value = name;
+    container.appendChild(block);
+  });
+
+  // Cooldown scaling
+  const cdScaleCont = form.querySelector('.sd-section .sd-scale-container');
+  cdScaleCont.innerHTML = ''; // clear existing
+  if (data.cooldown?.scaling?.length) {
+    data.cooldown.scaling.forEach(scale => {
+      const block = makeScaleBlock('cooldown_scaling');
+      block.querySelector('select[name="cooldown_scaling_target"]').value = scale.target;
+      block.querySelector('select[name="cooldown_scaling_stat"]').value = scale.stat;
+      block.querySelector('input[name="cooldown_scaling_scale"]').value = scale.scale;
+      block.querySelector('select[name="cooldown_scaling_effect"]').value = scale.effect || "add";
+      cdScaleCont.appendChild(block);
+    });
+  }
+
+  // Cost
+  ['sp', 'mp', 'hp'].forEach(res => {
+    form.querySelector(`input[name="cost_${res}"]`).value = data.cost?.[res] || 0;
+  });
+
+  // Effects
+  const effCont = form.querySelector('.sd-effects-container');
+  effCont.innerHTML = ''; // clear
+  (data.effects || []).forEach(effect => {
+    const block = makeEffectBlock();
+    effCont.appendChild(block);
+
+    block.querySelector('select[name="effect_type"]').value = effect.type;
+    block.querySelector('select[name="effect_type"]').dispatchEvent(new Event('change'));
+
+    // Delay population until DOM fields update
+    setTimeout(() => {
+      if (effect.target) {
+        const targetField = block.querySelector('select[name="effect_target"]');
+        if (targetField) targetField.value = effect.target;
+      }
+
+      // Target Names
+      block.querySelectorAll('input[name="effect_targetNames[]"]').forEach(e => e.parentNode.remove());
+      (effect.targetNames || []).forEach(name => {
+        const container = block.querySelector('.sd-names-container');
+        const nameBlock = makeNameBlock('effect_targetNames[]');
+        nameBlock.querySelector('input').value = name;
+        container.appendChild(nameBlock);
+      });
+
+      // Handle specific fields based on effect type
+      const setField = (selector, val) => {
+        const el = block.querySelector(selector);
+        if (el) el.value = val;
+      };
+
+      switch (effect.type) {
+        case 'damage':
+          setField('select[name="damageType"]', effect.damageType);
+        case 'heal':
+        case 'interrupt':
+        case 'gainEnergy':
+        case 'siphonEnergy':
+          setField('input[name="effect_base"]', effect.base);
+          break;
+      }
+
+      if (effect.type === 'siphonEnergy' && effect.multi) {
+        setField('input[name="effect_multi_base"]', effect.multi.base);
+        (effect.multi.scaling || []).forEach(scale => {
+          const b = makeScaleBlock('effect_multi');
+          b.querySelector('select[name="effect_multi_target"]').value = scale.target;
+          b.querySelector('select[name="effect_multi_stat"]').value = scale.stat;
+          b.querySelector('input[name="effect_multi_scale"]').value = scale.scale;
+          b.querySelector('select[name="effect_multi_effect"]').value = scale.effect || "add";
+          block.querySelector('.sd-scale-container').appendChild(b);
+        });
+      }
+
+      if (effect.type === 'buff' || effect.type === 'debuff') {
+        setField('select[name="resistanceType"]', effect.resistanceType || 'undefined');
+        setField('select[name="buff_stat"]', effect.stat);
+        setField('select[name="buff_effect"]', effect.effect);
+        setField('input[name="effect_value_base"]', effect.value?.base);
+        setField('input[name="effect_duration_base"]', effect.duration?.base);
+
+        // Scaling
+        const valueCont = block.querySelectorAll('.sd-scale-container')[0];
+        const durCont = block.querySelectorAll('.sd-scale-container')[1];
+        (effect.value?.scaling || []).forEach(scale => {
+          const b = makeScaleBlock('effect_value');
+          b.querySelector('select[name="effect_value_target"]').value = scale.target;
+          b.querySelector('select[name="effect_value_stat"]').value = scale.stat;
+          b.querySelector('input[name="effect_value_scale"]').value = scale.scale;
+          b.querySelector('select[name="effect_value_effect"]').value = scale.effect || "add";
+          valueCont.appendChild(b);
+        });
+        (effect.duration?.scaling || []).forEach(scale => {
+          const b = makeScaleBlock('effect_duration');
+          b.querySelector('select[name="effect_duration_target"]').value = scale.target;
+          b.querySelector('select[name="effect_duration_stat"]').value = scale.stat;
+          b.querySelector('input[name="effect_duration_scale"]').value = scale.scale;
+          b.querySelector('select[name="effect_duration_effect"]').value = scale.effect || "add";
+          durCont.appendChild(b);
+        });
+      }
+
+      if (effect.type === 'condition' || effect.type === 'cleanse') {
+setField('select[name="conditionName"]', effect.name);
+        setField('input[name="effect_stacks_base"]', effect.stacks?.base);
+        const cont = block.querySelectorAll('.sd-scale-container')[0];
+        (effect.stacks?.scaling || []).forEach(scale => {
+          const b = makeScaleBlock('effect_stacks');
+          b.querySelector('select[name="effect_stacks_target"]').value = scale.target;
+          b.querySelector('select[name="effect_stacks_stat"]').value = scale.stat;
+          b.querySelector('input[name="effect_stacks_scale"]').value = scale.scale;
+          b.querySelector('select[name="effect_stacks_effect"]').value = scale.effect || "add";
+          cont.appendChild(b);
+        });
+
+        if (effect.duration && effect.name === 'Stunned') {
+          const durBlock = block.querySelector('.sd-condition-duration');
+          durBlock.style.display = '';
+          setField('input[name="effect_duration_base"]', effect.duration.base);
+          const durCont = block.querySelectorAll('.sd-scale-container')[1];
+          (effect.duration.scaling || []).forEach(scale => {
+            const b = makeScaleBlock('effect_duration');
+            b.querySelector('select[name="effect_duration_target"]').value = scale.target;
+            b.querySelector('select[name="effect_duration_stat"]').value = scale.stat;
+            b.querySelector('input[name="effect_duration_scale"]').value = scale.scale;
+            b.querySelector('select[name="effect_duration_effect"]').value = scale.effect || "add"
+            durCont.appendChild(b);
+          });
+        }
+      }
+
+      // Shared scaling
+      const scConts = block.querySelectorAll('.sd-scale-container');
+      (effect.scaling || []).forEach(scale => {
+        const b = makeScaleBlock('effect_scaling');
+        b.querySelector('select[name="effect_scaling_target"]').value = scale.target;
+        b.querySelector('select[name="effect_scaling_stat"]').value = scale.stat;
+        b.querySelector('input[name="effect_scaling_scale"]').value = scale.scale;
+        b.querySelector('select[name="effect_scaling_effect"]').value = scale.effect || "add";
+        if (scConts[0]) scConts[0].appendChild(b);
+      });
+    }, 50);
+  });
+}
+})();
+
+function loadTopBar(menu){
+  let topBar = document.getElementById("top-bar");
+  topBar.classList.remove("hidden")
+  topBar.style.display = "flex"
+  switch(menu){
+    case "combat":
+      topBar.innerHTML = `    <div id="planet-name">Dreadthorn</div>
+    <div id="zone-info">
+      <div id="zone-name">Fleshgrove Hollow</div>
+    </div>
+    <div id="encounter-bar">
+      <button onclick="lastEncounter()" class="enc-btn" id="last-encounter-btn"><<</button>
+      <div id="enemy-count">0 / 0</div>
+      <button onclick="nextEncounter()" class="enc-btn" id="next-encounter-btn">>></button>
+    </div>`
+    break;
+    case "characterSelect":
+      if(isSignedIn){
+    topBar.innerHTML = `
+    <button class="enc-btn" onclick="reroute('logout')">Logout</button>
+    <button class="enc-btn" onclick="reroute('account')">Account</button>
+    `
+      }else{
+        topBar.innerHTML = `
+    <button class="enc-btn" onclick="reroute('login')">Login</button>
+    <label style="color: #922;">YOU ARE LOGGED OUT</label>
+    `
+      }
+  }
+  }
+  
