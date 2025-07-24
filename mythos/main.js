@@ -3,10 +3,13 @@ let gameVerDiv = document.getElementById("version-bar")
 if(gameVerDiv){
   gameVerDiv.textContent = "Version: "+ gameVersion;
 }
+let combatMenu = undefined;
+let currentMenu = ""
 let isSignedIn = false;
 let loadFromGithub = false;
 let runAnalysis = false;
 let loreDataCache = null;
+let zonesData = null;
 let damageTypeMultipliers = null;
 let skillsData = null;
 let unitsData = null;
@@ -1319,6 +1322,19 @@ function generateUniqueUnitID() {
   return unitCounter++;
 }
 let combatUnits = [];
+userData = {
+  memoryShards: {
+    count: 0,
+    modifiers: [],
+    upgrades: {}
+  },
+  zoneHistory: {},
+  planetsHistory: {},
+  kills: {},
+  deaths: 0,
+  deathsInARow: 0,
+  prestigeCount: 0
+}
 player = {
   name: "Reaper",
   id: 0,
@@ -1537,20 +1553,13 @@ player = {
       lastUsed: {}
     }
   },
-  zoneProgress: {
-    
-  },
-  currentZone: {},
+  currentZone: "",
+  zoneProgress: {},
   planetsProgress: {},
   conditions: [],
   buffs: [],
   debuffs: [],
-  data: {
-    kills: {},
-    deaths: 0,
-    deathsInARow: 0,
-    prestigeCount: 0
-  }
+
 };
 const originalPlayer = JSON.parse(JSON.stringify(player))
 const classToPlanet = {
@@ -1569,7 +1578,8 @@ const classToPlanet = {
     "damageType_multipliers.json",
     "new-skills.json",
     "units.json",
-    "talents.json"
+    "talents.json",
+    "zones.json"
   ];
   const spriteFiles = [
     "images/extended_sprite_sheet.png",
@@ -1626,7 +1636,8 @@ const classToPlanet = {
         multiplierRaw,
         skillsRaw,
         unitsRaw,
-        talentsRaw
+        talentsRaw,
+        zonesRaw
       ] = await Promise.all(jsonFiles.map(f => loadJSON(f)));
 
       // assign
@@ -1640,7 +1651,8 @@ const classToPlanet = {
       unitsData = unitsRaw;
       console.log("fetching talents")
       talentsData = talentsRaw;
-
+      console.log("fetching zones");
+      zonesData = zonesRaw;
 
       // post-fetch processing
       const allTypes = Object.keys(damageTypeMultipliers);
@@ -1922,8 +1934,7 @@ console.log(formattedTimestamp); // Example: "2025-07-04 15:12:45"
   
   
   unlockClass(chosenClass)
-  
-  
+
 
 
   const startingPlanet = classToPlanet[chosenClass];
@@ -1934,8 +1945,11 @@ console.log(formattedTimestamp); // Example: "2025-07-04 15:12:45"
     completed: false,
     timesCompleted: 0
   }
+    if(loreDataCache.planets[startingPlanet].startingZone){
+      unlockZone(loreDataCache.planets[startingPlanet].startingZone)
+    }
   const loreEntry = loreDataCache.planets[startingPlanet].description;
-  const zoneLogs = Object.entries(loreDataCache.zones)
+  const zoneLogs = Object.entries(zonesData)
   .filter(([zone]) => loreEntry && zone.includes(startingPlanet.split(" ")[0]))
   .map(([zone, desc]) => ">" + zone + ": " + desc);
   console.log(JSON.stringify(loreDataCache))
@@ -1982,7 +1996,7 @@ function planetAnalysis(){
   const uniqueUnits = new Set();
 
   zoneNames.forEach(zoneName => {
-    const units = loreDataCache.zones[zoneName]?.units || [];
+    const units = zonesData[zoneName]?.units || [];
    units.forEach(unit => uniqueUnits.add(unit));
   });
 
@@ -2028,10 +2042,10 @@ function initializeMenuButtons() {
     }
     button.addEventListener("click", () => {
   const menu = button.dataset.menu;
-  if (player.inCombat && settings.confirmLeaveCombat) {
-    showConfirmLeaveCombatPopup(() => showMenu(button.dataset.menu));
-    return;
-  }
+  //if (player.inCombat && settings.confirmLeaveCombat) {
+    //showConfirmLeaveCombatPopup(() => showMenu(button.dataset.menu));
+   // return;
+ // }
   showMenu(menu);
 });
   });
@@ -2330,6 +2344,17 @@ function showCharacterCreation(charId) {
     showMenu("character");
   }
 }
+function unlockZone(zoneName){
+  if(player.zoneProgress[zoneName]){
+    player.zoneProgress[zoneName].unlocked = true;
+    return;
+  }
+  player.zoneProgress[zoneName] = {
+    unlocked: true,
+    count: 1,
+    completed: false
+  }
+}
 function getVisitablePlanets() {
     const allPlanetKeys = Object.keys(loreDataCache.planets);
 
@@ -2497,10 +2522,12 @@ function updateTimeshardUpgradeButton(upgradeIndex){
 function showMenu(menu) {
   addToDebugLog("debug", "Showing Menu '" + menu+"'")
   document.querySelectorAll(".popup-overlay").forEach(e=>e.remove())
+  currentMenu = menu;
+  hideCombatMenu();
   debugEnemy = undefined;
   debugEnemyTesting = false;
   saveCharacter(true)
-  player.inCombat = false
+  //player.inCombat = false
   updateMenuButton(document.getElementById(menu + "-btn"), "linear-gradient(rgba(255,255,255,0.5),rgba(50,50,50,0.5))")
   const main = document.getElementById("main-area");
   main.style.height = "30vh"
@@ -2512,11 +2539,6 @@ function showMenu(menu) {
     btn.classList.toggle("active",
       btn.dataset.menu === menu);
   });
-  Object.values(skillIntervals).forEach((value) => clearInterval(value))
-  Object.values(regenIntervals).forEach((value) => clearInterval(value))
-
-  skillIntervals = {};
-  regenIntervals = {};
   document.querySelectorAll(".menu-section").forEach(section => {
     section.style.display = section.id === `${menu}-menu` ? "block": "none";
   });
@@ -2963,113 +2985,139 @@ case "planets":
       setSectionVisibility("resistances-section",
         false)
       break;
-case "journey":
+
+  break;
+  case "journey":
   main.innerHTML = `
-    <div style="position: relative; overflow: hidden; width: 100%; 30vh;"><div style="position: absolute; top: -6em; left: 0px;" class="planet ${player.planet.toLowerCase()}"></div></div>
+    <div style="position: relative; overflow: hidden; width: 100%; height: 30vh;">
+      <div style="position: absolute; top: -6em; left: 0px;" class="planet ${player.planet.toLowerCase()}"></div>
+    </div>
   `;
+
+  if (player.inCombat) {
+    currentMenu = "combat";
+    startCombat(true);
+    return;
+  }
+
+  function formatZoneType(type) {
+    if (!type) return "";
+    return type.split("_").map(word => word[0].toUpperCase() + word.slice(1)).join(" ");
+  }
 
   if (!player.currentZone || !player.currentZone.name) {
     const zoneMenu = document.createElement("div");
     zoneMenu.id = "zone-menu";
-    const zones = loreDataCache.planets[player.planet].zones;
-    let index = 0;
 
-    for (let zoneName of zones) {
-      const zoneData = loreDataCache.zones[zoneName];
+    const allZones = loreDataCache.planets[player.planet].zones
+      .filter(zoneName =>
+        (player.zoneProgress[zoneName]?.unlocked || player.zoneProgress[zoneName]?.count > 0)
+      );
 
-      // Skip if units not defined or previous zone not completed
-      if (
-        !unitsDefinedForZone(zoneData) ||
-        (zoneData.previousZone &&
-          (!player.zoneProgress[zoneData.previousZone] ||
-            !player.zoneProgress[zoneData.previousZone].completed))
-      ) {
-        index += 1;
-        continue;
-      }
+    const completedZones = [];
+    const explorableZones = [];
+    
 
-      const progress = player.zoneProgress[zoneName]?.count || 1;
-      const planetCompleted = player.planetsProgress[player.planet].timesCompleted;
-      const maxTier = zoneData.maxTier;
+    for (let zoneName of allZones) {
       const completed = player.zoneProgress[zoneName]?.completed;
-      const inProgress = player.progressingZone === zoneName;
-
-      // Determine background color and status label
-      let backgroundStyle = "linear-gradient(#141,#030)";
-      let statusLabel = "";
-      let headerText = `Zone ${index + 1}: ${zoneName} (${progress}/${maxTier})`;
-      if (inProgress) headerText += "<span style='color: #2d2;'> - You are here</span>";
-      if (completed) {
-        backgroundStyle = "linear-gradient(#141,#030)";
-        statusLabel = "<span style='color: #393;'>COMPLETED</span>";
-      } else if (inProgress) {
-        backgroundStyle = "linear-gradient(#141,#030)";
-        statusLabel = "<span style='color: #993;'>CURRENTLY ACTIVE</span>";
-      } else if (
-        !planetCompleted && player.progressingZone &&
-        !player.zoneProgress[player.progressingZone]?.completed
-      ) {
-        backgroundStyle = "linear-gradient(#411,#300)";
-      }
-
-      // Create zone block container
-      const zoneBlock = document.createElement("div");
-      zoneBlock.className = "zone-block";
-      zoneBlock.style.background = backgroundStyle;
-
-      // Create header
-      const header = document.createElement("div");
-      header.className = "zone-header";
-
-
-
-      header.innerHTML = `
-  <button class="zone-dropdown-toggle" data-zone="${zoneName}">
-    <span class="dropdown-icon">▾</span> ${headerText}
-  </button>
-`;
-      zoneBlock.appendChild(header);
-
-      // Create dropdown content (initially hidden)
-      const dropdown = document.createElement("div");
-      dropdown.className = "zone-dropdown-content";
-      dropdown.style.display = "none";
-
-      // XP reward
-      let zoneReward = "";
-      if (zoneData.reward?.xp) {
-        const xpGained = completed ? player.zoneProgress[zoneName].xpGained : zoneData.reward.xp * (player.beatenZones + 1);
-        zoneReward += `<br><span style="color: ${completed ? "#5a5" : "#d9d"};">Reward: ${xpGained} xp${completed ? " (Gained)" : ""}</span>`;
-      }
-
-      const recLevel = getEffectiveTier(zoneName, 1);
-      const levelDiff = (1 / Math.max(1, recLevel - player.classData[player.class].level)) * 255;
-      const color = `rgb(${255 - levelDiff},${levelDiff},0)`;
-
-      let locked = !planetCompleted && player.progressingZone &&
-        !player.zoneProgress[player.progressingZone]?.completed &&
-        player.progressingZone !== zoneName &&
-        (!player.zoneProgress[zoneName] || !player.zoneProgress[zoneName].completed);
-
-      let zoneBtn = `<button class="zone-button"${locked ? ">LOCKED" : ` onclick="showZone('${zoneName}')">Select Zone`}</button>`;
-      let damageTypesText = "<span style='color: #d55;'>Damage Types: "+ getZoneDamageTypes(zoneName).map(damageType => getDamageTypeIcon(damageType)).join("")+"</span>"
-      
-      dropdown.innerHTML = `
-        <div style="margin-top: 5px;">
-          <h3>${statusLabel}</h3>
-          <span style="color: ${color};">Recommended Level: ${recLevel}</span>
-          ${zoneReward}
-          <br>${damageTypesText}
-          <br>Progress: ${progress}/${maxTier}
-          <p>${zoneData.description}</p>
-          ${zoneBtn}
-        </div>
-      `;
-
-      zoneBlock.appendChild(dropdown);
-      zoneMenu.appendChild(zoneBlock);
-      index += 1;
+      (completed ? completedZones : explorableZones).push(zoneName);
     }
+console.log(JSON.stringify(allZones), JSON.stringify(completedZones), JSON.stringify(explorableZones))
+function createZoneGroup(title, zones) {
+      const container = document.createElement("div");
+      container.className = "zone-group";
+      
+      const groupHeader = document.createElement("button");
+      groupHeader.className = "zone-group-header";
+      groupHeader.textContent = `▾ ${title}`;
+      groupHeader.onclick = () => {
+        groupContent.style.display = groupContent.style.display === "none" ? "block" : "none";
+        groupHeader.textContent = `${groupContent.style.display === "none" ? "▸" : "▾"} ${title}`;
+      };
+      if(title == 'Explorable Zones'){
+        groupHeader.style.background ="linear-gradient(#393,#161)";
+      }else if(title == 'Completed Zones'){
+        groupHeader.style.background ="linear-gradient(#993,#661)";
+        
+      }
+
+      const groupContent = document.createElement("div");
+      groupContent.className = "zone-group-content";
+      groupContent.style.display = "block";
+
+      for (let zoneName of zones) {
+        console.log(zoneName)
+        const zoneData = zonesData[zoneName];
+        const progress = player.zoneProgress[zoneName]?.count || 1;
+        const maxTier = zoneData.maxTier;
+        const inProgress = player.progressingZone === zoneName;
+        const completed = player.zoneProgress[zoneName]?.completed;
+
+        let backgroundStyle = "linear-gradient(#141,#030)";
+        let statusLabel = "";
+        let headerText = `Zone: ${zoneName} ${maxTier?"("+progress+"/"+maxTier+")":""}`;
+        if (inProgress) headerText += "<span style='color: #2d2;'> - You are here</span>";
+        if (completed) {
+          statusLabel = "<span style='color: #393;'>COMPLETED</span>";
+        } else if (inProgress) {
+          statusLabel = "<span style='color: #993;'>CURRENTLY ACTIVE</span>";
+        }
+
+        const zoneBlock = document.createElement("div");
+        zoneBlock.className = "zone-block";
+        zoneBlock.style.background = backgroundStyle;
+
+        const header = document.createElement("div");
+        header.className = "zone-header";
+        header.innerHTML = `
+          <button class="zone-dropdown-toggle" data-zone="${zoneName}">
+            <span class="dropdown-icon">▾</span> ${headerText}
+          </button>
+        `;
+        zoneBlock.appendChild(header);
+
+        const dropdown = document.createElement("div");
+        dropdown.className = "zone-dropdown-content";
+        dropdown.style.display = "none";
+
+        const recLevel = getEffectiveTier(zoneName, 1);
+        const levelDiff = (1 / Math.max(1, recLevel - player.classData[player.class].level)) * 255;
+        const color = `rgb(${255 - levelDiff},${levelDiff},0)`;
+
+        let locked = player.progressingZone &&
+          !player.zoneProgress[player.progressingZone]?.completed &&
+          player.progressingZone !== zoneName &&
+          (!player.zoneProgress[zoneName] || !player.zoneProgress[zoneName].completed);
+
+        let zoneBtn = `<button class="zone-button" onclick="showZone('${zoneName}')">Select Zone</button>`;
+        let damageTypesText = "<span style='color: #d55;'>Damage Types: " +
+          getZoneDamageTypes(zoneName).map(d => getDamageTypeIcon(d)).join("") + "</span>";
+
+        dropdown.innerHTML = `
+          <div style="margin-top: 5px;">
+            <h3>${statusLabel}</h3>
+            <span style="color: ${color};">Recommended Level: ${recLevel}</span>
+            <br>${damageTypesText}
+            ${maxTier?"<br>Progress: "+progress+"/"+maxTier:""}
+            <p>${zoneData.description || "No description found."}</p>
+            <span style="color: #aaa;">Type: ${formatZoneType(zoneData.type)}</span><br>
+            ${zoneBtn}
+          </div>
+        `;
+
+        zoneBlock.appendChild(dropdown);
+        groupContent.appendChild(zoneBlock);
+      }
+
+      container.appendChild(groupHeader);
+      container.appendChild(groupContent);
+      console.log('finishing')
+      return container;
+    }
+
+      zoneMenu.appendChild(createZoneGroup("Explorable Zones", explorableZones));
+      zoneMenu.appendChild(createZoneGroup("Completed Zones", completedZones));
+
 
     if (!zoneMenu.hasChildNodes()) {
       zoneMenu.innerHTML = "<span>No zones accessible for this planet.</span>";
@@ -3078,38 +3126,40 @@ case "journey":
     menuContent.innerHTML = `
       <div class="planet-intro-box">
         <span class="planet-intro-text">
-          Welcome to the planet of ${player.planet}${loreDataCache.planets[player.planet].description ? ", " + decapitalize(loreDataCache.planets[player.planet].description) : ""}${player.currentZone ? " Choose a zone to start exploring." : ""}
+          Welcome to the planet of ${player.planet}${loreDataCache.planets[player.planet].description ? ", " + decapitalize(loreDataCache.planets[player.planet].description) : ""}. Choose a zone to start exploring.
         </span>
       </div>
     `;
     menuContent.appendChild(zoneMenu);
 
-    // Dropdown toggle logic
-zoneMenu.addEventListener("click", (e) => {
-  const toggleBtn = e.target.closest(".zone-dropdown-toggle");
-  if (toggleBtn) {
-    const clickedZone = toggleBtn.dataset.zone;
-    const allBlocks = zoneMenu.querySelectorAll(".zone-block");
+    zoneMenu.addEventListener("click", (e) => {
+      const toggleBtn = e.target.closest(".zone-dropdown-toggle");
+      if (toggleBtn) {
+        const clickedZone = toggleBtn.dataset.zone;
+        const allBlocks = zoneMenu.querySelectorAll(".zone-block");
 
-    allBlocks.forEach(block => {
-      const btn = block.querySelector(".zone-dropdown-toggle");
-      const content = block.querySelector(".zone-dropdown-content");
+        allBlocks.forEach(block => {
+          const btn = block.querySelector(".zone-dropdown-toggle");
+          const content = block.querySelector(".zone-dropdown-content");
 
-      if (btn.dataset.zone === clickedZone) {
-        const isNowVisible = content.style.display === "none";
-        content.style.display = isNowVisible ? "block" : "none";
-        block.classList.toggle("open", isNowVisible);
-      } else {
-        content.style.display = "none";
-        block.classList.remove("open");
+          if (btn.dataset.zone === clickedZone) {
+            const isNowVisible = content.style.display === "none";
+            content.style.display = isNowVisible ? "block" : "none";
+            block.classList.toggle("open", isNowVisible);
+          } else {
+            content.style.display = "none";
+            block.classList.remove("open");
+          }
+        });
       }
     });
-  }
-});
+
   } else {
     showZone(player.currentZone.name);
-    document.getElementById("enemy-count").textContent = `${player.currentZone.count} / ${loreDataCache.zones[player.currentZone.name].maxTier}`;
+    document.getElementById("enemy-count").textContent = `${player.currentZone.count} / ${zonesData[player.currentZone.name].maxTier}`;
   }
+  console.log('break;')
+
   break;
     case "classes":
       showClassMenu();
@@ -3241,7 +3291,7 @@ function updateStatDisplay(unit, statKey) {
   spans[1].textContent = statData.value.toFixed(2);
 }
 function getZoneDamageTypes(zoneName) {
-  const zone = loreDataCache.zones[zoneName];
+  const zone = zonesData[zoneName];
   const damageTypes = new Set();
 
   if (zone?.units) {
@@ -3267,87 +3317,193 @@ function leaveZone() {
   delete player.currentZone.name
   showMenu("journey");
 }
+function renderTownInteractions(zoneName) {
+  const zoneData = zonesData[zoneName];
+  console.log("in1")
+  const interactions = zoneData.interactions || {};
+  let html = `<h2>${zoneName}</h2><div class="interactions-container">`;
 
-function showZone(zone, force) {
+  for (const [name, data] of Object.entries(interactions)) {
+    html += `
+      <button class="zone-button" onclick="openInteraction('${zoneName}', '${name}')">
+        ${name} (${data.type.replace("_", " ")})
+      </button><br>
+    `;
+  }
+  console.log("in2")
+  html += `<button class="zone-button" onclick="leaveZone()">Leave</button></div>`;
+  return html;
+}
+
+function openInteraction(zoneName, interactionName) {
+  const interaction = zonesData[zoneName].interactions[interactionName];
+  const menuContent = document.getElementById("menu-content");
+
+  switch (interaction.type) {
+    case "merchant":
+    case "blacksmith":
+    case "alchemist":
+      menuContent.innerHTML = renderMerchant(interactionName, interaction);
+      break;
+
+    case "mission_board":
+      menuContent.innerHTML = renderMissionBoard(interactionName, interaction);
+      break;
+
+    default:
+      menuContent.innerHTML = `<p>Unknown interaction: ${interaction.type}</p>`;
+  }
+
+  // Add a back button to return to town view
+  menuContent.innerHTML += `<button class="zone-button" onclick="showZone('${zoneName}')">Back to Town</button>`;
+}
+
+
+
+function renderMerchant(name, data) {
+  let html = `<h2>${name}</h2><div class="merchant-container">`;
+  if (data.inventory.length === 0) {
+    html += `<p>No items available.</p>`;
+  } else {
+    data.inventory.forEach(item => {
+      html += `
+        <div class="merchant-item">
+          <span>${item.name} (${item.quality || "Common"})</span> - 
+          <span>${item.count} available</span>
+          ${data.canBuy ? `<button class="zone-button" onclick="buyItem('${name}', '${item.name}')">Buy</button>` : ""}
+          ${data.canSell ? `<button class="zone-button" onclick="sellItem('${name}', '${item.name}')">Sell</button>` : ""}
+          ${data.canUpgrade ? `<button class="zone-button" onclick="upgradeItem('${name}', '${item.name}')">Upgrade</button>` : ""}
+        </div>
+      `;
+    });
+  }
+  html += `</div>`;
+  return html;
+}
+
+
+
+function renderMissionBoard(name, data) {
+  let html = `<h2>${name}</h2><div class="mission-board">`;
+  for (const [missionName, mission] of Object.entries(data.missions)) {
+    html += `
+      <div class="mission">
+        <h3>${missionName}</h3>
+        <p>Type: ${mission.type}</p>
+        <p>Requirement: ${mission.count}x ${mission.itemName}</p>
+        <button class="zone-button" onclick="acceptMission('${missionName}')">Accept Mission</button>
+      </div>
+    `;
+  }
+  html += `</div>`;
+  return html;
+}
+
+
+function showZone(zone) {
+  console.log("on0101")
+  // Set current zone if different
   if (!player.currentZone || player.currentZone.name != zone) {
-    
-    if(!force){
-        setTimeout(() => showPopup(`
-          <h2 style="color: #d88">Are you sure?</h2>
-          <span>Once you select this zone, you cant explore a new one until beating it.</span>
-          <div style="display: flex; margin-top: 70px; position: relative;">
-          <button style="background: linear-gradient(#844,#633); position: absolute; bottom: 1em; left: 1em; border-radius: 1em;" onclick="showZone('${zone}', true)">Continue</button>
-          <button style="background: linear-gradient(#484,#363); position: absolute; bottom: 1em; right: 1em; border-radius: 1em;" onclick="document.getElementById('popup-overlay').remove()">Go Back</button>
-          </div>
-          `), 1);
-        return;
-    }
     player.currentZone = {
       name: zone,
       count: player.zoneProgress[zone]?.count || 1
-    }
-    if(!player.zoneProgress[zone]){
-    player.zoneProgress[zone] = {
-      count: player.currentZone.count,
-    }
+    };
+    if (!player.zoneProgress[zone]) {
+      player.zoneProgress[zone] = {
+        count: player.currentZone.count,
+      };
     }
   }
-  if ((!player.progressingZone || player.progressingZone != zone) && !player.zoneProgress[zone].completed && !player.planetsProgress[player.planet]?.timesCompleted) {
-    player.progressingZone = zone
-    player.zoneProgress[zone].starterTier = player.beatenTiers + (5*player.beatenZones);
+
+  // Track progression
+  if ((!player.progressingZone || player.progressingZone != zone) && 
+      !player.zoneProgress[zone].completed && 
+      !player.planetsProgress[player.planet]?.timesCompleted) {
+    player.progressingZone = zone;
+    player.zoneProgress[zone].starterTier = player.beatenTiers + (5 * player.beatenZones);
   }
 
-  initializeCombatUnits(zone);
-  let encounterDisplay = document.getElementById("encounter-bar");
-  let zoneDisplay = document.getElementById("zone-name")
-  let prevEncBtn = document.getElementById("last-encounter-btn")
-  prevEncBtn.style.display = "block"
-  encounterDisplay.classList.remove("hidden")
-  encounterDisplay.style.display = "flex";
-  zoneDisplay.textContent = player.currentZone.name;
-  zoneDisplay.style.display = "block"
+  // Get zone data
+  const zoneData = zonesData[zone];
+  const zoneType = zoneData.type;
 
+  // Clear content area
+  let menuContent = document.getElementById("menu-content");
+  menuContent.innerHTML = "";
 
-  document.getElementById("enemy-count").textContent = `${player.currentZone.count} / ${loreDataCache.zones[player.currentZone.name].maxTier}`
-  document.getElementById("menu-content").innerHTML = `
-  <div style="position: relative;" class="zone-menu">
-  <button class="zone-button" onclick="startCombat()">Begin Combat</button>
-  <div id="zone-units-list">
-  <button style="position: absolute; top: 0px; left: 5px;" class="zone-button" onclick="leaveZone()">Go Back</button>
-  </div>
-  </div>
-  `
-  let units = loreDataCache.zones[player.currentZone.name].units
-  let unitsList = document.getElementById("zone-units-list");
-  let discoveredUnits = units.filter(u => {
-    let uData = getUnitDataFromType(u.name);
-    if (uData) {
-      if (player.discoveredEnemies && player.discoveredEnemies.includes(uData.name)) {
-        return true;
-      }
-    }
-    return false;
-  });
-  let discoveredCount = discoveredUnits.length;
-  let totalUnits = units.length;
-  unitsList.innerHTML += `<h3>Units Discovered ${discoveredCount}/${totalUnits}:</h3><br>`
-  units.forEach(u => {
-    let uData = getUnitDataFromType(u.name);
-    if (discoveredUnits.includes(u)) {
-      unitsList.innerHTML += `
-      <button class="unit-btn" id="${uData.name}-btn" onclick="setTimeout(() => showUnitPopup(undefined, '${uData.name}'), 1)">${uData.name}</button><br>
-      `
-    } else {
+  // Handle by type
+  switch (zoneType) {
+    case "combat":
+      initializeCombatUnits(zone);
+      let encounterDisplay = document.getElementById("encounter-bar");
+      let zoneDisplay = document.getElementById("zone-name");
+      let prevEncBtn = document.getElementById("last-encounter-btn");
+      prevEncBtn.style.display = "block";
+      encounterDisplay.classList.remove("hidden");
+      encounterDisplay.style.display = "flex";
+      zoneDisplay.textContent = player.currentZone.name;
+      zoneDisplay.style.display = "block";
 
-      unitsList.innerHTML += `
-      <button class="unit-btn" id="${uData.name}-btn">???</button><br>
-      `
-    }
-  })
+      document.getElementById("enemy-count").textContent = 
+        `${player.currentZone.count} / ${zoneData.maxTier}`;
+
+      menuContent.innerHTML = `
+        <div style="position: relative;" class="zone-menu">
+          <button class="zone-button" onclick="currentMenu = 'combat'; startCombat();">Begin Combat</button>
+          <div id="zone-units-list">
+            <button style="position: absolute; top: 0px; left: 5px;" class="zone-button" onclick="leaveZone()">Go Back</button>
+          </div>
+        </div>
+      `;
+      // Populate discovered units
+      let units = zoneData.units || [];
+      let unitsList = document.getElementById("zone-units-list");
+      let discoveredUnits = units.filter(u => {
+        let uData = getUnitDataFromType(u.name);
+        return uData && player.discoveredEnemies && player.discoveredEnemies.includes(uData.name);
+      });
+      let discoveredCount = discoveredUnits.length;
+      let totalUnits = units.length;
+      unitsList.innerHTML += `<h3>Units Discovered ${discoveredCount}/${totalUnits}:</h3><br>`;
+      units.forEach(u => {
+        let uData = getUnitDataFromType(u.name);
+        if (discoveredUnits.includes(u)) {
+          unitsList.innerHTML += `
+            <button class="unit-btn" id="${uData.name}-btn" onclick="setTimeout(() => showUnitPopup(undefined, '${uData.name}'), 1)">${uData.name}</button><br>
+          `;
+        } else {
+          unitsList.innerHTML += `
+            <button class="unit-btn" id="${uData.name}-btn">???</button><br>
+          `;
+        }
+      });
+      break;
+
+    case "town":
+    case "capital":
+      console.log("in0")
+    menuContent.className = `zone-menu ${zoneType}`;
+    menuContent.innerHTML = renderTownInteractions(zone);
+    break;
+    case "lore":
+      // Show descriptive text or cutscene-like content
+      menuContent.innerHTML = `
+        <div class="lore-zone">
+          <h2>${zone}</h2>
+          <p>${zoneData.description || "This place holds secrets yet to be uncovered."}</p>
+          <button class="zone-button" onclick="leaveZone()">Leave</button>
+        </div>
+      `;
+      break;
+
+    default:
+      menuContent.innerHTML = `<p style="color:#faa;">Unknown zone type: ${zoneType}</p>`;
+      break;
+  }
 }
 function getEffectiveTier(zone, tier) {
-  if (loreDataCache.zones[zone] && loreDataCache.zones[zone].baseTier) {
-    tier += loreDataCache.zones[zone].baseTier;
+  if (zonesData[zone] && zonesData[zone].baseTier) {
+    tier += zonesData[zone].baseTier;
   }
   if (player.zoneProgress[zone] && player.zoneProgress[zone].starterTier) {
     tier += player.zoneProgress[zone].starterTier
@@ -3356,12 +3512,12 @@ function getEffectiveTier(zone, tier) {
 }
 function initializeCombatUnits(zone) {
   let tier = player.currentZone.count;
-  if (loreDataCache.zones[zone].previousZone) {
-    tier += loreDataCache.zones[loreDataCache.zones[zone].previousZone].maxTier;
+  if (zonesData[zone].previousZone) {
+    tier += zonesData[zonesData[zone].previousZone].maxTier;
   }
 
   // Find the weight object that matches the tier
-  const unitCountRange = loreDataCache.zones[zone].unitCountWeights.find(w =>
+  const unitCountRange = zonesData[zone].unitCountWeights.find(w =>
     tier >= w.range[0] && tier <= w.range[1]
   );
 
@@ -3455,141 +3611,156 @@ function showPopup(html, stopPropagation) {
     overlay.style.backgroundColor = "rgba(0,0,0,0.4)";
   }, 10);
 }
+function leaveCombat(){
+  player.inCombat = false;
+  hideCombatMenu();
+  resetIntervals();
+  combatUnits.forEach(u => {
+    u.skills.combatData.targets = [];
+    removeTalentListeners(u);
+  });
+  if(currentMenu == "combat"){
+    currentMenu = "journey";
+  }
+  showMenu(currentMenu);
+}
 function startCombat(force) {
-  if (!isCombatPaused && !force && player.skills.equipped.length == 0) {
+  console.log("starting combat...");
+
+  if (!isCombatPaused && !force && player.skills.equipped.filter(sk => sk).length == 0) {
     let html = `
-    <h2 style="color: #d88;">Are you sure?</h2>
-    <span>You're currently attempting to start combat without any skills equipped. This will make it impossible to win. Are you sure you want to continue?</span>
-    <div style="display: flex; margin-top: 70px; position: relative;">
-    <button style="background: linear-gradient(#844,#633); position: absolute; bottom: 1em; left: 1em; border-radius: 1em;" onclick="startCombat(true)">Continue</button>
-    <button style="background: linear-gradient(#484,#363); position: absolute; bottom: 1em; right: 1em; border-radius: 1em;" onclick="showMenu('character')">Go Back</button>
-    </div>
-    `
+      <h2 style="color: #d88;">Are you sure?</h2>
+      <span>You're currently attempting to start combat without any skills equipped. This will make it impossible to win. Are you sure you want to continue?</span>
+      <div style="display: flex; margin-top: 70px; position: relative;">
+        <button style="background: linear-gradient(#844,#633); position: absolute; bottom: 1em; left: 1em; border-radius: 1em;" onclick="startCombat(true)">Continue</button>
+        <button style="background: linear-gradient(#484,#363); position: absolute; bottom: 1em; right: 1em; border-radius: 1em;" onclick="showMenu('character')">Go Back</button>
+      </div>
+    `;
     setTimeout(() => showPopup(html), 1);
     return;
   }
-  
-  if(player.inCombat){
+
+  if (player.inCombat) {
+    console.log("Already in combat");
+    if(currentMenu == "combat"){
+      const menu = document.getElementById("menu-content");
+  menu.innerHTML = `  <div id="combat-log-container">
+    <div id="combat-log" style="position: relative; width: 100vw; height: 20vh; background: #111; font-family: monospace;">
+      <div id="combat-log-text" style="width: 100%; height: 100%; overflow-y: auto; color: #0f0; padding: 5px;"></div>
+      <button id="combat-log-filter-btn"
+        style="position: absolute; bottom: 0.5em; right: 0.5em; color: #ddd; background-color: #222; border-radius: 1em; border: 1px solid #666;"
+        onclick="setTimeout(() => showCombatLogFilterPopup(), 1)">Filters</button>
+    </div>
+  </div>`
+    showCombatMenu(); // <-- still allow UI to load if re-entering
+    }else{
+      hideCombatMenu();
+    }
     return;
   }
   
-  let main = document.getElementById("main-area")
-  main.style.height = "45vh";
-  let menuContent = document.getElementById("menu-content");
-  menuContent.innerHTML = "";
-  main.innerHTML = `
-  <div class="crew-wrapper">
-  <div class="crew-container" id="player-crew">
-  <!-- Player and crew members will be rendered here -->
-  </div>
-  </div>
-  <div class="crew-wrapper">
-  <div class="crew-container" id="enemy-crew">
-  </div>
-  </div>
-  `;
+  console.log("Building combat...");
+
+  // 👇 Move this here AFTER the inCombat check
   
-  // Example crew renng
-  updateEncounterBar();
-  player.inCombat = true
-  resetIntervals();
-  removeTalentListeners(player)
-  initializeTalentListeners(player)
+  showCombatMenu();
 
   const crewContainer = document.getElementById("player-crew");
-  
   const enemyContainer = document.getElementById("enemy-crew");
-  
+
+  // Defensive check
+  if (!crewContainer || !enemyContainer) {
+    console.warn("Combat containers not found");
+    return;
+  }
+
+  crewContainer.innerHTML = "";
+  enemyContainer.innerHTML = "";
+  const menu = document.getElementById("menu-content");
+  menu.innerHTML = `  <div id="combat-log-container">
+    <div id="combat-log" style="position: relative; width: 100vw; height: 20vh; background: #111; font-family: monospace;">
+      <div id="combat-log-text" style="width: 100%; height: 100%; overflow-y: auto; color: #0f0; padding: 5px;"></div>
+      <button id="combat-log-filter-btn"
+        style="position: absolute; bottom: 0.5em; right: 0.5em; color: #ddd; background-color: #222; border-radius: 1em; border: 1px solid #666;"
+        onclick="setTimeout(() => showCombatLogFilterPopup(), 1)">Filters</button>
+    </div>
+  </div>`
+  updateEncounterBar();
+  player.inCombat = true;
+  resetIntervals();
+  removeTalentListeners(player);
+  initializeTalentListeners(player);
+
+  // All unit logic...
   combatUnits.forEach(unit => {
-    const unitTable = buildUnitTable(unit, unit.isAlly || unit.isPlayer, unit.isPlayer)
-    if (unit.isAlly || unit.isPlayer) {
-      crewContainer.appendChild(unitTable)
-    } else {
-      enemyContainer.appendChild(unitTable)
-    }
-    unit.isAlive = true
-    if(unit.skills.combatData.perCombat){
-      delete unit.skills.combatData.perCombat
-    }
+    const unitTable = buildUnitTable(unit, unit.isAlly || unit.isPlayer, unit.isPlayer);
+    (unit.isAlly || unit.isPlayer ? crewContainer : enemyContainer).appendChild(unitTable);
+
+    unit.isAlive = true;
+    delete unit.skills.combatData.perCombat;
+
     recalculateDerivedStats(unit);
     recalculateTotalResistances(unit);
     resetBuffData(unit);
     resetUnitStatCaps(unit);
-    updateCombatBar(unit, "hp")
-    updateCombatBar(unit, "sp")
-    updateCombatBar(unit, "mp")
+    updateCombatBar(unit, "hp");
+    updateCombatBar(unit, "sp");
+    updateCombatBar(unit, "mp");
     updateUnitRegens(unit);
-  })
-  combatUnits.forEach(unit => {
+
     regenIntervals[unit.id] = setInterval(() => {
       if (player.inCombat && findUnitById(unit.id)) {
-        updateUnitRegens(unit); // Or loop through all allies
+        updateUnitRegens(unit);
       } else {
         clearInterval(regenIntervals[unit.id]);
       }
-    },
-      1000/settings.timeShardSpeed);
+    }, 1000 / settings.timeShardSpeed);
+
     if (!unit.isAlly) {
-      initializeEnemyTargets(unit)
+      initializeEnemyTargets(unit);
     }
-    unit.skills.equipped.map(skill => skill.id).filter(s => s).forEach((skillId) => {
-      if(unit.isPlayer){
-          unit.skills.combatData.targets[skillId] ={
-            target: undefined,
-            active: false
-          }
+
+    unit.skills.equipped.filter(sk => sk).map(skill => skill.id).filter(Boolean).forEach(skillId => {
+      if (unit.isPlayer) {
+        unit.skills.combatData.targets[skillId] = { target: undefined, active: false };
       }
-      // If the skill doesnt require a target, or it has a target and that target exists, or auto target is enabled, 
-      if ((skillsData[skillId] && !skillsData[skillId].requiresTarget) || (unit.skills.combatData.targets[skillId] !== undefined && findUnitById(unit.skills.combatData.targets[skillId].target)) || settings.autoTarget) {
-        targetData = unit.skills.combatData.targets;
-        if(settings.autoTarget && (unit.isPlayer || unit.isAlly)){
-          potentialTargets = getPotentialTargets(unit.id, skillsData[skillId].target);
-          if(potentialTargets && potentialTargets.length > 0){
-            unit.skills.combatData.targets[skillId] ={
-              target:  combatUnits.find(u => u.id != unit.id && potentialTargets.some(t => t.id == u.id)),
+
+      const skillDataObj = skillsData[skillId];
+      const targetInfo = unit.skills.combatData.targets[skillId];
+
+      if (
+        (skillDataObj && !skillDataObj.requiresTarget) ||
+        (targetInfo && findUnitById(targetInfo.target)) ||
+        settings.autoTarget
+      ) {
+        if (settings.autoTarget && (unit.isPlayer || unit.isAlly)) {
+          const potentialTargets = getPotentialTargets(unit.id, skillDataObj.target);
+          if (potentialTargets?.length > 0) {
+            unit.skills.combatData.targets[skillId] = {
+              target: combatUnits.find(u => u.id !== unit.id && potentialTargets.some(t => t.id === u.id)),
               active: true
-            }
+            };
           }
         }
-        targetData = unit.skills.combatData.targets;
+
         unit.skills.combatData.targets[skillId] = {
-          target: targetData[skillId] && targetData[skillId].target != undefined?targetData[skillId].target:undefined,
+          target: unit.skills.combatData.targets[skillId]?.target,
           active: true
         };
         resetSkillCooldown(unit, skillId);
       }
-      if(!skillIntervals[unit.id+"-"+skillId]){
-        console.log(Object.keys(skillIntervals))
-      skillIntervals[unit.id + "-"+skillId] = setInterval(() => {
-        if (player.inCombat && findUnitById(unit.id)) {
-          updateProgressBar(skillId, unit); // Or loop through all allies
-        } else {
-          clearInterval(skillIntervals[unit.id+"-"+skillId])
-        }
-      },
-        updateSpeed);
+
+      if (!skillIntervals[unit.id + "-" + skillId]) {
+        skillIntervals[unit.id + "-" + skillId] = setInterval(() => {
+          if (player.inCombat && findUnitById(unit.id)) {
+            updateProgressBar(skillId, unit);
+          } else {
+            clearInterval(skillIntervals[unit.id + "-" + skillId]);
+          }
+        }, updateSpeed);
       }
     });
-
-  })
-
-
-
-  // Zones and begin combat
-
-  menuContent.innerHTML = `
-  <div id="combat-log-container">
-  <div id="combat-log" style="position: relative; width: 100vw; height: 20vh; background: #111; font-family: monospace;">
-    <div id="combat-log-text" style="width: 100%; height: 100%; overflow-y: auto; color: #0f0; padding: 5px;">
-      <!-- Log text goes here -->
-    </div>
-    <button id="combat-log-filter-btn"
-      style="position: absolute; bottom: 0.5em; right: 0.5em; color: #ddd; background-color: #222; border-radius: 1em; border: 1px solid #666;"
-      onclick="setTimeout(() => showCombatLogFilterPopup(), 1)">Filters</button>
-  </div>
-  </div>
-`;
-
+  });
 }
 function showCombatLogFilterPopup() {
   // Remove existing popup if present
@@ -3992,7 +4163,7 @@ function updateEncounterBar(){
   zoneDisplay.textContent = player.currentZone.name;
   zoneDisplay.style.display = "block"
 
-  document.getElementById("enemy-count").textContent = `${player.currentZone.count} / ${loreDataCache.zones[player.currentZone.name].maxTier}`
+  document.getElementById("enemy-count").textContent = `${player.currentZone.count} / ${zonesData[player.currentZone.name].maxTier}`
   }
 }
 function visitPlanet(planet) {
@@ -4252,6 +4423,7 @@ toggleCheckbox.addEventListener("change", (e) => {
 }
 
 function levelUpSkill(skillId, cost) {
+  
   const skillTree = loreDataCache.classes[player.class].skillTree;
   const skill = skillTree.find(s => s.id === skillId);
   let learned = player.skills.learned.find(s => s.id === skillId);
@@ -4305,18 +4477,18 @@ function nextEncounter(force) {
 
   if (!player.currentZone) return;
 
-  if (player.currentZone.count >= loreDataCache.zones[player.currentZone.name].maxTier) return;
+  if (player.currentZone.count >= zonesData[player.currentZone.name].maxTier) return;
   if (player.currentZone.count >= player.zoneProgress[player.currentZone.name].count) return;
   if (!force && player.inCombat && settings.confirmLeaveCombat) {
 
-    showConfirmLeaveCombatPopup(() => nextEncounter(true));
+    //showConfirmLeaveCombatPopup(() => nextEncounter(true));
     return;
   }
 
   player.inCombat = false;
 
   player.currentZone.count += 1;
-  document.getElementById("enemy-count").textContent = `${player.currentZone.count} / ${loreDataCache.zones[player.currentZone.name].maxTier}`
+  document.getElementById("enemy-count").textContent = `${player.currentZone.count} / ${zonesData[player.currentZone.name].maxTier}`
   showMenu("journey");
 }
 function showConfirmLeaveCombatPopup(confirmFunction) {
@@ -4344,13 +4516,13 @@ function lastEncounter(force) {
   if (!player.currentZone) return;
   if (player.currentZone.count <= 1) return;
   if (!force && player.inCombat && settings.confirmLeaveCombat) {
-    showConfirmLeaveCombatPopup(() => lastEncounter(true))
+ //   //showConfirmLeaveCombatPopup(() => lastEncounter(true))
     return;
   }
   player.inCombat = false;
 
   player.currentZone.count -= 1;
-  document.getElementById("enemy-count").textContent = `${player.currentZone.count} / ${loreDataCache.zones[player.currentZone.name].maxTier}`
+  document.getElementById("enemy-count").textContent = `${player.currentZone.count} / ${zonesData[player.currentZone.name].maxTier}`
   showMenu("journey")
 }
 function updateInventoryDisplay() {
@@ -4464,6 +4636,20 @@ function updateInventoryDisplay() {
       }
     }
   });
+}
+function hideCombatMenu(){
+  const main = document.getElementById("main-area");
+  const combatContainter = document.getElementById("combat-container")
+  if(!combatContainter || !main){return;}
+  main.style.display = "block"
+  combatContainter.style.display = "none";
+}
+function showCombatMenu(){
+  const main = document.getElementById("main-area");
+  const combatContainter = document.getElementById("combat-container")
+  if(!combatContainter || !main){return;}
+  main.style.display = "none"
+  combatContainter.style.display = "block";
 }
 function trashItem(index, force){
       if(!force && settings.confirmTrashItem){
@@ -4674,7 +4860,10 @@ cell.appendChild(wrapper);
 
       unequipBtn.className = "unequip-btn";
       unequipBtn.onclick = () => {
-
+        if(player.inCombat){
+          alert("Cant change skills while in combat.")
+          return;
+        }
         const index = player.skills.equipped.findIndex(skill => skill.id === skillId);
 if (index !== -1) {
     player.skills.equipped[index] = undefined;
@@ -4721,7 +4910,11 @@ if (index !== -1) {
       unequipBtn.textContent = "Unequip";
       unequipBtn.className = "unequip-btn";
       unequipBtn.onclick = () => {
-        player.skills.equipped[i] = null;
+        if(player.inCombat){
+          alert("Cant change skills while in combat")
+          return;
+        }
+        player.skills.equipped[i] = undefined;
         updateSkillsMenu();
       };
 
@@ -5011,12 +5204,13 @@ function updateCombatBar(member, stat) {
     clearInterval(regenIntervals[member.id])
     return;
   }
+  if(currentMenu != "combat"){
+    return;
+  }
   const fillBar = document.getElementById(`bar-fill-${member.id}-${stat}`);
   const textBar = document.getElementById(`bar-text-${member.id}-${stat}`);
   if (!fillBar || !textBar || !member.stats[stat] || !member.stats[`max${stat.charAt(0).toUpperCase() + stat.slice(1)}`]) {
-    const stack = new Error().stack;
-    console.log(stack);
-    console.warn(`Could not update bar: missing data for ${member.name} ${stat}`, member, combatUnits, document.getElementById("main-area").innerHTML);
+
     return;
   }
 
@@ -5530,7 +5724,7 @@ bottomRow.appendChild(iconContainer);
   return skillDiv;
 }
 function zoneUnitReport(zone){
-  const units = loreDataCache.zones[zone].units;
+  const units = zonesData[zone].units;
   let logReport = ["Starting Unit Report: " + zone];
  // console.log(zone, units)
  let unitsToFinish = [];
@@ -5569,7 +5763,7 @@ function zoneUnitReport(zone){
   
 }
 function findUnitsForZone(zone, tier) {
-  const units = loreDataCache.zones[zone].units;
+  const units = zonesData[zone].units;
  // console.log(zone, units)
   const eligibleUnits = units
   .filter(u => tier >= u.levels.min && tier <= u.levels.max)
@@ -5585,7 +5779,7 @@ function findUnitsForZone(zone, tier) {
   return eligibleUnits;
 }
 function getRandomUnit(isAlly, tier, zone) {
-  const units = loreDataCache.zones[zone].units;
+  const units = zonesData[zone].units;
   
   // Filter units based on tier within level range
   let eligibleUnits = findUnitsForZone(zone,
@@ -5992,6 +6186,15 @@ function setTimeShardInterval(){
         if(player.timeShards.count == 0){
           updateTimeShardSpeed(1)
         }
+        
+        const timeshardProgressBar = document.getElementById('timeshard-progress-bar');
+        if(timeshardProgressBar){
+        timeshardProgressBar.style.width = `${Math.min((player.timeShards.count / player.timeShards.max) * 100, 100)}%`
+        }
+        let countText = document.getElementById("timeshard-count-text");
+      if(countText){
+        countText.textContent = `${formatTime(player.timeShards.count)} / ${formatTime(player.timeShards.max)}`;
+      }
         
       }
     }
@@ -6818,9 +7021,9 @@ function passesTriggerConditions(effect, event, unit, talentId) {
         let toCleanse = effect.name;
         let stacks = effect.stacks || "all";
         if(unit.conditions[toCleanse]){
-          if(stacks = "all"){
+          if(stacks == "all"){
             stacks = unit.conditions[toCleanse].stacks;
-          }else if(stacks = "half"){
+          }else if(stacks == "half"){
             stacks = unit.conditions[toCleanse].stacks/2
           }
           unit.conditions[toCleanse].stacks = Math.max(0,unit.conditions[toCleanse].stacks - stacks);
@@ -7326,17 +7529,19 @@ function passesTriggerConditions(effect, event, unit, talentId) {
     timeStartedTargetting = Date.now()
   }
   function resetUnitBorder(unitId){
-            let unit = findUnitById(unitId);
+     let unit = findUnitById(unitId);
 
-        if(unit){
-                      let box = document.getElementById(unitId + "-unit-box")
-          if(unit.border && unit.border.color){
+     if(unit){
+       let box = document.getElementById(unitId + "-unit-box")
+       if(box){
+       if(unit.border && unit.border.color){
           box.style.setProperty(`--border -gradient`, unit.border.color);
           
         }else{
-        box.style.setProperty('--border-gradient', 'linear-gradient(to right, #000, #000)');
+          box.style.setProperty('--border-gradient', 'linear-gradient(to right, #000, #000)');
         }
         }
+     }
   }
 function getPotentialTargets(caster, targetType) {
   
@@ -7511,6 +7716,10 @@ function findUnitById(id) {
     overlay.appendChild(popup);
     document.body.appendChild(overlay);
 }
+function formatZoneType(type) {
+  if (!type) return "";
+  return type.split("_").map(word => word[0].toUpperCase() + word.slice(1)).join(" ");
+}
 function softReset(force){
   if(!force){
     setTimeout(() => showPopup(`
@@ -7581,278 +7790,245 @@ function getAvailableSkills() {
     }
   }
   function finishCombat(win) {
-
   document.querySelectorAll(".popup").forEach(e => e.remove());
   let menuContent = document.getElementById("menu-content");
   menuContent.innerHTML = "";
+  hideCombatMenu();
   combatUnits.forEach(u => {
     u.skills.combatData.targets = [];
     removeTalentListeners(u);
   });
   player.inCombat = false;
-  Object.values(skillIntervals).forEach((value) => clearInterval(value))
-  Object.values(regenIntervals).forEach((value) => clearInterval(value))
-
-  skillIntervals = {};
-  regenIntervals = {}
+  resetIntervals()
 
   let defeated = combatUnits.filter(unit => !unit.isAlive && !unit.isAlly && !unit.isSummon);
   combatUnits = [];
-    if(debugEnemyTesting){
-      setTimeout(() => {
+
+  if (debugEnemyTesting) {
+    setTimeout(() => {
       debugEnemyTesting = false;
-      showMenu("settings")
-      if(debugEnemy)
-      createUnitDesignerPopup(debugEnemy);
-      debugEnemy = undefined
-      return;
+      showMenu("settings");
+      if (debugEnemy) createUnitDesignerPopup(debugEnemy);
+      debugEnemy = undefined;
     }, 1000);
-    }
-  let finDiv = document.createElement("div");
-  finDiv.style.display = "flex";
-  finDiv.style.flexDirection = "column";
-  finDiv.style.textAlign = "center";
-  finDiv.style.alignItems = "center";
-
-  let levelUpDiv = document.createElement("div");
-
-  let xpBar = `
-<div class="bar xp-bar" style="height: 1em; display: flex; margin-bottom: 2em; align-items: center; position: relative; width: 100%; max-width: 400px;">
-      <div class="xp-bar fill" id="bar-fill-${player.id}-xp"
-        style="width: ${(player.xp / player.maxXp) * 100}%; position: absolute; height: 25px; top: 0; left: 0; z-index: 0;">
-      </div>
-      <div class="bar-text"
-        style="font-size: 8px; position: relative; z-index: 1; width: 100%; text-align: center;"
-        id="bar-text-${player.id}-xp">
-        XP (<span id="xp-display">${player.xp}</span>/${player.maxXp})
-      </div>
-    </div>`;
-
-  let mainArea = document.getElementById("main-area");
-  mainArea.innerHTML = "";
-
-  if (win) {
-    finDiv.innerHTML += "<h1>You are Victorious!</h1><br>";
-    finDiv.innerHTML += xpBar;
-
-    let messageDiv = document.createElement("div");
-    messageDiv.style.display = "flex";
-    messageDiv.style.flexDirection = "column";
-    messageDiv.style.alignItems = "center";
-    messageDiv.style.marginBottom = "1em";
-
-    let oldXp = player.xp;
-    let levelUps = 0;
-
-    if (!player.discoveredEnemies) player.discoveredEnemies = [];
-
-    defeated.forEach(unit => {
-      let xpModifier = Math.min(2,(50 + unit.tier) / (50 + player.classData[player.class].level/2)) * player.stats.xpGain.value;
-      let xpGained = Math.floor((Math.pow(1.2,player.unlockedClassCount-1 || 0))*(unit.xp * (1+ unit.tier / 2) + unit.tier) * xpModifier);
-
-      // XP gain
-      messageDiv.innerHTML += `<div><span>${unit.name} defeated: </span><span style="color: #d8a">${xpGained} xp!</span></div>`;
-            const essenceNames = ["Essence","Shards","Gemstones"];
-      const essenceDropLevels = [100,1000,10000]
-      const essenceQualities = ["uncommon", "epic", "mythic"];
-      const unitTierReplacement = 10000000;
-      [0,1,2].forEach(e => {
-          const factor = Math.log(unit.tier) / Math.log(Math.sqrt(essenceDropLevels[e]));
-          const scaledTier = rollLogRandom(unit.tier, 0, essenceDropLevels[e] / 1.5);
-          const dropAmount = Math.floor(factor * scaledTier+0.99);
-          
-          if(dropAmount > 0){
-          let essenceDrop = {
-            name: capitalize(unit.damageType)+" "+essenceNames[e],
-            type: essenceNames[e],
-            count: dropAmount,
-            quality: essenceQualities[e]
-          }
-          if(addItem(essenceDrop)){
-                      let dropDiv = document.createElement("div");
-          let itemSpan = document.createElement("span");
-          let dropCountText = essenceDrop.count > 1?"x"+essenceDrop.count:""
-          itemSpan.textContent = `[ ${essenceDrop.name} ]${dropCountText}`;
-
-          itemSpan.style.color = itemQualities[essenceDrop.quality];
-          itemSpan.style.cursor = "pointer";
-          itemSpan.onclick = () => setTimeout(()=>showItemPopup(essenceDrop),1);
-          dropDiv.innerText = "Received ";
-          dropDiv.appendChild(itemSpan);
-          messageDiv.appendChild(dropDiv);
-          }
-          }
-      })
-
-      // Item drops
-      let gearDropAmount = Math.min(3,rollLogRandom(Math.pow(unit.tier, 1.2) * 10));
-      if (gearDropAmount) {
-        for (let drop = 0; drop < gearDropAmount; drop++) {
-          let randomSlotType = Object.keys(player.inventory.equipped).random();
-
-          let filteredGearEntries = Object.entries(gearTypes).filter(([name, data]) => data.slot === randomSlotType);
-          let filteredGearWeights = Object.fromEntries(filteredGearEntries.map(([name, data]) => [name, data.oreRequired]));
-
-          let gearTypeName = invertedWeightedRandom(filteredGearWeights)[0];
-          let gearType = gearTypes[gearTypeName];
-          let tier = unit.tier;
-          let oreRequired = gearType.oreRequired;
-          let inputOres = [];
-
-          for (let i = 0; i < oreRequired; i++) {
-            const oreName = Object.keys(oresData)
-              .filter(o => loreDataCache.planets[player.planet].gearOres.includes(o) && oresData[o].tier <= rollLogRandom(tier))
-              .random();
-            const existing = inputOres.find(entry => Object.keys(entry)[0] === oreName);
-            if (existing) existing[oreName]++;
-            else inputOres.push({ [oreName]: 1 });
-          }
-
-          let quality = Object.keys(itemQualities)[getRandomQuality(tier)];
-          let gear = buildGear(gearTypeName, tier, quality, inputOres);
-          if(addItem(gear)){
-
-          let dropDiv = document.createElement("div");
-          let itemSpan = document.createElement("span");
-          itemSpan.textContent = `[ ${gear.name} ]`;
-          itemSpan.style.color = itemQualities[gear.quality];
-          itemSpan.style.cursor = "pointer";
-          itemSpan.onclick = () => setTimeout(()=>showItemPopup(gear),1);
-          dropDiv.innerText = "Received ";
-          dropDiv.appendChild(itemSpan);
-          messageDiv.appendChild(dropDiv);
-          }
-        }
-      }
-
-      // Discovery
-      if (!player.discoveredEnemies.includes(unit.name)) {
-        let discoveryXp = unit.discoveryXp * xpModifier || 0;
-        if (discoveryXp > 0) {
-          messageDiv.innerHTML += `
-            <div><span style="color: #aa5">${unit.name} discovered! </span><span style="color: #d8a">${discoveryXp.toFixed(1)} xp!</span></div>`;
-        }
-        xpGained += discoveryXp;
-        player.discoveredEnemies.push(unit.name);
-
-        let discoverableEnemies = loreDataCache.zones[player.currentZone.name].units;
-        let allDiscovered = discoverableEnemies.every(e => player.discoveredEnemies.includes(e));
-        if (allDiscovered) {
-          let fullDiscoveryXp = loreDataCache.zones[player.currentZone.name].fullDiscoveryXp || 0;
-          xpGained += fullDiscoveryXp;
-          if (fullDiscoveryXp > 0) {
-            messageDiv.innerHTML += `
-              <div><span style="color: #aa5">All units in ${player.currentZone.name} discovered! </span><span style="color: #d8a">${fullDiscoveryXp} xp!</span></div>`;
-          }
-        }
-      }
-
-      player.xp += xpGained;
-      levelUps += checkLevelUp() || 0;
-    });
-
-    if (levelUps > 0) {
-      let levelUpMsg = document.createElement("h3");
-      levelUpMsg.textContent = `Level Up x${levelUps}`;
-      levelUpMsg.style.color = "#8f8";
-      messageDiv.appendChild(levelUpMsg);
-    }
-
-    finDiv.appendChild(messageDiv);
-
-    let max = loreDataCache.zones[player.currentZone.name].maxTier;
-    if (player.currentZone.count === max && !player.zoneProgress[player.currentZone.name].completed) {
-      finDiv.innerHTML += `<h3>You have completed this zone!</h3><br><h3>New Skill Slot Unlocked!</h3>`;
-      let reward = loreDataCache.zones[player.currentZone.name].reward;
-      player.skillSlots = Math.min(6, player.skillSlots + 1);
-      player.zoneProgress[player.currentZone.name].completed = true;
-      player.planetsProgress[player.planet].zonesCompleted= (player.planetsProgress[player.planet].zonesCompleted || 0) +1
-      let maxZones = (loreDataCache.planets[player.planet].zones && loreDataCache.planets[player.planet].zones.length) || 0;
-      let zonesCompleted = player.planetsProgress[player.planet].zonesCompleted;
-      if(zonesCompleted == maxZones){
-        player.planetsProgress[player.planet].timesCompleted += 1;
-        player.planetsProgress[player.planet].completed = true;
-      }
-      player.beatenZones++;
-      player.beatenTiers += max;
-      delete player.progressingZone;
-
-      if (reward?.xp) {
-        let bonusXp = reward.xp * player.beatenZones;
-        finDiv.innerHTML += `<h3>Gained ${bonusXp} xp</h3>`;
-        player.zoneProgress[player.currentZone.name].xpGained = bonusXp;
-        player.xp += bonusXp;
-        let extraLevelUps = checkLevelUp();
-        if (extraLevelUps) {
-          levelUps += extraLevelUps;
-        }
-      }
-    }
-
-    player.zoneProgress[player.currentZone.name].count = Math.min(Math.max(player.currentZone.count + 1, player.zoneProgress[player.currentZone.name].count), max);
-
-    mainArea.appendChild(finDiv);
-    mainArea.appendChild(levelUpDiv);
-
-    animateXpGain({
-      elementId: "xp-display",
-      barId: "bar-fill-0-xp",
-      startXp: oldXp,
-      endXp: player.xp,
-      maxXp: player.maxXp,
-      duration: 2500
-    });
-
-  } else {
-    finDiv.innerHTML += "<h1>You Have Died!</h1><br>";
-    finDiv.innerHTML += xpBar;
-    mainArea.appendChild(finDiv);
-    mainArea.appendChild(levelUpDiv);
   }
 
+  let oldXp = player.xp;
+  let levelUps = 0;
+  if (!player.discoveredEnemies) player.discoveredEnemies = [];
+
+  defeated.forEach(unit => {
+    let xpModifier = Math.min(2, (50 + unit.tier) / (50 + player.classData[player.class].level / 2)) * player.stats.xpGain.value;
+    let xpGained = Math.floor((Math.pow(1.2, player.unlockedClassCount - 1 || 0)) * (unit.xp * (1 + unit.tier / 2) + unit.tier) * xpModifier);
+
+    const essenceNames = ["Essence", "Shards", "Gemstones"];
+    const essenceDropLevels = [100, 1000, 10000];
+    const essenceQualities = ["uncommon", "epic", "mythic"];
+
+    [0, 1, 2].forEach(e => {
+      const factor = Math.log(unit.tier) / Math.log(Math.sqrt(essenceDropLevels[e]));
+      const scaledTier = rollLogRandom(unit.tier, 0, essenceDropLevels[e] / 1.5);
+      const dropAmount = Math.floor(factor * scaledTier + 0.99);
+
+      if (dropAmount > 0) {
+        let essenceDrop = {
+          name: capitalize(unit.damageType) + " " + essenceNames[e],
+          type: essenceNames[e],
+          count: dropAmount,
+          quality: essenceQualities[e]
+        };
+        addItem(essenceDrop);
+      }
+    });
+
+    let gearDropAmount = Math.min(3, rollLogRandom(Math.pow(unit.tier, 1.2) * 10));
+    for (let drop = 0; drop < gearDropAmount; drop++) {
+      let randomSlotType = Object.keys(player.inventory.equipped).random();
+      let filteredGearEntries = Object.entries(gearTypes).filter(([name, data]) => data.slot === randomSlotType);
+      let filteredGearWeights = Object.fromEntries(filteredGearEntries.map(([name, data]) => [name, data.oreRequired]));
+      let gearTypeName = invertedWeightedRandom(filteredGearWeights)[0];
+      let gearType = gearTypes[gearTypeName];
+      let tier = unit.tier;
+      let oreRequired = gearType.oreRequired;
+      let inputOres = [];
+
+      for (let i = 0; i < oreRequired; i++) {
+        const oreName = Object.keys(oresData)
+          .filter(o => loreDataCache.planets[player.planet].gearOres.includes(o) && oresData[o].tier <= rollLogRandom(tier))
+          .random();
+        const existing = inputOres.find(entry => Object.keys(entry)[0] === oreName);
+        if (existing) existing[oreName]++;
+        else inputOres.push({ [oreName]: 1 });
+      }
+
+      let quality = Object.keys(itemQualities)[getRandomQuality(tier)];
+      let gear = buildGear(gearTypeName, tier, quality, inputOres);
+      addItem(gear);
+    }
+
+    if (!player.discoveredEnemies.includes(unit.name)) {
+      let discoveryXp = unit.discoveryXp * xpModifier || 0;
+      xpGained += discoveryXp;
+      player.discoveredEnemies.push(unit.name);
+
+      let discoverableEnemies = zonesData[player.currentZone.name].units;
+      let allDiscovered = discoverableEnemies.every(e => player.discoveredEnemies.includes(e));
+      if (allDiscovered) {
+        let fullDiscoveryXp = zonesData[player.currentZone.name].fullDiscoveryXp || 0;
+        xpGained += fullDiscoveryXp;
+      }
+    }
+
+    player.xp += xpGained;
+    levelUps += checkLevelUp() || 0;
+  });
+
+  let max = zonesData[player.currentZone.name].maxTier;
+  if (player.currentZone.count === max && !player.zoneProgress[player.currentZone.name].completed) {
+    let reward = zonesData[player.currentZone.name].reward;
+    player.skillSlots = Math.min(6, player.skillSlots + 1);
+    player.zoneProgress[player.currentZone.name].completed = true;
+    player.planetsProgress[player.planet].zonesCompleted = (player.planetsProgress[player.planet].zonesCompleted || 0) + 1;
+    let zonesCompleted = player.planetsProgress[player.planet].zonesCompleted;
+    let maxZones = (loreDataCache.planets[player.planet].zones || []).length;
+    if (zonesCompleted === maxZones) {
+      player.planetsProgress[player.planet].timesCompleted += 1;
+      player.planetsProgress[player.planet].completed = true;
+    }
+    player.beatenZones++;
+    player.beatenTiers += max;
+    delete player.progressingZone;
+
+    if (reward?.xp) {
+      let bonusXp = reward.xp * player.beatenZones;
+      player.zoneProgress[player.currentZone.name].xpGained = bonusXp;
+      player.xp += bonusXp;
+      levelUps += checkLevelUp() || 0;
+    }
+  }
+
+  player.zoneProgress[player.currentZone.name].count = Math.min(Math.max(player.currentZone.count + 1, player.zoneProgress[player.currentZone.name].count), max);
   saveCharacter(true);
   initializeCombatUnits(player.currentZone.name);
 
-  if (win) {
+  // === DISPLAY ONLY IF STILL IN COMBAT MENU ===
+  if (currentMenu === "combat") {
+    let mainArea = document.getElementById("main-area");
+    mainArea.innerHTML = "";
+
+    let finDiv = document.createElement("div");
+    finDiv.style.display = "flex";
+    finDiv.style.flexDirection = "column";
+    finDiv.style.textAlign = "center";
+    finDiv.style.alignItems = "center";
+
+    let levelUpDiv = document.createElement("div");
+
+    let xpBar = `
+      <div class="bar xp-bar" style="height: 1em; display: flex; margin-bottom: 2em; align-items: center; position: relative; width: 100%; max-width: 400px;">
+        <div class="xp-bar fill" id="bar-fill-${player.id}-xp"
+          style="width: ${(player.xp / player.maxXp) * 100}%; position: absolute; height: 25px; top: 0; left: 0; z-index: 0;">
+        </div>
+        <div class="bar-text"
+          style="font-size: 8px; position: relative; z-index: 1; width: 100%; text-align: center;"
+          id="bar-text-${player.id}-xp">
+          XP (<span id="xp-display">${player.xp}</span>/${player.maxXp})
+        </div>
+      </div>`;
+
+    if (win) {
+      finDiv.innerHTML += "<h1>You are Victorious!</h1><br>";
+      finDiv.innerHTML += xpBar;
+
+      let messageDiv = document.createElement("div");
+      messageDiv.style.display = "flex";
+      messageDiv.style.flexDirection = "column";
+      messageDiv.style.alignItems = "center";
+      messageDiv.style.marginBottom = "1em";
+
+      // NOTE: add drop messages here if you want — currently omitted for brevity
+
+      if (levelUps > 0) {
+        let levelUpMsg = document.createElement("h3");
+        levelUpMsg.textContent = `Level Up x${levelUps}`;
+        levelUpMsg.style.color = "#8f8";
+        messageDiv.appendChild(levelUpMsg);
+      }
+
+      finDiv.appendChild(messageDiv);
+
+      if (player.currentZone.count === max && !player.zoneProgress[player.currentZone.name].completed) {
+        finDiv.innerHTML += `<h3>You have completed this zone!</h3><br><h3>New Skill Slot Unlocked!</h3>`;
+        if (zonesData[player.currentZone.name].reward?.xp) {
+          finDiv.innerHTML += `<h3>Gained ${player.zoneProgress[player.currentZone.name].xpGained} xp</h3>`;
+        }
+      }
+
+      mainArea.appendChild(finDiv);
+      mainArea.appendChild(levelUpDiv);
+
+      animateXpGain({
+        elementId: "xp-display",
+        barId: "bar-fill-0-xp",
+        startXp: oldXp,
+        endXp: player.xp,
+        maxXp: player.maxXp,
+        duration: 2500
+      });
+    } else {
+      finDiv.innerHTML += "<h1>You Have Died!</h1><br>";
+      finDiv.innerHTML += xpBar;
+      mainArea.appendChild(finDiv);
+      mainArea.appendChild(levelUpDiv);
+    }
+
+    // Repeat / Continue Buttons
+    if (win) {
+      menuContent.innerHTML += `
+        <button style="width: 50%; margin: 2em 25%; border-radius: 2em;" id="continue-btn" ${forceContinue ? `class="countdown-button"` : ""}>
+          <span class="label">Continue?</span>
+          <div class="progress-fill"></div>
+        </button>`;
+    }
+
     menuContent.innerHTML += `
-      <button style="width: 50%; margin: 2em 25%; border-radius: 2em;" id="continue-btn" ${forceContinue ? `class="countdown-button"` : ""}>
-        <span class="label">Continue?</span>
+      <button style="width: 50%; margin: 0% 25%; border-radius: 2em;" id="repeat-btn" ${!forceContinue || !win ? `class="countdown-button"` : ""}>
+        <span class="label">Repeat?</span>
         <div class="progress-fill"></div>
       </button>`;
-  }
 
-  menuContent.innerHTML += `
-    <button style="width: 50%; margin: 0% 25%; border-radius: 2em;" id="repeat-btn" ${!forceContinue || !win ? `class="countdown-button"` : ""}>
-      <span class="label">Repeat?</span>
-      <div class="progress-fill"></div>
-    </button>`;
+    const button = document.querySelector('.countdown-button');
+    if (button) {
+      if (forceContinue && win) {
+        countdownAutoClick(button, "Continue?", 1000 * settings.autoTimer, () => {
+          forceContinue = true;
+          nextEncounter(true);
+          startCombat(true);
+        });
+        document.getElementById("repeat-btn").onclick = () => {
+          forceContinue = false;
+          startCombat(true);
+        };
+      } else {
+        countdownAutoClick(button, "Repeat?", 1000 * settings.autoTimer, () => {
+          forceContinue = false;
+          startCombat(true);
+        });
+      }
 
-  const button = document.querySelector('.countdown-button');
-  if (forceContinue && win) {
-    countdownAutoClick(button, "Continue?", 1000 * settings.autoTimer, () => {
-      forceContinue = true;
-      nextEncounter(true);
-      startCombat(true);
-    });
-    document.getElementById("repeat-btn").onclick = () => {
-      forceContinue = false;
-      startCombat(true);
-    };
-  } else {
-    countdownAutoClick(button, "Repeat?", 1000 * settings.autoTimer, () => {
-      forceContinue = false;
-      startCombat(true);
-    });
-  }
+      if (win) {
+        player.data.deathsInARow = 0;
+        document.getElementById("continue-btn").onclick = () => {
+          forceContinue = true;
+          nextEncounter(true);
+          startCombat(true);
+        };
+      }
+    }
+  } // end of currentMenu === "combat"
 
-  if (win) {
-    player.data.deathsInARow = 0;
-    document.getElementById("continue-btn").onclick = () => {
-      forceContinue = true;
-      nextEncounter(true);
-      startCombat(true);
-    };
-  } else {
+  // Death hint logic
+  if (!win) {
     player.data.deathsInARow += 1;
     if (player.data.deathsInARow >= 3) {
       addHint("last-encounter-btn");
@@ -8948,7 +9124,9 @@ player.timeShards.count += gain;
     }
   }
 }
+unlockZone("Zan'thala")
   setTimeShardInterval();
+  player.inCombat = false
 }
 function deleteCharacter(slot) {
   if (!confirm(`Are you sure you want to delete the character in slot ${slot}?`)) return;
