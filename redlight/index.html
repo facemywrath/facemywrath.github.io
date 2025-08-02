@@ -87,7 +87,7 @@
       if (!gameRunning) return; // Stop if game ended
       const next = currentLight === 'red' ? 'green' : 'red';
       setLight(next);
-      const nextInterval = Math.floor(Math.random() * 5000) + 1000; // 2–5 seconds
+      const nextInterval = Math.floor(Math.random() * 3500) + 1500; // 2–5 seconds
       setTimeout(switchLight, nextInterval);
     }
 
