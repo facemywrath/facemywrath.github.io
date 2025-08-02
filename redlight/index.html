@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Red Light Green Light</title>
+  <style>
+    body {
+      background: #222;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      flex-direction: column;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+    svg {
+      width: 200px;
+      height: 500px;
+    }
+    #status {
+      margin-top: 20px;
+      font-size: 24px;
+    }
+    #startBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 20px;
+      cursor: pointer;
+      background: #444;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    #startBtn:hover {
+      background: #666;
+    }
+  </style>
+</head>
+<body>
+  <svg viewBox="0 0 100 250">
+    <!-- Traffic light frame -->
+    <rect x="10" y="10" width="80" height="230" fill="#333" stroke="#000" stroke-width="3" rx="15"/>
+    <!-- Red Light -->
+    <circle id="redLight" cx="50" cy="60" r="25" fill="#550000"/>
+    <!-- Yellow (placeholder) -->
+    <circle cx="50" cy="125" r="25" fill="#555500"/>
+    <!-- Green Light -->
+    <circle id="greenLight" cx="50" cy="190" r="25" fill="#003300"/>
+  </svg>
+
+  <div id="status">Press Start to Play</div>
+  <button id="startBtn">Start</button>
+
+  <audio id="redSound" src="red.mp3"></audio>
+  <audio id="greenSound" src="green.mp3"></audio>
+
+  <script>
+    const redLight = document.getElementById('redLight');
+    const greenLight = document.getElementById('greenLight');
+    const statusText = document.getElementById('status');
+    const redSound = document.getElementById('redSound');
+    const greenSound = document.getElementById('greenSound');
+    const startBtn = document.getElementById('startBtn');
+
+    let currentLight = 'red';
+    let gameRunning = false;
+
+    function setLight(color) {
+      if (color === 'red') {
+        redLight.setAttribute('fill', '#FF0000');
+        greenLight.setAttribute('fill', '#003300');
+        statusText.textContent = "RED LIGHT!";
+        redSound.currentTime = 0;
+        redSound.play();
+      } else if (color === 'green') {
+        redLight.setAttribute('fill', '#550000');
+        greenLight.setAttribute('fill', '#00FF00');
+        statusText.textContent = "GREEN LIGHT!";
+        greenSound.currentTime = 0;
+        greenSound.play();
+      }
+      currentLight = color;
+    }
+
+    function switchLight() {
+      if (!gameRunning) return; // Stop if game ended
+      const next = currentLight === 'red' ? 'green' : 'red';
+      setLight(next);
+      const nextInterval = Math.floor(Math.random() * 5000) + 1000; // 2–5 seconds
+      setTimeout(switchLight, nextInterval);
+    }
+
+    startBtn.addEventListener('click', () => {
+      if (!gameRunning) {
+        gameRunning = true;
+        startBtn.style.display = 'none';
+        setLight('red');
+        setTimeout(switchLight, 2000);
+      }
+    });
+  </script>
+</body>
+</html>
