@@ -22,8 +22,8 @@
       margin-top: 20px;
       font-size: 24px;
     }
-    #startBtn {
-      margin-top: 20px;
+    button {
+      margin-top: 10px;
       padding: 10px 20px;
       font-size: 20px;
       cursor: pointer;
@@ -32,7 +32,7 @@
       border: none;
       border-radius: 5px;
     }
-    #startBtn:hover {
+    button:hover {
       background: #666;
     }
   </style>
@@ -43,38 +43,55 @@
     <rect x="10" y="10" width="80" height="230" fill="#333" stroke="#000" stroke-width="3" rx="15"/>
     <!-- Red Light -->
     <circle id="redLight" cx="50" cy="60" r="25" fill="#550000"/>
-    <!-- Yellow (placeholder) -->
-    <circle cx="50" cy="125" r="25" fill="#555500"/>
+    <!-- Yellow Light -->
+    <circle id="yellowLight" cx="50" cy="125" r="25" fill="#555500"/>
     <!-- Green Light -->
     <circle id="greenLight" cx="50" cy="190" r="25" fill="#003300"/>
   </svg>
 
   <div id="status">Press Start to Play</div>
-  <button id="startBtn">Start</button>
+  <button id="startBtn">Start Auto</button>
+  <button id="startManualBtn">Start Manual</button>
 
   <audio id="redSound" src="red.mp3"></audio>
   <audio id="greenSound" src="green.mp3"></audio>
+  <audio id="yellowSound" src="yellow.mp3"></audio>
 
   <script>
     const redLight = document.getElementById('redLight');
+    const yellowLight = document.getElementById('yellowLight');
     const greenLight = document.getElementById('greenLight');
     const statusText = document.getElementById('status');
     const redSound = document.getElementById('redSound');
     const greenSound = document.getElementById('greenSound');
+    const yellowSound = document.getElementById('yellowSound');
     const startBtn = document.getElementById('startBtn');
-
+    const startManualBtn = document.getElementById('startManualBtn');
+    
+    
     let currentLight = 'red';
     let gameRunning = false;
+    let manualMode = false;
 
     function setLight(color) {
+      // Reset all lights to "off" colors
+      redLight.setAttribute('fill', '#550000');
+      yellowLight.setAttribute('fill', '#555500');
+      greenLight.setAttribute('fill', '#003300');
+
       if (color === 'red') {
         redLight.setAttribute('fill', '#FF0000');
-        greenLight.setAttribute('fill', '#003300');
         statusText.textContent = "RED LIGHT!";
         redSound.currentTime = 0;
         redSound.play();
-      } else if (color === 'green') {
-        redLight.setAttribute('fill', '#550000');
+      } 
+      else if (color === 'yellow') {
+        yellowLight.setAttribute('fill', '#FFFF00');
+        statusText.textContent = "YELLOW LIGHT!";
+        yellowSound.currentTime = 0;
+        yellowSound.play();
+      } 
+      else if (color === 'green') {
         greenLight.setAttribute('fill', '#00FF00');
         statusText.textContent = "GREEN LIGHT!";
         greenSound.currentTime = 0;
@@ -84,21 +101,45 @@
     }
 
     function switchLight() {
-      if (!gameRunning) return; // Stop if game ended
-      const next = currentLight === 'red' ? 'green' : 'red';
-      setLight(next);
-      const nextInterval = Math.floor(Math.random() * 3500) + 1500; // 2–5 seconds
+      if (!gameRunning || manualMode) return; 
+      const sequence = ['red', 'green', 'yellow']; 
+      let nextIndex = (sequence.indexOf(currentLight) + 1) % sequence.length;
+      setLight(sequence[nextIndex]);
+      const nextInterval = Math.floor(Math.random() * 3500) + 1500;
       setTimeout(switchLight, nextInterval);
     }
 
     startBtn.addEventListener('click', () => {
       if (!gameRunning) {
         gameRunning = true;
+        manualMode = false;
         startBtn.style.display = 'none';
+        startManualBtn.style.display = 'none';
         setLight('red');
         setTimeout(switchLight, 2000);
       }
     });
+
+    startManualBtn.addEventListener('click', () => {
+      if (!gameRunning) {
+        gameRunning = true;
+        manualMode = true;
+        startBtn.style.display = 'none';
+        startManualBtn.style.display = 'none';
+        setLight('red');
+
+        redLight.style.cursor = "pointer";
+        yellowLight.style.cursor = "pointer";
+        greenLight.style.cursor = "pointer";
+
+        redLight.addEventListener('click', () => { if (manualMode) setLight('red'); });
+        yellowLight.addEventListener('click', () => { if (manualMode) setLight('yellow'); });
+        greenLight.addEventListener('click', () => { if (manualMode) setLight('green'); });
+      }
+    });
+
+    
+  
   </script>
 </body>
 </html>
