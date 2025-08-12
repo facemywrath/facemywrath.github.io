@@ -13,19 +13,23 @@
       flex-direction: column;
       color: white;
       font-family: Arial, sans-serif;
+      margin: 0;
     }
     svg {
-      width: 200px;
-      height: 500px;
+      width: 30vmin; /* scales with smallest viewport dimension */
+      height: auto;  /* keeps aspect ratio */
+      max-width: 200px; /* optional limit */
+      max-height: 500px; /* optional limit */
+      cursor: pointer;
     }
     #status {
-      margin-top: 20px;
-      font-size: 24px;
+      margin-top: 2vh;
+      font-size: calc(14px + 1vw); /* scales with screen width */
     }
     button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      font-size: 20px;
+      margin-top: 1vh;
+      padding: 0.8em 1.2em;
+      font-size: calc(12px + 0.8vw);
       cursor: pointer;
       background: #444;
       color: white;
@@ -38,7 +42,7 @@
   </style>
 </head>
 <body>
-  <svg viewBox="0 0 100 250">
+  <svg viewBox="0 0 100 250" preserveAspectRatio="xMidYMid meet">
     <!-- Traffic light frame -->
     <rect x="10" y="10" width="80" height="230" fill="#333" stroke="#000" stroke-width="3" rx="15"/>
     <!-- Red Light -->
@@ -68,13 +72,11 @@
     const startBtn = document.getElementById('startBtn');
     const startManualBtn = document.getElementById('startManualBtn');
     
-    
     let currentLight = 'red';
     let gameRunning = false;
     let manualMode = false;
 
     function setLight(color) {
-      // Reset all lights to "off" colors
       redLight.setAttribute('fill', '#550000');
       yellowLight.setAttribute('fill', '#555500');
       greenLight.setAttribute('fill', '#003300');
@@ -139,7 +141,6 @@
     });
 
     
-  
   </script>
 </body>
 </html>
