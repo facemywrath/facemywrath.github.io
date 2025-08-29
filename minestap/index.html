@@ -20,6 +20,10 @@
     background: radial-gradient(circle at 35% 35%, #ff6a7a, #e0143a 70%);
     box-shadow: 0 0 10px #e0143a66 inset, 0 0 3px #e0143a66;
   }
+.cell.wall-revealed { 
+  background:#5b5a5a !important; 
+  color:#e6c39a !important; 
+}
   .heart.empty {
     background: radial-gradient(circle at 35% 35%, #4a4a55, #2a2a33 70%);
     box-shadow: 0 0 10px #000 inset;
@@ -100,11 +104,12 @@
 </style>
 </head>
 <body>
-  <div class="topbar">
-    <button id="btnMode" class="mode-btn" title="Toggle mode">Mode: Classic</button>
-    <div class="hearts" id="hearts"></div>
-    <div class="score" id="score">Score: 0</div>
-  </div>
+<div class="topbar">
+  <button id="btnMode" class="mode-btn" title="Toggle mode">Mode: Classic</button>
+  <button id="btnHelp" class="mode-btn" title="How to play">?</button>
+  <div class="hearts" id="hearts"></div>
+  <div class="score" id="score">Score: 0</div>
+</div>
 
   <div class="stage-wrap">
     <div class="grid" id="grid" aria-label="MazeSweeper grid"></div>
@@ -135,6 +140,25 @@
       </div>
     </div>
   </div>
+  <div class="overlay" id="helpOverlay" style="display:none;">
+  <div class="card">
+    <h2>How to Play</h2>
+    <p style="text-align:left;line-height:1.4">
+      <strong>Goal:</strong> Move from the top-left to the bottom-right.<br><br>
+      <strong>Cells:</strong> Every revealed cell shows the number of adjacent bombs (like Minesweeper),
+      even on walls and bombs. Green = your current cell, yellow = your trail. Stepping on a bomb turns it purple while you stand on it, then red after.<br><br>
+      <strong>Movement:</strong> Tap/click an adjacent cell or use the D-pad/arrow keys.<br><br>
+      <strong>Classic:</strong> Start with 3 lives and a score baseline. Reaching the goal shows a win screen.
+      Bombs cost a life and −75 score. <em>High score saves only if you win.</em><br><br>
+      <strong>Discovery:</strong> Endless runs. Score +1 the first time you reveal any cell.
+      Reaching the goal or revealing <em>every cell</em> resets to a fresh board <em>without</em> losing score or lives.
+      <em>High score updates as you play.</em>
+    </p>
+    <div class="row">
+      <button class="btn btn-primary" id="btnHelpClose">Close</button>
+    </div>
+  </div>
+</div>
 
 <script>
 (() => {
@@ -153,7 +177,24 @@
   let score = 0;
   let discovered = 0;     // cumulative discoveries across boards in discovery mode too
 
+// NEW: LocalStorage keys and helpers
+  const HS_KEYS = { classic: 'mazeSweeperHighClassic', discovery: 'mazeSweeperHighDiscovery' };
+
+  function getHigh(mode){
+    const v = localStorage.getItem(HS_KEYS[mode] || '');
+    return v ? parseInt(v, 10) || 0 : 0;
+  }
+  function maybeSetHigh(mode, value){
+    const k = HS_KEYS[mode]; if(!k) return;
+    const cur = getHigh(mode);
+    if(value > cur){
+      localStorage.setItem(k, String(value));
+    }
+  }
   const el = {
+    helpOverlay: document.getElementById('helpOverlay'), // NEW
+    btnHelp: document.getElementById('btnHelp'),         // NEW
+    btnHelpClose: document.getElementById('btnHelpClose'),
     grid: document.getElementById('grid'),
     hearts: document.getElementById('hearts'),
     score: document.getElementById('score'),
@@ -213,35 +254,38 @@
   }
 
   function buildGrid(){
-    const p = generateSinglePath();
-    pathCells = new Set(p.map(([x,y])=>key(x,y)));
+  const p = generateSinglePath();
+  pathCells = new Set(p.map(([x,y])=>key(x,y)));
 
-    grid = Array.from({length:SIZE},(_,y)=>
-      Array.from({length:SIZE},(_,x)=>({ type:'wall', number:0, revealed:false, visited:false, steppedOn:false }))
-    );
+  grid = Array.from({length:SIZE},(_,y)=>
+    Array.from({length:SIZE},(_,x)=>({ type:'wall', number:0, revealed:false, visited:false, steppedOn:false }))
+  );
 
-    for(const [x,y] of p) grid[y][x].type = 'clear';
-    for(let y=0;y<SIZE;y++){
-      for(let x=0;x<SIZE;x++){
-        if(!pathCells.has(key(x,y))){
-          grid[y][x].type = (Math.random() < MINE_RATE) ? 'mine' : 'wall';
-        }
-      }
-    }
-
-    // 8-neighbor counts (bomb numbers shown for ALL cell types)
-    const dirs8 = [-1,0,1].flatMap(dy => [-1,0,1].map(dx=>[dx,dy]));
-    for(let y=0;y<SIZE;y++){
-      for(let x=0;x<SIZE;x++){
-        let c=0;
-        for(const [dx,dy] of dirs8){
-          const nx=x+dx, ny=y+dy;
-          if(inBounds(nx,ny) && grid[ny][nx].type==='mine') c++;
-        }
-        grid[y][x].number = c;
+  for (const [x,y] of p) grid[y][x].type = 'clear';
+  for (let y=0;y<SIZE;y++){
+    for (let x=0;x<SIZE;x++){
+      if(!pathCells.has(key(x,y))){
+        grid[y][x].type = (Math.random() < MINE_RATE) ? 'mine' : 'wall';
       }
     }
   }
+
+  // Count adjacent mines (8-neighbors)
+  const dirs8 = [-1,0,1].flatMap(dy => [-1,0,1].map(dx=>[dx,dy]));
+  for (let y=0;y<SIZE;y++){
+    for (let x=0;x<SIZE;x++){
+      let c=0;
+      for (const [dx,dy] of dirs8){
+        const nx=x+dx, ny=y+dy;
+        if (inBounds(nx,ny) && grid[ny][nx].type==='mine') c++;
+      }
+      grid[y][x].number = c;
+    }
+  }
+
+  // >>> NEW: ensure every passable pocket connects to the main region
+  connectPockets();
+} 
 
   function renderGrid(){
     el.grid.innerHTML = '';
@@ -266,36 +310,71 @@
       h.className = 'heart' + (i < lives ? '' : ' empty');
       el.hearts.appendChild(h);
     }
-    el.score.textContent = `Score: ${score}`;
+    const high = getHigh(MODE);
+    el.score.textContent = `Score: ${score}  (High: ${high})`;
+  }
+  // NEW: detect when every cell on the board is revealed
+  function isBoardFullyRevealed(){
+    for(let y=0;y<SIZE;y++){
+      for(let x=0;x<SIZE;x++){
+        if(!grid[y][x].revealed) return false;
+      }
+    }
+    return true;
+  }
+
+  // NEW: call after any reveal in discovery
+  function maybeAdvanceDiscoveryOnFullReveal(){
+    if(MODE !== 'discovery') return;
+    if(isBoardFullyRevealed()){
+      showToast("Area fully explored →");
+      nextDiscoveryBoard(); // keeps score & lives
+    }
+  }
+  function applyDiscoveryScoring(didReveal){
+    if(!didReveal) return;
+    if (MODE === 'discovery') {
+      score += 1;
+      maybeSetHigh('discovery', score); // NEW: live highscore updates
+    } else {
+      score = Math.max(0, score - 1);
+    }
   }
 
   function updateCell(x,y,{current=false}={}){
-    const idx = y*SIZE + x;
-    const node = el.grid.children[idx];
-    const cell = grid[y][x];
+  const idx = y*SIZE + x;
+  const node = el.grid.children[idx];
+  const cell = grid[y][x];
 
-    node.className = 'cell';
-    if(!cell.revealed){
-      node.classList.add('unrevealed');
-      node.textContent='';
-    } else {
-      node.classList.add('revealed');
-      const n = cell.number;
-      node.textContent = n>0 ? String(n) : '';
-      if(n>=1 && n<=8) node.classList.add('n'+n);
+  node.className = 'cell';
 
-      if(cell.visited && !current) node.classList.add('trail');
+  if (!cell.revealed) {
+    node.classList.add('unrevealed');
+    node.textContent = '';
+  } else {
+    node.classList.add('revealed');
 
-      if(cell.type==='mine'){
-        if(cell.popped){
-          node.textContent = "💥"
-        }
-        if(current){ node.classList.add('bomb-current'); }
-        else if(cell.steppedOn){ node.classList.add('bomb-stepped'); }
-      }
+    // Type-based styling
+    if (cell.type === 'wall') {
+      node.classList.add('wall-revealed'); // <<< NEW brown walls
+    } else if (cell.type === 'mine') {
+      if (cell.popped) node.textContent = "💥";
+      if (current) node.classList.add('bomb-current');
+      else if (cell.steppedOn) node.classList.add('bomb-stepped');
     }
-    if(current && cell.type!=='mine') node.classList.add('current');
+
+    // Numbers (still show counts for all cell types)
+    const n = cell.number;
+    if (node.textContent === '') { // don't overwrite 💥
+      node.textContent = n>0 ? String(n) : '';
+    }
+    if (n>=1 && n<=8) node.classList.add('n'+n);
+
+    if (cell.visited && !current) node.classList.add('trail');
   }
+
+  if (current && cell.type!=='mine') node.classList.add('current');
+}
 
   function setCurrent(x,y){
     const prev = grid[pos.y][pos.x];
@@ -320,7 +399,110 @@
       score = Math.max(0, score - 1);
     }
   }
+// Passable = anything that's not a wall (you can step on mines)
+function isPassable(x, y) {
+  return inBounds(x,y) && grid[y][x].type !== 'wall';
+}
 
+// Flood-fill (BFS) to mark all passable cells reachable from START
+function floodFromStart() {
+  const seen = Array.from({length: SIZE}, () => Array(SIZE).fill(false));
+  const q = [[START.x, START.y]];
+  while (q.length) {
+    const [x,y] = q.shift();
+    if (!inBounds(x,y) || seen[y][x] || !isPassable(x,y)) continue;
+    seen[y][x] = true;
+    q.push([x+1,y],[x-1,y],[x,y+1],[x,y-1]);
+  }
+  return seen; // seen[y][x] true = reachable
+}
+
+// Find all unreachable passable "pockets" and connect each by carving one wall between it and the reachable region
+function connectPockets() {
+  while (true) {
+    const seen = floodFromStart();
+
+    // Collect one cell from each unreachable pocket (passable but not seen)
+    const pockets = [];
+    const taken = Array.from({length: SIZE}, () => Array(SIZE).fill(false));
+
+    function bfsPocket(sx, sy) {
+      const q = [[sx, sy]];
+      taken[sy][sx] = true;
+      const cells = [[sx, sy]];
+      while (q.length) {
+        const [x,y] = q.shift();
+        for (const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+          const nx = x+dx, ny = y+dy;
+          if (!inBounds(nx,ny) || taken[ny][nx]) continue;
+          if (isPassable(nx,ny) && !seen[ny][nx]) {
+            taken[ny][nx] = true;
+            q.push([nx,ny]);
+            cells.push([nx,ny]);
+          }
+        }
+      }
+      return cells;
+    }
+
+    for (let y=0; y<SIZE; y++) {
+      for (let x=0; x<SIZE; x++) {
+        if (isPassable(x,y) && !seen[y][x] && !taken[y][x]) {
+          pockets.push(bfsPocket(x,y)); // store list of cells in this pocket
+        }
+      }
+    }
+
+    if (pockets.length === 0) break; // all connected
+
+    // For each pocket, carve a single wall that borders the reachable region
+    for (const cells of pockets) {
+      let carved = false;
+
+      // Try to find a boundary wall that touches both: reachable cell AND this pocket
+      for (const [px,py] of cells) {
+        for (const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+          const wx = px+dx, wy = py+dy; // candidate wall between pocket & reachable
+          if (!inBounds(wx,wy) || grid[wy][wx].type !== 'wall') continue;
+
+          // Does this wall also touch a reachable passable cell on its other side?
+          // Look on the opposite side of the wall
+          const rx = wx+dx, ry = wy+dy;
+          if (inBounds(rx,ry) && seen[ry][rx] && isPassable(rx,ry)) {
+            grid[wy][wx].type = 'clear'; // carve!
+            carved = true;
+            break;
+          }
+        }
+        if (carved) break;
+      }
+
+      // Fallback: if we didn't find a perfect opposite-side pair, carve any wall that borders a reachable cell
+      if (!carved) {
+        outer:
+        for (let y=0; y<SIZE; y++) {
+          for (let x=0; x<SIZE; x++) {
+            if (grid[y][x].type !== 'wall') continue;
+            let touchesPocket = false, touchesSeen = false;
+            for (const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+              const nx = x+dx, ny = y+dy;
+              if (!inBounds(nx,ny)) continue;
+              if (isPassable(nx,ny) && !seen[ny][nx]) touchesPocket = true;
+              if (isPassable(nx,ny) && seen[ny][nx])  touchesSeen   = true;
+            }
+            if (touchesPocket && touchesSeen) {
+              grid[y][x].type = 'clear';
+              carved = true;
+              break outer;
+            }
+          }
+        }
+      }
+    }
+
+    // Loop again in case carving one pocket exposes another; we exit when no pockets remain
+  }
+}
   function gainDiscovery(x,y){
     const cell = grid[y][x];
     if(!cell.revealed){
@@ -329,6 +511,9 @@
       applyDiscoveryScoring(true);
       updateCell(x,y);
       updateHUD();
+      if (MODE === 'discovery') { // NEW
+        maybeAdvanceDiscoveryOnFullReveal();
+      }
       return true;
     }
     return false;
@@ -336,13 +521,15 @@
 
   function revealOrthogonalNeighbors(x,y){
     const orth = [[1,0],[-1,0],[0,1],[0,-1]];
+    let any = false; // NEW
     for(const [dx,dy] of orth){
       const nx = x+dx, ny = y+dy;
       if(!inBounds(nx,ny)) continue;
       const didReveal = gainDiscovery(nx, ny);
-      if (didReveal === true && MODE === 'discovery') {
-        // (already gave +1 in gainDiscovery)
-      }
+      any = any || didReveal; // NEW
+    }
+    if (any && MODE === 'discovery') { // NEW
+      maybeAdvanceDiscoveryOnFullReveal();
     }
   }
 
@@ -396,6 +583,11 @@
     const msg = win
       ? `Reached the goal with score ${score}, ${discovered} discoveries, ${lives} ❤ left.`
       : `You ran out of lives. Final score ${score}${MODE == "classic"?", discoveries "+discovered : ""}.`;
+      // NEW: save highs only per requested rules
+    if (MODE === 'classic' && win) {
+      maybeSetHigh('classic', score);
+    }
+    // Discovery high is already handled live in applyDiscoveryScoring
     showOverlay(win? "You Win!" : "Game Over", msg);
   }
 
@@ -444,7 +636,15 @@
   el.btnNew.addEventListener('click', ()=> newBoard(true));
   el.btnAgain.addEventListener('click', ()=>{ newBoard(true); });
   el.btnMode.addEventListener('click', toggleMode);
-
+// NEW: Help overlay
+  el.btnHelp.addEventListener('click', ()=>{
+    el.helpOverlay.style.display = 'flex';
+    el.grid.style.pointerEvents = "none";
+  });
+  el.btnHelpClose.addEventListener('click', ()=>{
+    el.helpOverlay.style.display = 'none';
+    el.grid.style.pointerEvents = "auto";
+  });
   window.addEventListener('keydown', (e)=>{
     if(el.overlay.style.display !== 'none') return;
     if(e.key==='ArrowUp'){ e.preventDefault(); tryMove(0,-1); }
