@@ -419,10 +419,19 @@ function floodFromStart() {
 
 // Find all unreachable passable "pockets" and connect each by carving one wall between it and the reachable region
 function connectPockets() {
+  let iterations = 0;
+  const MAX_ITERS = 512; // safety cap for a 16x16 board is plenty
+
   while (true) {
+    iterations++;
+    if (iterations > MAX_ITERS) {
+      console.warn("[connectPockets] Safety stop after", iterations, "iterations");
+      break;
+    }
+
     const seen = floodFromStart();
 
-    // Collect one cell from each unreachable pocket (passable but not seen)
+    // Collect all unreachable passable pockets
     const pockets = [];
     const taken = Array.from({length: SIZE}, () => Array(SIZE).fill(false));
 
@@ -448,36 +457,41 @@ function connectPockets() {
     for (let y=0; y<SIZE; y++) {
       for (let x=0; x<SIZE; x++) {
         if (isPassable(x,y) && !seen[y][x] && !taken[y][x]) {
-          pockets.push(bfsPocket(x,y)); // store list of cells in this pocket
+          pockets.push(bfsPocket(x,y));
         }
       }
     }
 
-    if (pockets.length === 0) break; // all connected
+    if (pockets.length === 0) {
+      // All passable regions are connected to START
+      if (iterations > 1) {
+        console.debug(`[connectPockets] Done in ${iterations} iteration(s).`);
+      }
+      break;
+    }
 
-    // For each pocket, carve a single wall that borders the reachable region
+    let carvedAnythingThisPass = false;
+
+    // Try to connect each pocket by carving exactly one wall
     for (const cells of pockets) {
       let carved = false;
 
-      // Try to find a boundary wall that touches both: reachable cell AND this pocket
       for (const [px,py] of cells) {
         for (const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
           const wx = px+dx, wy = py+dy; // candidate wall between pocket & reachable
           if (!inBounds(wx,wy) || grid[wy][wx].type !== 'wall') continue;
 
-          // Does this wall also touch a reachable passable cell on its other side?
-          // Look on the opposite side of the wall
-          const rx = wx+dx, ry = wy+dy;
+          const rx = wx+dx, ry = wy+dy; // opposite side of the wall
           if (inBounds(rx,ry) && seen[ry][rx] && isPassable(rx,ry)) {
-            grid[wy][wx].type = 'clear'; // carve!
-            carved = true;
+            grid[wy][wx].type = 'clear'; // carve the wall
+            carved = carvedAnythingThisPass = true;
             break;
           }
         }
         if (carved) break;
       }
 
-      // Fallback: if we didn't find a perfect opposite-side pair, carve any wall that borders a reachable cell
+      // Fallback: any boundary wall touching both pocket & seen
       if (!carved) {
         outer:
         for (let y=0; y<SIZE; y++) {
@@ -488,11 +502,11 @@ function connectPockets() {
               const nx = x+dx, ny = y+dy;
               if (!inBounds(nx,ny)) continue;
               if (isPassable(nx,ny) && !seen[ny][nx]) touchesPocket = true;
-              if (isPassable(nx,ny) && seen[ny][nx])  touchesSeen   = true;
+              if (isPassable(nx,ny) &&  seen[ny][nx]) touchesSeen   = true;
             }
             if (touchesPocket && touchesSeen) {
               grid[y][x].type = 'clear';
-              carved = true;
+              carved = carvedAnythingThisPass = true;
               break outer;
             }
           }
@@ -500,10 +514,12 @@ function connectPockets() {
       }
     }
 
-    // Loop again in case carving one pocket exposes another; we exit when no pockets remain
+    if (!carvedAnythingThisPass) {
+      console.warn("[connectPockets] No progress this iteration; aborting to avoid infinite loop.");
+      break;
+    }
   }
-}
-  function gainDiscovery(x,y){
+}  function gainDiscovery(x,y){
     const cell = grid[y][x];
     if(!cell.revealed){
       cell.revealed = true;
@@ -595,7 +611,9 @@ function connectPockets() {
   function nextDiscoveryBoard(){
     // Keep lives, score, and cumulative discovered. Just regenerate and place the player back at START.
     pos = {x:START.x, y:START.y};
-    buildGrid();
+    console.time("buildGrid");
+buildGrid();
+console.timeEnd("buildGrid");
     renderGrid();
     showToast("New area discovered →");
   }
@@ -608,7 +626,9 @@ function connectPockets() {
       score = (MODE === 'discovery') ? 0 : 250;  // discovery starts at 0; classic starts at 250 (original)
     }
     pos = {x:START.x, y:START.y};
-    buildGrid();
+    console.time("buildGrid");
+buildGrid();
+console.timeEnd("buildGrid");
     renderGrid();
   }
 
