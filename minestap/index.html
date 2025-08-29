@@ -11,7 +11,6 @@
     margin: 0; background: #0f0f13; color: #e8e8ef; font-family: system-ui, sans-serif;
     display: grid; grid-template-rows: auto 1fr auto; min-height: 100dvh;
   }
-  /* Top bar */
   .topbar {
     display:flex; gap:16px; align-items:center; padding:10px 14px;
   }
@@ -28,10 +27,13 @@
   }
   .score { margin-left:auto; font-weight:700; letter-spacing:0.3px; }
 
-  /* Main area */
-  .stage-wrap {
-    display:grid; place-items:center; padding:8px 12px;
+  .mode-btn {
+    border: 0; border-radius: 10px; padding: 6px 10px; font-weight: 800;
+    background:#23263a; color:#e8e8ef; box-shadow: 0 0 0 1px #2a2f44 inset;
+    cursor:pointer;
   }
+
+  .stage-wrap { display:grid; place-items:center; padding:8px 12px; }
   .grid {
     display:grid;
     grid-template-columns: repeat(16, var(--cell));
@@ -60,25 +62,14 @@
   .cell.trail { background:#3e3a1a !important; color:#ffe7a7 !important; }
   .cell.current { background:#0c4a2f !important; color:#b7ffcf !important; outline: 2px solid #1cff8a50; }
 
-  /* Number coloring for fun */
   .n1{color:#77dfff}.n2{color:#6dffa6}.n3{color:#ffe37a}.n4{color:#ffb870}
   .n5{color:#ff8e8e}.n6{color:#f58bff}.n7{color:#b6b6ff}.n8{color:#dcdcdc}
-.cell.bomb-current {
-  background:#5a1a75 !important;  /* purple */
-  color:#fff !important;
-}
-.cell.bomb-stepped {
-  background:#7a1a1a !important;  /* red */
-  color:#fff !important;
-}
-  /* Bottom controls */
-  .controls {
-    display:grid; place-items:center; padding:10px 0 16px;
-  }
-  .dpad {
-    display:grid; grid-template-columns: 60px 60px 60px; grid-template-rows: 60px 60px 60px;
-    gap:10px;
-  }
+
+  .cell.bomb-current { background:#5a1a75 !important; color:#fff !important; } /* purple */
+  .cell.bomb-stepped { background:#7a1a1a !important; color:#fff !important; } /* red */
+
+  .controls { display:grid; place-items:center; padding:10px 0 16px; }
+  .dpad { display:grid; grid-template-columns: 60px 60px 60px; grid-template-rows: 60px 60px 60px; gap:10px; }
   .dpad button {
     border: 0; border-radius: 14px; font-size: 18px; font-weight:800;
     background:#1e2232; color:#e8e8ef; box-shadow: 0 6px 16px #0007, 0 0 0 1px #2a2f44 inset;
@@ -91,40 +82,15 @@
     border:0; background:#23263a; color:#e8e8ef; box-shadow: 0 0 0 1px #2a2f44 inset;
   }
 
-  /* Dialogs */
-  .toast, .overlay {
-    position: fixed; inset: auto 0 16px 0; display:flex; justify-content:center; pointer-events:none;
-  }
-  .toast .msg {
-    background:#1d1f2a; color:#e8e8ef; padding:10px 14px; border-radius:10px; box-shadow:0 6px 24px #0009;
-  }
-  .overlay {
-  position: fixed;
-  inset: 0;
-  background: #0008;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;         /* make sure it’s above everything */
-  display: none;
-  pointer-events: auto; /* ensure clicks go to overlay */
-}
-
-.overlay .card {
-  pointer-events: auto; /* card & button can be clicked */
-}
-  .overlay {
-    inset:0; background:#0008; align-items:center; z-index: 5;
-  }
-  .card {
-    background:#171923; border-radius: 16px; padding: 18px; box-shadow: 0 18px 60px #000a, 0 0 0 1px #2a2f44 inset;
-    width:min(92vw, 460px); text-align:center;
-  }
+  .toast, .overlay { position: fixed; inset: auto 0 16px 0; display:flex; justify-content:center; pointer-events:none; }
+  .toast .msg { background:#1d1f2a; color:#e8e8ef; padding:10px 14px; border-radius:10px; box-shadow:0 6px 24px #0009; }
+  .overlay { position: fixed; inset:0; background:#0008; align-items:center; justify-content:center; z-index:100; display:none; pointer-events:auto; }
+  .overlay .card { pointer-events: auto; background:#171923; border-radius: 16px; padding: 18px; box-shadow: 0 18px 60px #000a, 0 0 0 1px #2a2f44 inset; width:min(92vw, 460px); text-align:center; }
   .card h2 { margin: 0 0 8px; }
   .card p { opacity: 0.9; }
   .card .row { display:flex; justify-content:space-between; gap:12px; margin-top:10px; }
   .card .row .btn { flex:1 1 auto; padding:10px; border-radius:12px; border:0; font-weight:800; }
   .btn-primary { background:#0f8f58; color:white; }
-  .btn-secondary { background:#2a2f44; color:#e8e8ef; }
   .pulse { animation:pulse 800ms ease-in-out; }
   @keyframes pulse { 0%{transform:scale(1)} 50%{transform:scale(1.05)} 100%{transform:scale(1)} }
   @media (max-width: 640px) {
@@ -135,8 +101,9 @@
 </head>
 <body>
   <div class="topbar">
+    <button id="btnMode" class="mode-btn" title="Toggle mode">Mode: Classic</button>
     <div class="hearts" id="hearts"></div>
-    <div class="score" id="score">Score: 250</div>
+    <div class="score" id="score">Score: 0</div>
   </div>
 
   <div class="stage-wrap">
@@ -159,7 +126,7 @@
   </div>
 
   <div class="toast" id="toast" style="display:none;"><div class="msg" id="toastMsg"></div></div>
- <div class="overlay" id="overlay" style="display:none;">
+  <div class="overlay" id="overlay" style="display:none;">
     <div class="card">
       <h2 id="ovTitle">You Win!</h2>
       <p id="ovText"></p>
@@ -168,20 +135,23 @@
       </div>
     </div>
   </div>
+
 <script>
 (() => {
   const SIZE = 16;
   const START = {x:0, y:0}, GOAL = {x: SIZE-1, y: SIZE-1};
-  const START_SCORE = 250;
   const START_LIVES = 3;
   const MINE_RATE = 0.4;
+
+  // Modes: "classic" (original rules) or "discovery" (infinite)
+  let MODE = 'classic';
 
   let grid = [];
   let pathCells = new Set();
   let pos = {x:START.x, y:START.y};
   let lives = START_LIVES;
-  let score = START_SCORE;
-  let discovered = 0;
+  let score = 0;
+  let discovered = 0;     // cumulative discoveries across boards in discovery mode too
 
   const el = {
     grid: document.getElementById('grid'),
@@ -194,6 +164,7 @@
     ovText: document.getElementById('ovText'),
     btnAgain: document.getElementById('btnAgain'),
     btnNew: document.getElementById('btnNew'),
+    btnMode: document.getElementById('btnMode'),
   };
 
   const key = (x,y)=>`${y},${x}`;
@@ -208,16 +179,15 @@
   }
 
   function showOverlay(title, text){
-  el.ovTitle.textContent = title;
-  el.ovText.textContent = text;
-  el.overlay.style.display = 'flex';
-  el.grid.style.pointerEvents = "none";   // disable grid
-}
-
-function hideOverlay(){
-  el.overlay.style.display = 'none';
-  el.grid.style.pointerEvents = "auto";   // re-enable grid
-}
+    el.ovTitle.textContent = title;
+    el.ovText.textContent = text;
+    el.overlay.style.display = 'flex';
+    el.grid.style.pointerEvents = "none";
+  }
+  function hideOverlay(){
+    el.overlay.style.display = 'none';
+    el.grid.style.pointerEvents = "auto";
+  }
 
   function generateSinglePath(){
     const visited = Array.from({length:SIZE},()=>Array(SIZE).fill(false));
@@ -259,7 +229,8 @@ function hideOverlay(){
       }
     }
 
-    const dirs8 = [-1,0,1].flatMap(dy => [-1,0,1].map(dx=>[dx,dy]))
+    // 8-neighbor counts (bomb numbers shown for ALL cell types)
+    const dirs8 = [-1,0,1].flatMap(dy => [-1,0,1].map(dx=>[dx,dy]));
     for(let y=0;y<SIZE;y++){
       for(let x=0;x<SIZE;x++){
         let c=0;
@@ -315,20 +286,18 @@ function hideOverlay(){
 
       if(cell.visited && !current) node.classList.add('trail');
 
-      // Bomb color logic
       if(cell.type==='mine'){
-        if(current){
-          node.classList.add('bomb-current'); // purple
-        } else if(cell.steppedOn){
-          node.classList.add('bomb-stepped'); // red
+        if(cell.popped){
+          node.textContent = "💥"
         }
+        if(current){ node.classList.add('bomb-current'); }
+        else if(cell.steppedOn){ node.classList.add('bomb-stepped'); }
       }
     }
     if(current && cell.type!=='mine') node.classList.add('current');
   }
 
   function setCurrent(x,y){
-    // mark old bomb if leaving it
     const prev = grid[pos.y][pos.x];
     if(prev.type==='mine' && prev.revealed){
       prev.steppedOn = true;
@@ -342,23 +311,38 @@ function hideOverlay(){
     updateCell(x,y, {current:true});
   }
 
-  function gainDiscovery(x,y, deductScore = true){
+  // Discovery scoring: +1 for first-time reveal; Classic: –1 (min 0) for reveal (original behavior)
+  function applyDiscoveryScoring(didReveal){
+    if(!didReveal) return;
+    if (MODE === 'discovery') {
+      score += 1;
+    } else {
+      score = Math.max(0, score - 1);
+    }
+  }
+
+  function gainDiscovery(x,y){
     const cell = grid[y][x];
     if(!cell.revealed){
       cell.revealed = true;
       discovered++;
-      if (deductScore) score = Math.max(0, score - 1);
+      applyDiscoveryScoring(true);
       updateCell(x,y);
       updateHUD();
+      return true;
     }
+    return false;
   }
 
-  function revealOrthogonalNeighbors(x,y, deductScoreForNeighbors = true){
+  function revealOrthogonalNeighbors(x,y){
     const orth = [[1,0],[-1,0],[0,1],[0,-1]];
     for(const [dx,dy] of orth){
       const nx = x+dx, ny = y+dy;
       if(!inBounds(nx,ny)) continue;
-      gainDiscovery(nx, ny, deductScoreForNeighbors);
+      const didReveal = gainDiscovery(nx, ny);
+      if (didReveal === true && MODE === 'discovery') {
+        // (already gave +1 in gainDiscovery)
+      }
     }
   }
 
@@ -368,20 +352,38 @@ function hideOverlay(){
     const dest = grid[ny][nx];
     if(dest.type === 'wall'){ cellFlash(nx,ny); showToast("Wall"); return; }
 
-    gainDiscovery(nx,ny,true);
+    const firstTime = gainDiscovery(nx,ny);
 
-    if(dest.type === 'mine'){
-      lives--; score = Math.max(0, score - 75);
-      updateHUD(); showToast("💥 -1 life, -75 score");
+    if(dest.type === 'mine' && !dest.popped){
+      lives--; 
+      dest.popped = true;
+      const idx = ny*SIZE + nx;
+      const node = el.grid.children[idx];
+      node.textContent = "💥"
+      if(MODE == "classic"){
+        score = Math.max(0, score - 75);
+       showToast("💥 -1 life, -75 score");
+      }
+      updateHUD();
       setCurrent(nx,ny);
-      revealOrthogonalNeighbors(nx,ny,true);
+      revealOrthogonalNeighbors(nx,ny);
       if(lives <= 0){ gameOver(false); return; }
+      // In discovery, keep going; in classic, also keep going (penalty already applied)
       return;
     }
 
     setCurrent(nx,ny);
-    revealOrthogonalNeighbors(nx,ny,true);
-    if(nx === GOAL.x && ny === GOAL.y) gameOver(true);
+    revealOrthogonalNeighbors(nx,ny);
+
+    // Classic: reaching GOAL ends round with a win screen
+    if (MODE === 'classic' && nx === GOAL.x && ny === GOAL.y) {
+      gameOver(true);
+    }
+
+    // Discovery: reaching GOAL seamlessly generates a fresh board and continues (infinite)
+    if (MODE === 'discovery' && nx === GOAL.x && ny === GOAL.y) {
+      nextDiscoveryBoard();
+    }
   }
 
   function cellFlash(x,y){
@@ -393,10 +395,39 @@ function hideOverlay(){
   function gameOver(win){
     const msg = win
       ? `Reached the goal with score ${score}, ${discovered} discoveries, ${lives} ❤ left.`
-      : `You ran out of lives. Final score ${score}, discoveries ${discovered}.`;
+      : `You ran out of lives. Final score ${score}${MODE == "classic"?", discoveries "+discovered : ""}.`;
     showOverlay(win? "You Win!" : "Game Over", msg);
   }
 
+  // ---------- Mode / Board control ----------
+  function nextDiscoveryBoard(){
+    // Keep lives, score, and cumulative discovered. Just regenerate and place the player back at START.
+    pos = {x:START.x, y:START.y};
+    buildGrid();
+    renderGrid();
+    showToast("New area discovered →");
+  }
+
+  function newBoard(resetStats){
+    hideOverlay();
+    if (resetStats) {
+      lives = START_LIVES;
+      discovered = 0;
+      score = (MODE === 'discovery') ? 0 : 250;  // discovery starts at 0; classic starts at 250 (original)
+    }
+    pos = {x:START.x, y:START.y};
+    buildGrid();
+    renderGrid();
+  }
+
+  function toggleMode(){
+    MODE = (MODE === 'classic') ? 'discovery' : 'classic';
+    el.btnMode.textContent = `Mode: ${MODE[0].toUpperCase()}${MODE.slice(1)}`;
+    // When switching modes, start a fresh run with that mode's starting score policy
+    newBoard(true);
+  }
+
+  // ---------- Events ----------
   el.grid.addEventListener('click', (e)=>{
     const t = e.target.closest('.cell'); if(!t) return;
     const x = +t.dataset.x, y = +t.dataset.y;
@@ -409,8 +440,10 @@ function hideOverlay(){
   document.getElementById('btnDown').addEventListener('click', ()=>tryMove(0, 1));
   document.getElementById('btnLeft').addEventListener('click', ()=>tryMove(-1,0));
   document.getElementById('btnRight').addEventListener('click', ()=>tryMove(1, 0));
-  el.btnNew.addEventListener('click', newGame);
-  el.btnAgain.addEventListener('click', ()=>{ hideOverlay(); newGame(); });
+
+  el.btnNew.addEventListener('click', ()=> newBoard(true));
+  el.btnAgain.addEventListener('click', ()=>{ newBoard(true); });
+  el.btnMode.addEventListener('click', toggleMode);
 
   window.addEventListener('keydown', (e)=>{
     if(el.overlay.style.display !== 'none') return;
@@ -420,14 +453,9 @@ function hideOverlay(){
     if(e.key==='ArrowRight'){ e.preventDefault(); tryMove(1, 0); }
   });
 
-  function newGame(){
-    hideOverlay();
-    lives = START_LIVES; score = START_SCORE; discovered = 0;
-    pos = {x:START.x, y:START.y};
-    buildGrid(); renderGrid();
-  }
-
-  newGame();
+  // ---------- Init ----------
+  // Start in Classic by default (same as original); click Mode to switch to Discovery
+  newBoard(true);
 })();
 </script>
 </body>
