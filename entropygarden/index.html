@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Entropy Garden — Pretty & Perplexing</title>
+<style>
+  :root{
+    --bg:#06090f;
+    --bg2:#0b1220;
+    --panel:#0c1522;
+    --panel2:#0e1b2e;
+    --ink:#e8f3ff;
+    --muted:#9fb0c8;
+    --accent:#7ef7c9;
+    --accent2:#b7fffd;
+    --seed:#ffe58a;
+    --ok:#b6f28b;
+    --warn:#ff7b7b;
+    --rose:#ff7dc8;
+    --cyan:#78f3ff;
+    --shadow:0 16px 60px rgba(0,0,0,.45);
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--ink); font-family:Inter,system-ui,Segoe UI,Roboto,Arial;
+    background:
+      radial-gradient(1200px 800px at 80% -10%, #14213a 0%, transparent 60%),
+      radial-gradient(1400px 1000px at 10% 120%, #041526 0%, transparent 70%),
+      linear-gradient(180deg,var(--bg),var(--bg2) 40%, #070d15 100%);
+    letter-spacing:.01em;
+  }
+
+  .wrap{display:grid; grid-template-rows:auto 1fr auto; height:100%}
+  header{
+    display:flex; align-items:center; justify-content:space-between; gap:1rem;
+    padding: .9rem 1.1rem;
+    background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.15));
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    backdrop-filter: blur(10px);
+  }
+  header h1{margin:0; font-size:clamp(18px,2.6vw,26px); letter-spacing:.08em}
+  header .sub{color:var(--muted); font-size:.92rem}
+
+  .row{display:flex; gap:.6rem; align-items:center; flex-wrap:wrap}
+  .pill{
+    display:inline-flex; align-items:center; gap:.45rem;
+    padding:.35rem .7rem; border-radius:999px;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.15);
+    box-shadow: var(--shadow);
+  }
+
+  main{
+    padding:1rem; display:grid; gap:1rem;
+    grid-template-columns: 1.1fr 1fr .9fr; min-height:0;
+  }
+  @media (max-width:1100px){ main{ grid-template-columns:1fr; } }
+
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:18px; padding:1rem; min-height:84px; position:relative;
+    box-shadow: var(--shadow);
+  }
+  .card h2{
+    margin:0 0 .6rem; font-size:.95rem; text-transform:uppercase; letter-spacing:.14em;
+    color:var(--muted)
+  }
+
+  button{
+    appearance:none; border:0; cursor:pointer; color:var(--ink);
+    background: linear-gradient(180deg, var(--panel), var(--panel2));
+    padding:.75rem 1rem; border-radius:14px; font-weight:700; letter-spacing:.03em;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.1), 0 10px 30px rgba(0,0,0,.35);
+    transition: transform .06s ease, filter .2s ease, background .3s ease;
+  }
+  button:hover{ filter:brightness(1.08)}
+  button:active{ transform: translateY(1px) scale(.99) }
+  button.primary{
+    background: linear-gradient(180deg, #162437, #0c1624);
+    box-shadow: inset 0 0 0 1px rgba(126,247,201,.45), 0 14px 38px rgba(0,0,0,.4);
+  }
+  .dot{display:inline-block; width:.62rem; height:.62rem; border-radius:999px;
+       background: var(--accent); box-shadow:0 0 10px var(--accent); margin-right:.55rem}
+
+  .mystery{display:grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap:.5rem; margin-top:.6rem}
+  .sigbtn{
+    font-size:22px; line-height:1; padding:.6rem .7rem; text-align:center;
+    border-radius:12px; background: rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.12);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+  }
+
+  .grid{display:grid; gap:.55rem}
+  .stats{grid-template-columns:1fr}
+  .stat{display:grid; grid-template-columns: auto 1fr auto; gap:.6rem; align-items:center}
+  .name{color:var(--muted); min-width:120px}
+  .val{font-variant-numeric: tabular-nums; font-weight:800}
+  .bar{
+    height:12px; border-radius:999px; overflow:hidden; position:relative;
+    background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+  }
+  .fill{
+    height:100%; width:0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width .45s cubic-bezier(.2,.9,.2,1);
+  }
+  .bar.reverse .fill{ transform: scaleX(-1); transform-origin:center }
+
+  .reslist{display:grid; gap:.35rem}
+  .resrow{display:flex; align-items:center; justify-content:space-between; gap:.5rem}
+  .resname{color:var(--muted)} .resval{font-weight:800}
+
+  .garden{display:grid; gap:.7rem}
+  .plant{
+    border:1px dashed rgba(255,255,255,.18); border-radius:14px; padding:.6rem .75rem;
+    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
+  }
+  .plant h3{margin:.1rem 0 .2rem; font-size:1rem}
+  .tag{font-size:.78rem; color:var(--muted)}
+
+  .log{
+    height:240px; overflow:auto; font-size:.9rem; line-height:1.28; padding-right:.3rem;
+    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.2) transparent;
+    background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.12));
+    border-radius:10px; border:1px solid rgba(255,255,255,.08);
+  }
+  .log p{margin:.25rem .5rem; color:var(--muted)}
+  .log p strong{ color:var(--ink) }
+
+  footer{
+    display:flex; align-items:center; justify-content:space-between; gap:.6rem;
+    padding:.6rem .9rem; color:var(--muted); font-size:.9rem;
+    border-top: 1px solid rgba(255,255,255,.08);
+    background: linear-gradient(180deg, rgba(0,0,0,.15), rgba(255,255,255,.03));
+  }
+
+  /* Hidden console */
+  .consoleReveal{ position:fixed; left:0; right:0; bottom:0; height:16px; opacity:.02; z-index:6 }
+  .console{
+    position:fixed; bottom:14px; left:50%; transform:translateX(-50%);
+    width:min(720px,95vw); background: rgba(10,12,16,.95);
+    border:1px solid rgba(255,255,255,.15); border-radius:12px; padding:.6rem; display:none; z-index:7;
+    box-shadow: var(--shadow)
+  }
+  .console input{
+    width:100%; padding:.75rem .85rem; border-radius:10px; background:#0c1116; color:var(--ink);
+    border:1px solid rgba(255,255,255,.15);
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+  }
+  .hint{ color:var(--muted); font-size:.8rem; margin-top:.3rem }
+
+  /* Micro-animations */
+  @keyframes twinkle { 0%{opacity:.6} 50%{opacity:1} 100%{opacity:.6} }
+  .twinkle{ animation: twinkle 3s ease-in-out infinite }
+  /* --- Mobile fixes & overrides --- */
+:root { --card-solid:#0e1b2a; --border:#1c2a3a; }
+
+html, body { height:auto; }
+.wrap { min-height:100svh; }
+main { grid-template-columns:1fr; height:auto; overflow:auto; }
+.log { height:36vh; }
+
+/* Avoid WebView artifacts from backdrop-filter and stacked translucency */
+@media (max-width: 900px) {
+  header, footer {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .card {
+    background: var(--card-solid) !important;
+    border-color: var(--border) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,.28) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  /* Buttons a bit larger for touch */
+  button { padding: .85rem 1.1rem; border-radius: 16px; }
+  .sigbtn { padding: .75rem .8rem; font-size: 20px; }
+  /* Keep resource/stat rows readable */
+  .name { min-width: 96px; }
+  .bar { height: 14px; }
+}
+
+/* Fix occasional text “ghosting” from GPU compositing on some devices */
+.card, .log, header, footer { transform: translateZ(0); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Entropy Garden</h1>
+      <div class="sub">The garden grows best when ignored.</div>
+    </div>
+    <div class="row">
+      <span class="pill" id="viewModePill" title="Click to toggle base">base: 10</span>
+      <span class="pill twinkle" id="liePill">Truth mode: <strong>OFF</strong></span>
+      <button id="saveBtn" title="Saves even the things you won’t admit.">Save</button>
+      <button id="resetBtn" title="This definitely won’t reset anything.">Cycle</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Actions</h2>
+      <div class="row">
+        <button class="primary" id="observeBtn" title="Doubles growth (probably)"><span class="dot"></span>Observe</button>
+        <div id="mysteryRow" class="row"></div>
+      </div>
+      <div id="mysteryBtns" class="mystery"></div>
+    </section>
+
+    <section class="card">
+      <h2>Stats</h2>
+      <div id="stats" class="grid stats"></div>
+      <h2 style="margin-top:.9rem">Resources</h2>
+      <div id="resources" class="reslist"></div>
+    </section>
+
+    <section class="card">
+      <h2>Garden</h2>
+      <div id="garden" class="garden"></div>
+      <h2 style="margin-top:.9rem">Log</h2>
+      <div id="log" class="log"></div>
+    </section>
+  </main>
+
+  <footer>
+    <div>
+      Silence streak: <strong id="silenceLabel">0s</strong> •
+      Cycles: <strong id="cyclesLabel">0</strong> •
+      Echoes: <strong id="echoesLabel">0</strong>
+    </div>
+    <div class="pill">v<span id="versionPill">1.0</span></div>
+  </footer>
+</div>
+
+<!-- Hidden console (reveal by mouse at bottom or long-press Observe) -->
+<div id="consoleReveal" class="consoleReveal"></div>
+<div id="console" class="console">
+  <input id="consoleInput" placeholder="whisper | germinate | prime | base12 | truth | soil | water | sunlight | reset" />
+  <div class="hint">Hints lie. Some words don’t.</div>
+</div>
+
+<script>
+(function(){
+  // ===================== State =====================
+  const S = {
+    version: "1.0",
+    base12: false,
+    truth: false,
+    clicks: 0,
+    cycles: 0,
+    echoes: 0,           // meta prestige multiplier
+    lastTick: Date.now(),
+    lastInteraction: Date.now(),
+    silenceMax: 0,
+    // Core stats
+    stats: {
+      humidity: 0,
+      entropy: 0,
+      silence: 0,
+      gloss: 0,
+      friction: 0,
+      roots: 0,
+      anomalies: 0
+    },
+    // Resources
+    res: {
+      seeds: 0,
+      dew: 0,
+      sprouts: 0,
+      entropyFruit: 0
+    },
+    // Garden
+    plants: [], // {name, tag}
+    // Flags & unlocks
+    flags: {
+      unlockGloss: false,
+      unlockSymbols: false,
+      unlockSeeds: false,
+      unlockReset: false,
+      silentTree: false,
+      dewTap: false
+    }
+  };
+
+  // ===================== Utilities =====================
+  const $  = sel => document.querySelector(sel);
+  const el = html => { const d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstChild; };
+  const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+  const rand   = (a,b)=>a+Math.random()*(b-a);
+  const choice = arr=>arr[(Math.random()*arr.length)|0];
+  const isPrime= n=>{ if(n<2) return false; for(let i=2;i*i<=n;i++) if(n%i===0) return false; return true; };
+
+  const fmt = (x)=>{
+    // occasional prime-only display for weirdness
+    if(!S.truth && Math.random() < 0.03){
+      const n = Math.max(2, Math.round(x));
+      return isPrime(n) ? n.toString() : "…";
+    }
+    if(S.base12){
+      const neg = x < 0; x = Math.abs(x);
+      const whole = Math.floor(x).toString(12);
+      const frac = (x % 1).toFixed(3).slice(2);
+      return (neg?'-':'') + whole + (frac !== '000' ? '.' + frac : '');
+    }
+    // pretty decimal
+    return (Math.abs(x) >= 1000) ? x.toLocaleString() : (Math.round(x*1000)/1000).toString();
+  };
+
+  const maybeLie = (txt, alt) => S.truth ? txt : (Math.random()<0.5 ? txt : (alt ?? txt.replace(/\bup\b/g,'down')));
+
+  const log = (msg)=>{
+    const box = $('#log');
+    box.appendChild(el(`<p>${msg}</p>`));
+    box.scrollTop = box.scrollHeight;
+  };
+
+  // ===================== Save / Load =====================
+  const KEY = "entropy-garden-save";
+  function save(){
+    localStorage.setItem(KEY, JSON.stringify(S));
+    log(maybeLie("A memory crystallizes in the soil.", "A root forgets what it knew."));
+  }
+  function load(){
+    try{
+      const raw = localStorage.getItem(KEY);
+      if(!raw) return;
+      const data = JSON.parse(raw);
+      Object.assign(S, data);
+      // safety for future fields:
+      S.version = S.version || "1.0";
+    }catch(e){ console.warn(e); }
+  }
+
+  // ===================== UI Builders =====================
+  function statRow(name, key, max=1, reverse=false){
+    const v = S.stats[key];
+    const pct = clamp(v/max, 0, 1)*100;
+    return el(`<div class="stat">
+      <div class="name">${name}</div>
+      <div class="bar ${reverse?'reverse':''}"><div class="fill" style="width:${pct}%"></div></div>
+      <div class="val" title="${maybeLie('Absolutely accurate','Probably approximate')}">${fmt(v)}</div>
+    </div>`);
+  }
+
+  function renderStats(){
+    const box = $('#stats'); box.innerHTML = '';
+    // bars intentionally misleading sometimes (reverse some)
+    box.appendChild(statRow("Humidity","humidity", 5, Math.random()<0.2));
+    if(S.flags.unlockGloss) box.appendChild(statRow("Gloss","gloss", 8, Math.random()<0.5));
+    box.appendChild(statRow("Silence","silence", 30, false));
+    box.appendChild(statRow("Entropy","entropy", 50, Math.random()<0.35));
+    if(S.stats.friction>0) box.appendChild(statRow("Friction","friction", 5, true));
+    if(S.stats.roots>0) box.appendChild(statRow("Roots","roots", 10, false));
+    if(S.stats.anomalies>0) box.appendChild(statRow("Anomalies","anomalies", 7, true));
+  }
+
+  function renderResources(){
+    const r = $('#resources'); r.innerHTML = '';
+    const push = (n,k)=>r.appendChild(el(`<div class="resrow"><div class="resname">${n}</div><div class="resval">${fmt(S.res[k])}</div></div>`));
+    if(S.flags.unlockSeeds || S.res.seeds>0) push("Seeds","seeds");
+    if(S.res.dew>0 || S.flags.dewTap) push("Dew","dew");
+    if(S.res.sprouts>0) push("Sprouts","sprouts");
+    if(S.res.entropyFruit>0) push("Entropy Fruit","entropyFruit");
+  }
+
+  function renderGarden(){
+    const g = $('#garden'); g.innerHTML='';
+    S.plants.forEach(p=>{
+      g.appendChild(el(`<div class="plant"><h3>${p.name}</h3><div class="tag">${p.tag}</div></div>`));
+    });
+  }
+
+  function renderMeta(){
+    $('#silenceLabel').textContent = fmt(S.stats.silence.toFixed ? S.stats.silence : Number(S.stats.silence));
+    $('#cyclesLabel').textContent = fmt(S.cycles);
+    $('#echoesLabel').textContent = fmt(S.echoes);
+    $('#viewModePill').textContent = `base: ${S.base12?12:10}`;
+    $('#liePill').innerHTML = `Truth mode: <strong>${S.truth?'ON':'OFF'}</strong>`;
+    $('#versionPill').textContent = S.version;
+  }
+
+  function addMystery(symbol, title, fn){
+    const grid = $('#mysteryBtns');
+    const b = document.createElement('button');
+    b.className = 'sigbtn';
+    b.textContent = symbol;
+    b.title = title;
+    b.addEventListener('click', fn);
+    grid.appendChild(b);
+  }
+
+  // ===================== Mechanics =====================
+
+  // 1) Observe button: looks useless, seeds hidden thresholds
+  let observePressStart = 0;
+  $('#observeBtn').addEventListener('mousedown', ()=>{ observePressStart = Date.now(); });
+  $('#observeBtn').addEventListener('mouseup', ()=>{
+    if(Date.now() - observePressStart > 1200){
+      // long-press opens console
+      toggleConsole(true);
+    }
+  });
+
+  $('#observeBtn').addEventListener('click', ()=>{
+    S.clicks++;
+    S.lastInteraction = Date.now();
+    // appears to do nothing…
+    S.stats.humidity += Math.random()*0.06;
+    // tiny chance to grow dew when you "do something"
+    if(Math.random() < 0.08) S.res.dew += (0.5 + S.echoes*0.1);
+
+    // every 37 clicks: entropy event + unlocks
+    if(S.clicks % 37 === 0){
+      S.stats.entropy += 1 + S.echoes*0.2;
+      log(maybeLie("<strong>Entropy surged.</strong>", "<strong>Entropy receded.</strong>"));
+      if(!S.flags.unlockGloss){
+        S.flags.unlockGloss = true;
+        log("You notice a <em>gloss</em> on the surface of things.");
+      }
+      if(!S.flags.unlockSymbols){
+        S.flags.unlockSymbols = true;
+        unlockSymbols();
+        log("Strange sigils want to be pressed.");
+      }
+      if(!S.flags.unlockReset && S.stats.entropy >= 3){
+        S.flags.unlockReset = true;
+        $('#resetBtn').style.filter = 'none';
+        log("The cycle whispers its price.");
+      }
+    }
+
+    // roots condition (backwards logic)
+    if(S.stats.entropy > S.stats.silence * Math.max(1, S.stats.gloss)){
+      S.stats.roots += 0.02;
+    }
+
+    renderStats(); renderResources();
+    log("You observed. Nothing seems to happen.");
+  });
+
+  // 2) Passive/idle tick
+  function tick(){
+    const now = Date.now();
+    const dt = (now - S.lastTick)/1000;
+    S.lastTick = now;
+
+    // Silence grows when you’re not interacting
+    const idle = (now - S.lastInteraction)/1000;
+    S.stats.silence = clamp(idle, 0, 9999);
+    if(S.stats.silence > S.silenceMax) S.silenceMax = S.stats.silence;
+
+    // humidity decays a little unless gloss is high
+    const humidityDecay = Math.max(0, 0.015 - S.stats.gloss*0.001);
+    S.stats.humidity = Math.max(0, S.stats.humidity - humidityDecay*dt);
+
+    // gloss random walk if unlocked & you’re idle
+    if(S.flags.unlockGloss && idle > 2){
+      S.stats.gloss = clamp(S.stats.gloss + (Math.random() - 0.48)*0.02, 0, 12);
+    }
+
+    // friction rises when you spam; falls when idle
+    S.stats.friction = clamp(S.stats.friction + (idle<1 ? 0.05 : -0.02)*dt, 0, 5);
+
+    // anomalies: chaotic spikes from entropy and friction
+    if(Math.random() < (S.stats.entropy+S.stats.friction)*0.0005){
+      S.stats.anomalies = clamp(S.stats.anomalies + 1, 0, 7);
+      if(Math.random() < 0.3) S.res.entropyFruit += 1; // very rare
+      log("An anomaly shimmers.");
+    }
+
+    // dew condenses with humidity & silence synergy
+    const dewGain = Math.max(0, (S.stats.humidity*0.01 + Math.log10(1+S.stats.silence))*0.02 );
+    if(demoralize(0.5)) S.res.dew += dewGain * dt * (1 + S.echoes*0.15);
+
+    // sprouts grow when dew + seeds coexist
+    if(S.res.dew>1 && S.res.seeds>0 && Math.random() < 0.04){
+      S.res.sprouts += (Math.random()<0.5?1:0); // often zero, sometimes one
+    }
+
+    // silent tree: roots via long silence
+    if(!S.flags.silentTree && S.stats.silence > 30 && S.stats.humidity < 0.2){
+      S.plants.push({name:"Silent Tree", tag:"Grows best when unseen."});
+      S.flags.silentTree = true;
+      S.stats.roots += 2;
+      log("<strong>A Silent Tree takes hold.</strong>");
+    }
+
+    renderStats(); renderResources(); renderGarden(); renderMeta();
+  }
+
+  // Some “lie/noise” in passive gains
+  function demoralize(chance){ return S.truth ? true : (Math.random()<chance); }
+
+  // 3) Unlock sigils/buttons with odd behaviors
+  function unlockSymbols(){
+    // ☉ — Gloss flicker
+    addMystery("☉", "Increases gloss (or not).", ()=>{
+      const before = S.stats.gloss;
+      if(Math.random() < 0.65) S.stats.gloss += rand(.15,.45);
+      else S.stats.gloss = Math.max(0, S.stats.gloss - rand(.05,.2));
+      log(`Gloss ${before<=S.stats.gloss?'brightened':'dulled'}.`);
+      renderStats();
+    });
+
+    // ∴ — Entropy jolt
+    addMystery("∴", "Reorders dust.", ()=>{
+      const k = 1 + S.echoes*0.25;
+      S.stats.entropy += (Math.random()<0.5 ? 1 : -1)*k;
+      log(maybeLie("Entropy rearranges itself.", "Entropy decides to nap."));
+      renderStats();
+    });
+
+    // ¤ — Seeds market (appears dishonest)
+    addMystery("¤", "Trade dew for seeds (rate varies).", ()=>{
+      const rate = Math.max(0.5, 2*Math.random()); // 0.5–2 dew per seed
+      if(S.res.dew >= rate){
+        S.res.dew -= rate;
+        S.res.seeds += 1 + (Math.random()<0.2 ? 1:0); // occasional bonus
+        S.flags.unlockSeeds = true;
+        log(`Bartered ${fmt(rate)} dew for seeds.`);
+        renderResources();
+      }else{
+        log("The broker laughs quietly.");
+      }
+    });
+
+    // ⌘ — Plant a random thing if conditions are odd
+    addMystery("⌘", "Germinate something questionable.", ()=>{
+      if(S.res.seeds>0 && S.res.dew>0 && Math.random()<0.5){
+        S.res.seeds -= 1;
+        S.res.dew   -= 0.5;
+        const names = [
+          ["Glass Fern", "Loves high gloss & low entropy."],
+          ["Moon Moss", "Drinks dew; fears friction."],
+          ["Entropy Vine", "Fruit appears after resets."],
+          ["Prime Clover", "Only grows at prime counts."]
+        ];
+        const [n,t] = choice(names);
+        S.plants.push({name:n, tag:t});
+        if(n==="Entropy Vine") S.res.entropyFruit += S.cycles>0?1:0;
+        log(`<strong>${n}</strong> takes root.`);
+        renderGarden(); renderResources();
+      }else{
+        log("Nothing answers the call.");
+      }
+    });
+
+    // ∞ — Idle amplifier (only works if ignored after pressing)
+    addMystery("∞", "Make time feel longer later.", ()=>{
+      // stores a hidden promise: next idle over 20s increases dew
+      S.flags.dewTap = true;
+      log("The air thickens, promising dew if you leave it alone.");
+    });
+
+    // ☍ — Friction vent (reduces friction, maybe raises entropy)
+    addMystery("☍", "Bleed off friction.", ()=>{
+      if(S.stats.friction>0){
+        S.stats.friction = Math.max(0, S.stats.friction - rand(.3,.9));
+        if(Math.random()<0.4) S.stats.entropy += 1;
+        log("Pressure hisses through the cracks.");
+        renderStats();
+      }
+    });
+  }
+
+  // 4) Cycle (prestige) — resets most, grants Echoes every few cycles
+  $('#resetBtn').addEventListener('click', ()=>{
+    if(!S.flags.unlockReset){
+      log("The cycle ignores you.");
+      return;
+    }
+    const cost = 3; // require some entropy (soft requirement)
+    if(S.stats.entropy < cost){
+      log(maybeLie("You need more entropy to cycle.", "You need less entropy to cycle."));
+      return;
+    }
+
+    const seedsGain = Math.floor(1 + S.stats.roots*0.5 + S.stats.entropy*0.25);
+    const fruitGain = S.res.entropyFruit > 0 ? 1 : 0;
+
+    // Perform reset
+    S.cycles += 1;
+    if(S.cycles % 5 === 0) S.echoes += 1; // meta meta
+    S.stats.humidity = 0;
+    S.stats.entropy  = 0;
+    S.stats.gloss    = 0;
+    S.stats.friction = 0;
+    S.stats.roots    = 0;
+    S.stats.anomalies= 0;
+    S.clicks = 0;
+    S.res.seeds += seedsGain;
+    S.res.entropyFruit += fruitGain;
+    S.lastInteraction = Date.now();
+
+    log(`<strong>Cycle complete.</strong> Gained ${fmt(seedsGain)} seeds${fruitGain?` and ${fruitGain} fruit`:''}. Echoes: ${fmt(S.echoes)}.`);
+    renderStats(); renderResources(); renderMeta();
+  });
+
+  // 5) Hidden console & commands
+  const consoleEl = $('#console'), consoleInput = $('#consoleInput');
+  let consoleVisible = false;
+  function toggleConsole(show){
+    consoleVisible = (show === undefined) ? !consoleVisible : !!show;
+    consoleEl.style.display = consoleVisible ? 'block' : 'none';
+    if(consoleVisible) setTimeout(()=>consoleInput.focus(), 20);
+  }
+  $('#consoleReveal').addEventListener('mouseenter', ()=> toggleConsole(true));
+  document.addEventListener('keydown', (e)=>{
+    if(e.key==='`'){ toggleConsole(); }
+  });
+  consoleInput.addEventListener('keydown', (e)=>{
+    if(e.key==='Enter'){
+      const cmd = consoleInput.value.trim().toLowerCase();
+      consoleInput.value = '';
+      runCommand(cmd);
+    }
+  });
+
+  function runCommand(cmd){
+    switch(cmd){
+      case 'whisper':
+        S.stats.silence += 5; log("You hear less."); break;
+      case 'germinate':
+        if(S.res.seeds>0){ S.res.sprouts += 1; S.res.seeds -= 1; log("Something green twitches."); renderResources(); }
+        else log("The soil is expectant, not generous.");
+        break;
+      case 'prime':
+        // make next few numbers prime-ish by forcing prime check path to show numbers
+        S.truth = true; setTimeout(()=>{ S.truth=false; }, 4000);
+        log("For a moment, only true things appear.");
+        renderMeta();
+        break;
+      case 'base12':
+        S.base12 = !S.base12; log(`Numbers shift to base ${S.base12?12:10}.`); renderMeta(); break;
+      case 'truth':
+        S.truth = !S.truth; log(`Truth mode ${S.truth?'enabled':'disabled'}.`); renderMeta(); break;
+      case 'soil':
+        S.flags.unlockSeeds = true; log("Soil remembers seeds."); renderResources(); break;
+      case 'water':
+        S.res.dew += 2; log("Condensation accelerates."); renderResources(); break;
+      case 'sunlight':
+        S.stats.gloss += 1; log("Gloss dazzles."); renderStats(); break;
+      case 'reset':
+        localStorage.removeItem(KEY); location.reload(); break;
+      default:
+        log("The console pretends not to know that word.");
+    }
+  }
+
+  // 6) Save / Load / Offline progress
+  $('#saveBtn').addEventListener('click', save);
+  load();
+
+  // Offline gains: dew grows while away (based on silence potential)
+  (function offline(){
+    const now = Date.now();
+    const diff = (now - S.lastTick)/1000;
+    if(diff > 5){
+      const offDew = Math.min(3600, diff) * 0.01 * (1 + S.echoes*0.15);
+      S.res.dew += offDew;
+      log(`While you were away, dew collected (${fmt(offDew)}).`);
+    }
+    S.lastTick = now;
+  })();
+
+  // 7) Infinite idle amplifier payoff (from ∞)
+  setInterval(()=>{
+    const idle = (Date.now() - S.lastInteraction)/1000;
+    if(S.flags.dewTap && idle > 20){
+      const gain = Math.log2(1+idle) * (1 + S.echoes*0.25);
+      S.res.dew += gain;
+      S.flags.dewTap = false;
+      log(`The air exhales: +${fmt(gain)} dew.`);
+      renderResources();
+    }
+  }, 3000);
+
+  // UI meta refresh
+  renderStats(); renderResources(); renderGarden(); renderMeta();
+
+  // Main loop
+  setInterval(tick, 1000);
+
+})();
+</script>
+</body>
+</html>
