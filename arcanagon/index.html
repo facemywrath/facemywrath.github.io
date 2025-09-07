@@ -18,7 +18,7 @@
   .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
   .chip{background:var(--box2);border:1px solid var(--br);padding:6px 10px;border-radius:10px}
   .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
-  main.grid{display:grid;gap:12px;padding:12px;grid-template-columns:repeat(auto-fit,minmax(270px,1fr))}
+  main.grid{display:grid;gap:12px;padding:12px;grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
   .mod{background:linear-gradient(180deg,var(--box),var(--box2));border:1px solid var(--br);border-radius:14px;padding:12px}
   .mod h3{margin:0 0 8px 0;font-size:15px;letter-spacing:.2px}
   .sub{color:var(--muted);font-size:12px}
@@ -32,6 +32,9 @@
   .badge{font-size:11px;padding:2px 6px;border-radius:999px;border:1px solid var(--br);background:rgba(255,255,255,.05)}
   .tiny{font-size:11px;color:var(--muted)}
   .pill{display:inline-flex;gap:8px;align-items:center;border-radius:999px;padding:4px 10px;background:rgba(255,255,255,.05);border:1px solid var(--br)}
+  .ess-list{display:grid;gap:8px;grid-template-columns:1fr}
+  .btnrow{display:grid;grid-template-columns:1fr minmax(90px,110px);gap:8px}
+  .deadbar{background:linear-gradient(180deg,#3d1420,#1c0d12);border:1px solid #5a1f31;border-radius:12px;padding:10px;margin-bottom:12px}
 </style>
 </head>
 <body>
@@ -39,12 +42,13 @@
   <div class="row">
     <div>
       <div style="font-weight:700">Archmage — Spells & Essences</div>
-      <!-- UPDATED: generalized so it doesn’t claim +1% for every spell -->
-      <div class="sub">Mana panel = spell only. Spells unlock with mana; each spell’s cost scales by its own growth rate.</div>
+      <div class="sub">Aging & rebirth enabled • Spells store their own functions • Knowledge persists between lives</div>
     </div>
     <div class="chip mono">FPS <span id="fps">—</span></div>
   </div>
   <div class="chips">
+    <div class="chip">Age: <b id="ageYears">0.0</b>/<b id="lifeYears">75</b> yrs</div>
+    <div class="chip">Knowledge ×<b id="knowledgeMult">1.00</b></div>
     <div class="chip">Global ×<b id="globalMult">1.00</b></div>
     <div class="chip">Infusions: <b id="infusions">0</b></div>
     <div class="chip" id="saveMsg">Autosaving…</div>
@@ -54,8 +58,8 @@
 <main id="grid" class="grid"></main>
 
 <script>
-/* ===== constants FIRST ===== */
-const SAVE_KEY = "archmage_spells_ess_v1";
+/* ===== constants ===== */
+const SAVE_KEY = "archmage_spells_ess_v4";
 
 /* ===== tiny big number ===== */
 class Dec{
@@ -74,37 +78,63 @@ class Dec{
   toJSON(){return {m:this.m,e:this.e}} static fromJSON(o){return new Dec(o.m,o.e)}
 }
 const D=x=>Dec.from(x), fmt=d=>Dec.from(d).toString();
+const num = d => (d instanceof Dec) ? d.m * 10 ** d.e : Number(d||0); // approximate numeric
 
 /* ===== design knobs ===== */
 const CFG = {
   tick: 20, autosave: 10,
-  // (curve kept for reference but no longer used)
-  essenceEffCurve: [1.0, 2.0, 2.66, 2.80, 2.88, 2.92, 2.94, 2.96, 2.97, 2.98, 2.99, 2.995],
+  essenceMasteryPerCast: 1,
+  essenceMasteryBonusPerLevel: 0.05, // +5% essence per mastery level per element
+  yearsPerSecond: 75/1200, // 75 yrs over 1200s => 0.0625 yr/s; lifespan extends real-time proportionally
 };
 
-/* ===== spells =====
-   Each spell has: name, unlockCost, baseCastCost, mpsGain, costGrowth (per cast)
-*/
+/* ===== spells (each has its own fn(state, k)) ===== */
 const SPELLS = [
-  { key:"light",   name:"Cast Light",            unlockCost:D(0),        baseCost:D(1),        mpsGain:0.1,   growth:1.01,  ratio:10 },
-  { key:"presti",  name:"Cast Prestidigitation", unlockCost:D(25),       baseCost:D(24),       mpsGain:2,     growth:1.015, ratio:12 },
-  { key:"mconj",   name:"Cast Minor Conjuration",unlockCost:D(180),      baseCost:D(420),      mpsGain:30,    growth:1.02,  ratio:14 },
-  { key:"spark",   name:"Cast Spark",            unlockCost:D(4_200),    baseCost:D(960),      mpsGain:100,   growth:1.025, ratio:16 },
-  { key:"missile", name:"Cast Magic Missile",    unlockCost:D(16_000),   baseCost:D(3_160),    mpsGain:300,   growth:1.03,  ratio:18 },
-  { key:"ashield", name:"Cast Arcane Shield",    unlockCost:D(75_000),   baseCost:D(12_000),   mpsGain:1200,  growth:1.035, ratio:20 },
-  { key:"illusion",name:"Cast Illusionary Form", unlockCost:D(420_000),  baseCost:D(50_200),   mpsGain:5000,  growth:1.04,  ratio:24 },
-  { key:"gconj",   name:"Cast Greater Conj.",    unlockCost:D(4_800_000),baseCost:D(204_400),  mpsGain:40000, growth:1.045, ratio:28 },
-  { key:"familiar",name:"Cast Summon Familiar",  unlockCost:D(20_000_000),baseCost:D(1_900_400),mpsGain:320000,growth:1.05,  ratio:32 },
-  { key:"essence", name:"Conjure Essence",       unlockCost:D(98_000_000),baseCost:D(22_160_000),mpsGain:2560000,growth:1.2, ratio:36, conjures:true },
+  // Mana generator spells
+  { key:"light",   name:"Cast Light", unlockCost:D(0), baseCost:D(1),   growth:1.01,  ratio:10,
+    fn:(S,k)=>{ S.mana.baseMPS += 0.1 * k; } },
+  { key:"presti",  name:"Cast Prestidigitation", unlockCost:D(25), baseCost:D(24), growth:1.015, ratio:12,
+    fn:(S,k)=>{ S.mana.baseMPS += 2 * k; } },
+  { key:"firebolt", name:"Cast Firebolt", unlockCost:D(180), baseCost:D(420), growth:1.02, ratio:14,
+    fn:(S,k)=>{ S.mana.baseMPS += 30 * k; } },
+  { key:"spark",   name:"Cast Spark", unlockCost:D(4200), baseCost:D(960), growth:1.025, ratio:16,
+    fn:(S,k)=>{ S.mana.baseMPS += 100 * k; } },
+  { key:"Frostbite", name:"Cast Frostbite", unlockCost:D(16000), baseCost:D(3160), growth:1.03, ratio:18,
+    fn:(S,k)=>{ S.mana.baseMPS += 300 * k; } },
+  { key:"ashield", name:"Cast Arcane Shield", unlockCost:D(75000), baseCost:D(12000), growth:1.035, ratio:20,
+    fn:(S,k)=>{ S.mana.baseMPS += 1200 * k; } },
+  { key:"illusion",name:"Cast Illusionary Form", unlockCost:D(420000), baseCost:D(50200), growth:1.04, ratio:24,
+    fn:(S,k)=>{ S.mana.baseMPS += 5000 * k; } },
+  { key:"gust",    name:"Cast Gust", unlockCost:D(4800000), baseCost:D(204400), growth:1.045, ratio:28,
+    fn:(S,k)=>{ S.mana.baseMPS += 40000 * k; } },
+  { key:"lift",    name:"Cast Lift", unlockCost:D(20000000), baseCost:D(1900400), growth:1.05, ratio:32,
+    fn:(S,k)=>{ S.mana.baseMPS += 320000 * k; } },
+
+  // Essence conjurations
+  { key:"ce_earth", name:"Conjure Earth Essence", unlockCost:D(98000000),   baseCost:D(22160000), growth:1.20, conjures:true, elem:"earth",
+    fn:(S,k)=>{ for(let i=0;i<k;i++){ giveEssence(S,"earth"); } } },
+  { key:"ce_ice",   name:"Conjure Ice Essence",   unlockCost:D(2660000000), baseCost:D(900000000), growth:1.20, conjures:true, elem:"ice",
+    fn:(S,k)=>{ for(let i=0;i<k;i++){ giveEssence(S,"ice"); } } },
+  { key:"ce_fire",  name:"Conjure Fire Essence",  unlockCost:D(74600000000), baseCost:D(107250000000), growth:1.20, conjures:true, elem:"fire",
+    fn:(S,k)=>{ for(let i=0;i<k;i++){ giveEssence(S,"fire"); } } },
+  { key:"ce_wind",  name:"Conjure Wind Essence",  unlockCost:D(800000000000), baseCost:D(3400000000000), growth:1.20, conjures:true, elem:"wind",
+    fn:(S,k)=>{ for(let i=0;i<k;i++){ giveEssence(S,"wind"); } } },
 ];
 
 /* ===== state ===== */
 function defaultState(){
   return {
-    v:1,
-    meta:{ globalMult:1, last:Date.now(),
+    v:4,
+    meta:{
+      globalMult:1,
+      knowledgeMult:1,
+      last:Date.now(),
       manaPerCastBonus:1,
-      essenceEffBase:null // anchor for Essence Efficiency cost
+      essenceEffBase:null,
+      rebirths:0,
+      ageYears:0,
+      lifespanYears:75,
+      dead:false,
     },
     mana:{
       amount:D(0), baseMPS:0.15, perSec:D(0),
@@ -114,21 +144,21 @@ function defaultState(){
     },
     ess:{
       unlocked:false,
-      perSec:D(0), amount:D(0),
       elements:{fire:0, ice:0, earth:0, wind:0},
       effLevel:0,
       infusions:{ fire:0, ice:0, earth:0, wind:0 },
+      mastery:{ fire:0, ice:0, earth:0, wind:0 },
     }
   };
 }
-let G = defaultState(); // load() || defaultState();
+let G = defaultState();
 
 /* ===== helpers ===== */
 function currentSpell(){ return SPELLS[G.mana.spellIdx]; }
 function layerMult(){
   const inf = G.ess.infusions;
-  const manaMultFromInf = Math.pow(2, (inf.fire||0)+(inf.ice||0)+(inf.earth||0)+(inf.wind||0)); // ×2 per infusion
-  return G.meta.globalMult * manaMultFromInf;
+  const manaMultFromInf = Math.pow(2, (inf.fire||0)+(inf.ice||0)+(inf.earth||0)+(inf.wind||0));
+  return G.meta.globalMult * G.meta.knowledgeMult * manaMultFromInf;
 }
 function manaPerSec(){ return D(G.mana.baseMPS * layerMult()); }
 function nextCastCost(spellIdx){
@@ -138,51 +168,94 @@ function nextCastCost(spellIdx){
 }
 function canAffordMana(x){ return G.mana.amount.gte(x); }
 function spendMana(x){ G.mana.amount = G.mana.amount.sub(x); }
-function addMana(x){ G.mana.amount = G.mana.amount.add(D(x)); }
 
-/* ===== essence helpers (unchanged logic) ===== */
-// Multiplier formula: (10*(level-1)+6)/(3*level), level 0 => 1x
+/* ===== essence math ===== */
 function essenceEffTotal(){
   const lvl = G.ess.effLevel;
   if (lvl <= 0) return 1;
   return (10 * (lvl - 1) + 6) / (3 * lvl);
 }
-
-// Reference cost = Conjure Essence **unlock** price ONLY (fixed)
+// base cost for eff from first essence unlock
 function getEssenceRefCost(){
-  const idx = SPELLS.findIndex(s => s.conjures);
-  const conj = SPELLS[idx];
-  return conj.unlockCost; // Dec (does not change with casts)
+  const i = SPELLS.findIndex(s => s.conjures);
+  return SPELLS[i].unlockCost;
 }
-
-// Essence Efficiency cost: one-time base from CE unlock cost, ×1.5 per level
-function essenceEffCost(){
+function essenceEffCost(lvlOffset=0){
   if (G.meta.essenceEffBase == null) {
-    const ref = getEssenceRefCost();                    // Dec
-    const refNum = Number(ref.m * 10 ** ref.e) || 100;  // approx to number
-    G.meta.essenceEffBase = Math.max(100, 0.5 * refNum); // 50% of CE unlock cost (tweakable)
+    const ref = getEssenceRefCost();
+    const refNum = Math.max(100, 0.5 * num(ref));
+    G.meta.essenceEffBase = refNum;
   }
-  const lvl = G.ess.effLevel;
-  const growth = 1.5;                                     // geometric step per level
+  const lvl = G.ess.effLevel + lvlOffset;
+  const growth = 3;
   return D(G.meta.essenceEffBase * Math.pow(growth, lvl));
 }
-
-// Infusion cost (display only uses this number)
-function infusionCost(elem){
-  const lvl = G.ess.infusions[elem] || 0;
-  return 5 * Math.pow(lvl, 1.25);
+// per-element mastery scaling
+function essenceYield(elem){
+  const eff = essenceEffTotal();
+  const m = G.ess.mastery[elem] || 0;
+  const scale = 1 + m * CFG.essenceMasteryBonusPerLevel;
+  return eff * scale;
+}
+// integer cost for infusions (rounded up)
+function infusionCost(elem, offset=0){
+  const lvl = (G.ess.infusions[elem] || 0) + offset;
+  return Math.max(1, Math.ceil(5 * Math.pow(lvl, 1.45)));
 }
 
-function grantRandomEssence(n=1){
-  const pool = ["fire","ice","earth","wind"];
-  for(let i=0;i<n;i++){
-    const k = pool[Math.floor(Math.random()*pool.length)];
-    G.ess.elements[k] += 1;
+/* ===== Max calculators ===== */
+function maxAffordableCasts(spellIdx){
+  const s = SPELLS[spellIdx];
+  const g = s.growth;
+  const base = num(s.baseCost);
+  const n = G.mana.casts[spellIdx] || 0;
+  const have = num(G.mana.amount);
+  if (have <= 0) return 0;
+  if (g === 1) {
+    return Math.floor(have / (base * Math.pow(g, n)));
   }
+  const a0 = base * Math.pow(g, n);
+  const k = Math.floor(Math.log( (have*(g-1))/a0 + 1 ) / Math.log(g));
+  return Math.max(0, k);
+}
+function totalCostGeometric(base, g, n0, k){
+  if (k<=0) return 0;
+  const a0 = base * Math.pow(g, n0);
+  return a0 * (Math.pow(g, k) - 1) / (g - 1);
+}
+function maxAffordableEff(){
+  const g = 1.5;
+  const base = G.meta.essenceEffBase ?? Math.max(100, 0.5 * num(getEssenceRefCost()));
+  const n0 = G.ess.effLevel;
+  const have = num(G.mana.amount);
+  if (have <= 0) return 0;
+  const a0 = base * Math.pow(g, n0);
+  const k = Math.floor(Math.log( (have*(g-1))/a0 + 1 ) / Math.log(g));
+  return Math.max(0, k);
+}
+function maxAffordableInfusions(elem){
+  let have = Math.floor(G.ess.elements[elem] || 0);
+  let k = 0;
+  while (true){
+    const c = infusionCost(elem, k);
+    if (have >= c){ have -= c; k++; } else break;
+  }
+  return k;
+}
+
+/* ===== spell effect helpers (used by stored fns) ===== */
+function giveEssence(S, elem){
+  const y = essenceYield(elem);
+  const whole = Math.floor(y);
+  const frac = y - whole;
+  if (whole>0) S.ess.elements[elem] += whole;
+  if (Math.random() < frac) S.ess.elements[elem] += 1;
+  S.ess.mastery[elem] += CFG.essenceMasteryPerCast;
 }
 
 /* ===== actions ===== */
 function unlockNextSpell(){
+  if (G.meta.dead) return false;
   const next = G.mana.spellIdx + 1;
   if (next >= SPELLS.length) return false;
   const s = SPELLS[next];
@@ -194,53 +267,119 @@ function unlockNextSpell(){
   if (s.conjures) G.ess.unlocked = true;
   return true;
 }
-function castSpell(){
-  const i = G.mana.spellIdx;
-  if (!G.mana.unlocked[i]) return false;
-  const s = SPELLS[i];
-  const cost = nextCastCost(i);
-  if (!canAffordMana(cost)) return false;
-  spendMana(cost);
-  G.mana.baseMPS += s.mpsGain;
-  G.mana.casts[i] = (G.mana.casts[i]||0) + 1;
-  if (s.conjures){
-    const mult = essenceEffTotal();
-    const whole = Math.floor(mult);
-    const frac = mult - whole;
-    if (whole>0) grantRandomEssence(whole);
-    if (Math.random() < frac) grantRandomEssence(1);
+
+function castCurrentSpell(k=1){
+  const idx = G.mana.spellIdx;
+  return castByIndex(idx, k);
+}
+
+function castByIndex(idx, k=1){
+  if (G.meta.dead) return false;
+  if (!G.mana.unlocked[idx]) return false;
+  const s = SPELLS[idx];
+  k = Math.max(1, Math.floor(k));
+
+  // Spend mana using geometric sum
+  const base = num(s.baseCost);
+  const g = s.growth;
+  const n0 = G.mana.casts[idx] || 0;
+  const spend = totalCostGeometric(base, g, n0, k);
+  if (num(G.mana.amount) + 1e-12 < spend) return false; // cannot afford
+  spendMana(D(spend));
+
+  // Call the spell's stored function
+  if (typeof s.fn === "function") s.fn(G, k);
+
+  G.mana.casts[idx] = n0 + k;
+  return true;
+}
+
+function buyEssenceEfficiency(k=1){
+  if (G.meta.dead) return false;
+  k = Math.max(1, Math.floor(k));
+  const g = 1.5;
+  const base = G.meta.essenceEffBase ?? Math.max(100, 0.5 * num(getEssenceRefCost()));
+  const n0 = G.ess.effLevel;
+  const spend = totalCostGeometric(base, g, n0, k);
+  if (num(G.mana.amount) + 1e-12 < spend) return false;
+  spendMana(D(spend));
+  G.ess.effLevel += k;
+  return true;
+}
+
+function buyInfusion(elem, k=1){
+  if (G.meta.dead) return false;
+  k = Math.max(1, Math.floor(k));
+  let bought = 0;
+  for(let i=0;i<k;i++){
+    const cost = infusionCost(elem, bought);
+    if ((G.ess.elements[elem]||0) >= cost){
+      G.ess.elements[elem] -= cost;
+      G.ess.infusions[elem] = (G.ess.infusions[elem]||0) + 1;
+      bought++;
+    } else break;
   }
-  return true;
+  return bought>0;
 }
-function buyEssenceEfficiency(){
-  const cost = essenceEffCost();
-  if (!canAffordMana(cost)) return false;
-  spendMana(cost);
-  G.ess.effLevel++;
-  return true;
+
+/* ===== aging & rebirth ===== */
+function ageTick(dt){
+  if (G.meta.dead) return;
+  G.meta.ageYears += dt * CFG.yearsPerSecond; // 75 yrs over 1200s
+  if (G.meta.ageYears >= G.meta.lifespanYears){
+    onDeath();
+  }
 }
-function buyInfusion(elem){
-  const need = infusionCost(elem);
-  if ((G.ess.elements[elem]||0) < need) return false;
-  G.ess.elements[elem] -= need;
-  G.ess.infusions[elem] = (G.ess.infusions[elem]||0)+1;
-  return true;
+function onDeath(){
+  if (G.meta.dead) return;
+  G.meta.dead = true;
+}
+function reincarnate(){
+  // Compute knowledge factor based on ending mana; ensure never <1
+  const endMana = Math.max(1, num(G.mana.amount));
+  const factor = Math.max(1, Math.pow(Math.log10(endMana), 0.1));
+  const prev = {
+    globalMult: G.meta.globalMult,
+    knowledgeMult: G.meta.knowledgeMult * factor,
+    lifespanYears: G.meta.lifespanYears,
+    rebirths: (G.meta.rebirths||0) + 1,
+  };
+  // Reset most state
+  G = defaultState();
+  G.meta.globalMult = prev.globalMult;
+  G.meta.knowledgeMult = prev.knowledgeMult;
+  G.meta.lifespanYears = prev.lifespanYears;
+  G.meta.rebirths = prev.rebirths;
+  G.meta.ageYears = 0;
+  G.meta.dead = false;
+  recalc(); render(); markSave("Reborn ✨");
 }
 
 /* ===== loop ===== */
 let last=performance.now(), acc=0, fps=0, fC=0, fT=0;
-function recalc(){ G.mana.perSec = manaPerSec(); }
-function tick(dt){ G.mana.amount = G.mana.amount.add(G.mana.perSec.mul(dt)); }
+function recalc(){ G.mana.perSec = D(G.mana.baseMPS * layerMult()); }
+function tick(dt){
+  if (!G.meta.dead){
+    G.mana.amount = G.mana.amount.add(G.mana.perSec.mul(dt));
+  }
+}
 function loop(now){
   const dt=(now-last)/1000; last=now; acc+=dt; fC++; fT+=dt;
   if(fT>=1){fps=fC; fC=0; fT=0; document.getElementById("fps").textContent=fps;}
-  const step=1/20; while(acc>=step){ recalc(); tick(step); acc-=step; }
+  const step=1/20;
+  while(acc>=step){
+    recalc();
+    tick(step);
+    ageTick(step);
+    acc-=step;
+  }
   if (Math.random()<0.45) render();
   requestAnimationFrame(loop);
 }
 
 /* ===== UI ===== */
 const $=q=>document.querySelector(q);
+function fmtInt(n){ return Math.floor(n).toString(); }
 function headerLine(name, amount, perSec, colorVar){
   const col = getComputedStyle(document.documentElement).getPropertyValue(colorVar)||colorVar;
   return `<div class="line">
@@ -250,65 +389,114 @@ function headerLine(name, amount, perSec, colorVar){
     </div>
   </div>`;
 }
+
 function manaPanel(){
   const s = currentSpell();
   const castN = G.mana.casts[G.mana.spellIdx]||0;
   const cost = nextCastCost(G.mana.spellIdx);
-  const canCast = G.mana.amount.gte(cost);
+  const canCast = G.mana.amount.gte(cost) && !G.meta.dead;
   const next = G.mana.spellIdx+1 < SPELLS.length ? SPELLS[G.mana.spellIdx+1] : null;
-  const canUnlock = next ? G.mana.amount.gte(next.unlockCost) : false;
+  const canUnlock = next ? G.mana.amount.gte(next.unlockCost) && !G.meta.dead : false;
 
-  // UPDATED: dynamic growth text from spell.growth
-  const growthPct = ((s.growth - 1) * 100);
-  const growthText = growthPct >= 1
-    ? `cost grows +${growthPct.toFixed(growthPct >= 10 ? 0 : 1)}% each cast`
-    : `cost grows +${growthPct.toFixed(2)}% each cast`;
+  // Describe growth — generator vs essence
+  const growthText = s.conjures ? `conjures essence` : `cost +${((s.growth - 1) * 100).toFixed(2)}%/cast`;
+
+  const maxCurr = maxAffordableCasts(G.mana.spellIdx);
+
+  const essenceBtns = SPELLS.map((sp, i) => ({sp, i}))
+    .filter(x => x.sp.conjures && G.mana.unlocked[x.i])
+    .map(({sp,i})=>{
+      const n = G.mana.casts[i]||0;
+      const c = nextCastCost(i);
+      const afford = G.mana.amount.gte(c) && !G.meta.dead;
+      const elem = sp.elem;
+      const y = essenceYield(elem);
+      const col = ({fire:"var(--fire)", ice:"var(--ice)", earth:"var(--earth)", wind:"var(--wind)"})[elem] || "var(--ess)";
+      const kmax = maxAffordableCasts(i);
+      return `
+        <div>
+          <div class="tiny"><b style="color:${col}">${sp.name}</b> — yields ~${fmtInt(Math.round(y))} ${elem} (casts: ${n})</div>
+          <div class="btnrow">
+            <button class="btn ${afford?'good':''}" ${afford?'':'disabled'} onclick="UI.castIdx(${i})">${sp.name} — Cost ${fmt(c)}</button>
+            <button class="btn ${kmax>0&&!G.meta.dead?'warn':''}" ${kmax>0&&!G.meta.dead?'':'disabled'} onclick="UI.castMaxIdx(${i})">Max (${kmax})</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+  // Death banner
+  const deathBar = G.meta.dead ? `
+    <div class="deadbar">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+        <div>
+          <div style="font-weight:700">Your wizard has passed on at age ${G.meta.ageYears.toFixed(1)}.</div>
+          <div class="tiny">Ending mana: <b>${fmt(G.mana.amount)}</b>. New Knowledge factor will multiply your mana forever.</div>
+        </div>
+        <button class="btn good" onclick="UI.reincarnate()">Pass On (Reincarnate)</button>
+      </div>
+    </div>
+  ` : "";
 
   return `
   <section class="mod" style="border-color:${getComputedStyle(document.documentElement).getPropertyValue('--mana')}44">
     <h3>Mana <span class="badge">Spellbook</span></h3>
+    ${deathBar}
     ${headerLine("Mana", G.mana.amount, G.mana.perSec, "--mana")}
     <div class="hr"></div>
 
-    <div class="line" style="flex-direction:column;align-items:stretch">
-      <div class="tiny"><b>${s.name}</b> — +${s.mpsGain} MPS per cast • ${growthText}</div>
-      <button class="btn ${canCast?'good':''}" onclick="UI.cast()">
-        ${s.name} — Cost ${fmt(cost)} MP (casts: ${castN})
+    <div class="tiny"><b>${s.name}</b> — ${growthText}</div>
+    <div class="btnrow">
+      <button class="btn ${canCast?'good':''}" ${canCast?'':'disabled'} onclick="UI.castCurrent()">
+        ${s.name} — Cost ${fmt(cost)} ${!s.conjures?'MP':''} (casts: ${castN})
       </button>
+      <button class="btn ${maxCurr>0&&!G.meta.dead?'warn':''}" ${maxCurr>0&&!G.meta.dead?'':'disabled'} onclick="UI.castMaxCurrent()">Max (${maxCurr})</button>
     </div>
 
     ${next?`
-    <div class="line" style="flex-direction:column;align-items:stretch">
-      <div class="tiny"><b>Unlock Next Spell:</b> ${next.name}</div>
-      <button class="btn ${canUnlock?'warn':''}" onclick="UI.unlockSpell()">
-        Unlock — Cost ${fmt(next.unlockCost)} MP
-      </button>
-    </div>`:""}
+    <div class="hr"></div>
+    <div class="tiny"><b>Unlock Next Spell:</b> ${next.name}</div>
+    <button class="btn ${canUnlock?'warn':''}" ${canUnlock?'':'disabled'} onclick="UI.unlockSpell()">
+      Unlock — Cost ${fmt(next.unlockCost)} MP
+    </button>`:""}
 
+    ${essenceBtns?`<div class="hr"></div><div class="ess-list">${essenceBtns}</div>`:""}
   </section>`;
 }
+
 function essPanel(){
   const e = G.ess;
   const mult = essenceEffTotal();
   const effCost = essenceEffCost();
-  const canEff = G.mana.amount.gte(effCost);
+  const canEff = G.mana.amount.gte(effCost) && !G.meta.dead;
+  const maxEff = maxAffordableEff();
+
+  function conjUnlocked(elemKey){
+    const idx = SPELLS.findIndex(s => s.conjures && s.elem===elemKey);
+    return idx>=0 && G.mana.unlocked[idx];
+  }
 
   function infusionLine(label, elem, colorVar){
+    if (!conjUnlocked(elem)) return ""; // hidden until its Conjure unlocked
     const need = infusionCost(elem);
-    const have = e.elements[elem];
+    const have = Math.floor(e.elements[elem]||0);
     const lvl = e.infusions[elem]||0;
-    const can = have >= need;
+    const can = have >= need && !G.meta.dead;
+    const kmax = maxAffordableInfusions(elem);
     const col = getComputedStyle(document.documentElement).getPropertyValue(colorVar)||colorVar;
     return `
-      <div class="line" style="justify-content:space-between;align-items:flex-start">
-        <div>
-          <div><b style="color:${col}">${label} Infusion</b> <span class="badge">Lvl ${lvl}</span></div>
-          <!-- UPDATED: effect text matches layerMult (×2 per infusion) -->
-          <div class="tiny">Effect: Global mana ×2 per level (stacks)</div>
+      <div class="line" style="align-items:flex-start;gap:12px;flex-direction:column">
+        <div style="width:100%;display:flex;justify-content:space-between;gap:10px">
+          <div>
+            <div><b style="color:${col}">${label} Infusion</b> <span class="badge">Lvl ${lvl}</span></div>
+            <div class="tiny">Effect: Global mana ×2 per level (stacks)</div>
+          </div>
+          <div class="tiny" style="text-align:right">
+            Cost: <b>${fmtInt(need)}</b> ${label} Essence • You: <b>${fmtInt(have)}</b>
+          </div>
         </div>
-        <div style="text-align:right;min-width:180px">
-          <div class="tiny">Cost: <b>${need}</b> ${label} Essence</div>
-          <button class="btn ${can?'good':''}" onclick="UI.buyInfusion('${elem}')">Buy</button>
+        <div class="btnrow" style="width:100%">
+          <button class="btn ${can?'good':''}" ${can?'':'disabled'} onclick="UI.buyInfusion('${elem}')">Buy</button>
+          <button class="btn ${kmax>0&&!G.meta.dead?'warn':''}" ${kmax>0&&!G.meta.dead?'':'disabled'} onclick="UI.buyInfusionMax('${elem}')">Max (${kmax})</button>
         </div>
       </div>
     `;
@@ -316,38 +504,44 @@ function essPanel(){
 
   return `
   <section class="mod" style="border-color:${getComputedStyle(document.documentElement).getPropertyValue('--ess')}44">
-    <h3>Essences <span class="badge">From Conjure Essence</span></h3>
-    ${headerLine("Essences", D(0), D(0), "--ess")}
+    <h3>Essences <span class="badge">Per-Element</span></h3>
+    <!-- rounded essence counts in pills -->
     <div class="line">
-      <div class="pill mono" style="border-color:#fff2">🔥 ${e.elements.fire}</div>
-      <div class="pill mono" style="border-color:#fff2">❄️ ${e.elements.ice}</div>
-      <div class="pill mono" style="border-color:#fff2">🪨 ${e.elements.earth}</div>
-      <div class="pill mono" style="border-color:#fff2">💨 ${e.elements.wind}</div>
+      <div class="pill mono" style="border-color:#fff2">🪨 ${fmtInt(e.elements.earth||0)}</div>
+      <div class="pill mono" style="border-color:#fff2">❄️ ${fmtInt(e.elements.ice||0)}</div>
+      <div class="pill mono" style="border-color:#fff2">🔥 ${fmtInt(e.elements.fire||0)}</div>
+      <div class="pill mono" style="border-color:#fff2">💨 ${fmtInt(e.elements.wind||0)}</div>
     </div>
 
     <div class="hr"></div>
-    <div class="line" style="flex-direction:column;align-items:stretch">
-      <div class="tiny"><b>Essence Efficiency</b> — Total essence gain ×<b>${(mult>=10?mult.toFixed(1):mult.toFixed(2))}</b></div>
-      <button class="btn ${canEff?'warn':''}" onclick="UI.buyEff()">Upgrade — Cost ${fmt(effCost)} MP</button>
+    <div class="tiny"><b>Essence Efficiency</b> — Total essence gain ×<b>${(mult>=10?mult.toFixed(1):mult.toFixed(2))}</b></div>
+    <div class="btnrow">
+      <button class="btn ${canEff?'warn':''}" ${canEff?'':'disabled'} onclick="UI.buyEff()">Upgrade — Cost ${fmt(effCost)} MP</button>
+      <button class="btn ${maxEff>0&&!G.meta.dead?'warn':''}" ${maxEff>0&&!G.meta.dead?'':'disabled'} onclick="UI.buyEffMax()">Max (${maxEff})</button>
     </div>
 
     <div class="hr"></div>
-    ${infusionLine("Fire","fire","--fire")}
-    ${infusionLine("Ice","ice","--ice")}
     ${infusionLine("Earth","earth","--earth")}
+    ${infusionLine("Ice","ice","--ice")}
+    ${infusionLine("Fire","fire","--fire")}
     ${infusionLine("Wind","wind","--wind")}
   </section>`;
 }
+
 function render(){
+  // panels
   const panels=[];
   panels.push(manaPanel());
   if (G.ess.unlocked) panels.push(essPanel());
   $("#grid").innerHTML = panels.join("");
-  // HUD bits
+
+  // header chips
   const infCount = (G.ess.infusions.fire||0)+(G.ess.infusions.ice||0)+(G.ess.infusions.earth||0)+(G.ess.infusions.wind||0);
-  // UPDATED: chip uses the true global mult formula (×2 per infusion)
   $("#infusions").textContent = infCount;
   $("#globalMult").textContent = (G.meta.globalMult * Math.pow(2, infCount)).toFixed(2);
+  $("#knowledgeMult").textContent = (G.meta.knowledgeMult).toFixed(2);
+  $("#ageYears").textContent = G.meta.ageYears.toFixed(1);
+  $("#lifeYears").textContent = G.meta.lifespanYears.toFixed(0);
 }
 
 /* ===== save/load ===== */
@@ -363,20 +557,42 @@ function load(){
   o.mana.perSec = Dec.fromJSON(o.mana.perSec);
   return o;
 }
-let saveTimer=null; function markSave(msg){ clearTimeout(saveTimer); document.getElementById("saveMsg").textContent=msg; saveTimer=setTimeout(()=>document.getElementById("saveMsg").textContent="Autosaving…",1500); }
+let saveTimer=null; 
+function markSave(msg){
+  clearTimeout(saveTimer);
+  document.getElementById("saveMsg").textContent=msg;
+  saveTimer=setTimeout(()=>document.getElementById("saveMsg").textContent="Autosaving…",1500);
+}
 
 /* ===== UI API ===== */
 const UI = {
-  cast: ()=>{ if(castSpell()) render(); },
+  castCurrent: ()=>{ if(castCurrentSpell()) render(); },
+  castMaxCurrent: ()=>{ const k=maxAffordableCasts(G.mana.spellIdx); if(k>0 && castCurrentSpell(k)) render(); },
+  castIdx: (i)=>{ if(castByIndex(i)) render(); },
+  castMaxIdx: (i)=>{ const k=maxAffordableCasts(i); if(k>0 && castByIndex(i,k)) render(); },
   unlockSpell: ()=>{ if(unlockNextSpell()) render(); },
   buyEff: ()=>{ if(buyEssenceEfficiency()) render(); },
+  buyEffMax: ()=>{ const k=maxAffordableEff(); if(k>0 && buyEssenceEfficiency(k)) render(); },
   buyInfusion: (k)=>{ if(buyInfusion(k)) render(); },
+  buyInfusionMax: (elem)=>{ const m=maxAffordableInfusions(elem); if(m>0 && buyInfusion(elem,m)) render(); },
+  reincarnate: ()=>{ reincarnate(); },
 };
 window.UI = UI;
 
 /* ===== boot ===== */
 function init(){
-  const now=Date.now(); const elapsed=Math.min(12*3600, Math.max(0,(now-(G.meta.last||now))/1000)); G.meta.last=now;
+  const loadFromSave = false;
+  if(loadFromSave){
+    const loaded = load();
+    if (loaded){
+      G = Object.assign(defaultState(), loaded);
+      G.ess.mastery = G.ess.mastery || {fire:0,ice:0,earth:0,wind:0};
+    }
+  }
+  // simple offline
+  const now=Date.now();
+  const elapsed=Math.min(12*3600, Math.max(0,(now-(G.meta.last||now))/1000));
+  G.meta.last=now;
   recalc(); if(elapsed>0){ G.mana.amount = G.mana.amount.add( manaPerSec().mul(elapsed) ); }
   render();
   setInterval(()=>{ G.meta.last=Date.now(); save(); }, 10_000);
