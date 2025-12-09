@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Top-Down Defense</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #111;
+    color: #eee;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    overflow: hidden;
+  }
+
+  #game-root {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  #top-bar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background: #222;
+    font-size: 14px;
+  }
+
+  #top-bar span {
+    margin-right: 8px;
+  }
+
+  #game-container {
+    flex: 1 1 auto;
+    position: relative;
+    background: #1b3b1b;
+    overflow: hidden;
+  }
+
+  #game-svg {
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    background: #205520;
+  }
+
+  #bottom-bar {
+    flex: 0 0 auto;
+    background: #222;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+  }
+
+  #bottom-buttons-row {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  #info-text {
+    font-size: 11px;
+    opacity: 0.8;
+  }
+
+  button {
+    background: #444;
+    color: #eee;
+    border: 1px solid #666;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    min-width: 60px;
+  }
+  button.active {
+    background: #888;
+  }
+  button:disabled {
+    background: #333;
+    color: #666;
+    border-color: #444;
+  }
+
+  /* NEW: structure / tile panel attached at bottom of game */
+  #structure-menu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(20, 20, 20, 0.97);
+    border-top: 1px solid #666;
+    padding: 6px 8px;
+    font-size: 12px;
+    z-index: 10;
+    display: none;
+  }
+  #structure-menu h3 {
+    margin: 0 0 4px;
+    font-size: 13px;
+  }
+  #structure-menu .row {
+    margin: 2px 0;
+  }
+  #structure-menu .row.buttons-row {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  #structure-menu button {
+    min-width: 0;
+  }
+  .sm-type-btn.active {
+    background: #666;
+  }
+
+  #overlay-message {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.7);
+    z-index: 20;
+    color: #fff;
+    flex-direction: column;
+    text-align: center;
+  }
+  #overlay-message h1 {
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+<div id="game-root">
+  <div id="top-bar">
+    <div>
+      <span id="gold-display">Gold: 0</span>
+      <span id="wave-display">Wave: 0</span>
+      <span id="townhall-display">Townhall Lv 1</span>
+    </div>
+    <div id="status-display">Ready</div>
+  </div>
+  <div id="game-container">
+    <svg id="game-svg"></svg>
+
+    <!-- Bottom-attached tile/structure panel -->
+    <div id="structure-menu">
+      <h3 id="sm-name">Tile</h3>
+      <div class="row" id="sm-pos"></div>
+      <div class="row" id="sm-level"></div>
+      <div class="row" id="sm-hp"></div>
+      <div class="row" id="sm-extra"></div>
+
+      <div class="row buttons-row" id="sm-type-row">
+        <!-- filled dynamically for empty tiles -->
+      </div>
+
+      <div class="row buttons-row">
+        <button id="sm-upgrade">Upgrade / Build</button>
+        <button id="sm-destroy">Destroy</button>
+        <button id="sm-upgrade-all">Upgrade All</button>
+      </div>
+
+      <div class="row" id="sm-hint"></div>
+    </div>
+
+    <div id="overlay-message">
+      <h1 id="overlay-title">Game Over</h1>
+      <p id="overlay-text">Your town hall has been destroyed.</p>
+      <button id="restart-btn">Restart</button>
+    </div>
+  </div>
+  <div id="bottom-bar">
+    <div id="bottom-buttons-row">
+      <div>
+        <button id="move-btn" class="active">Move</button>
+        <button id="build-toggle-btn">Build</button>
+        <button id="townhall-upgrade-btn">Upgrade TH</button>
+      </div>
+      <div id="info-text">Tap a tile to select. Build mode: tap tile, then choose structure.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  // Prevent double-tap zoom / pinch
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', function(event) {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) {
+      event.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, { passive: false });
+  document.addEventListener('gesturestart', function(e) {
+    e.preventDefault();
+  });
+
+  const svgNS = "http://www.w3.org/2000/svg";
+  const WORLD_SIZE = 64;          // tiles
+
+  const VIEW_TILES_X = 16;
+  const VIEW_TILES_Y = 10;
+  const ENEMY_BASE_HP = 55;
+  const ENEMY_HP_INC_BASE = 35;    // to match 25, 60, 130
+  const ENEMY_BASE_DMG = 5;
+  const ENEMY_BASE_CD = 2;
+  const GOLD_PER_TH_LEVEL = 1;     // base 1/s, doubled per TH rank
+  const WAVE_INTERVAL = 30;        // seconds
+
+  // DOM refs
+  const gameContainer = document.getElementById('game-container');
+  const svg = document.getElementById('game-svg');
+  const goldDisplay = document.getElementById('gold-display');
+  const waveDisplay = document.getElementById('wave-display');
+  const townhallDisplay = document.getElementById('townhall-display');
+  const statusDisplay = document.getElementById('status-display');
+
+  const moveBtn = document.getElementById('move-btn');
+  const buildToggleBtn = document.getElementById('build-toggle-btn');
+  const thUpgradeBtn = document.getElementById('townhall-upgrade-btn');
+
+  const structureMenu = document.getElementById('structure-menu');
+  const smName = document.getElementById('sm-name');
+  const smPos = document.getElementById('sm-pos');
+  const smLevel = document.getElementById('sm-level');
+  const smHp = document.getElementById('sm-hp');
+  const smExtra = document.getElementById('sm-extra');
+  const smTypeRow = document.getElementById('sm-type-row');
+  const smUpgrade = document.getElementById('sm-upgrade');
+  const smDestroy = document.getElementById('sm-destroy');
+  const smUpgradeAll = document.getElementById('sm-upgrade-all');
+  const smHint = document.getElementById('sm-hint');
+
+  const overlay = document.getElementById('overlay-message');
+  const overlayTitle = document.getElementById('overlay-title');
+  const overlayText = document.getElementById('overlay-text');
+  const restartBtn = document.getElementById('restart-btn');
+
+  let tileSize = 24; // pixels (computed on resize)
+  let cameraX = 0;
+  let cameraY = 0;
+
+  // Game state
+  let gold = 0;
+  let townhallLevel = 1;
+  let townhallUpgradeCost = 25;
+  let timeToNextWave = WAVE_INTERVAL;
+  let waveNumber = 0;
+  let isGameOver = false;
+  let currentWaveEnemies = 0;
+  let waveCleared = true;
+
+  const player = {
+    x: WORLD_SIZE / 2 + 0.5,
+    y: WORLD_SIZE / 2 + 2.5,
+    speed: 5, // tiles per second
+    path: []
+  };
+
+  let structures = [];   // includes townhall
+  let enemies = [];
+  let bullets = [];
+
+  // Grid occupancy for pathfinding
+  let occupancy = new Uint8Array(WORLD_SIZE * WORLD_SIZE); // 1 = blocked
+  let distMap = new Int32Array(WORLD_SIZE * WORLD_SIZE);   // BFS distances
+
+  let buildMode = false;
+  let buildType = "wall"; // current chosen build type in panel
+  let selectedStructure = null;
+  let selectedTile = null; // {tx,ty}
+
+  // Color tiers (8 colors, darken per loop)
+  const baseTierColors = [
+    "#7fc97f",
+    "#beaed4",
+    "#fdc086",
+    "#ffff99",
+    "#386cb0",
+    "#f0027f",
+    "#bf5b17",
+    "#666666"
+  ];
+
+  function darkenColor(hex, loops) {
+    if (loops <= 0) return hex;
+    let num = parseInt(hex.slice(1), 16);
+    let r = (num >> 16) & 255;
+    let g = (num >> 8) & 255;
+    let b = num & 255;
+    let factor = Math.pow(0.85, loops);
+    r = Math.max(0, Math.min(255, Math.round(r * factor)));
+    g = Math.max(0, Math.min(255, Math.round(g * factor)));
+    b = Math.max(0, Math.min(255, Math.round(b * factor)));
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+
+  function tierColorForLevel(level) {
+    const idx = (level - 1) % baseTierColors.length;
+    const loops = Math.floor((level - 1) / baseTierColors.length);
+    return darkenColor(baseTierColors[idx], loops);
+  }
+
+  function idx(tx, ty) {
+    return ty * WORLD_SIZE + tx;
+  }
+
+  function clamp(val, min, max) {
+    return val < min ? min : (val > max ? max : val);
+  }
+
+  // ---------- STRUCTURE STAT HELPERS ----------
+
+  function wallHP(level) {
+    return 50 * Math.pow(2, level - 1);
+  }
+  function wallCost(level) {
+    if (level === 1) return 1;
+    let cost = 1;
+    let inc = 9;
+    for (let i = 2; i <= level; i++) {
+      cost += inc;
+      inc *= 2;
+    }
+    return cost;
+  }
+
+  function hunterHP(level) {
+    return 15 * Math.pow(2, level - 1);
+  }
+  function hunterCost(level) {
+    if (level === 1) return 25;
+    let cost = 25;
+    let inc = 35;
+    for (let i = 2; i <= level; i++) {
+      cost += inc;
+      inc *= 2;
+    }
+    return cost;
+  }
+  function hunterDamage(level) {
+    return 50 * Math.pow(1.9, level - 1);
+  }
+  function hunterCooldown(level) {
+    return 10 * Math.pow(0.9, level - 1);
+  }
+  function hunterPierce(level) {
+    return level;
+  }
+  function hunterRange(level) {
+    return 6 + (level - 1);
+  }
+
+  function sparkHP(level) {
+    if (level === 1) return 14;
+    let hp = 14;
+    let inc = 16;
+    for (let i = 2; i <= level; i++) {
+      hp += inc;
+      inc *= 2;
+    }
+    return hp;
+  }
+  function sparkCost(level) {
+    if (level === 1) return 25;
+    let cost = 25;
+    let inc = 32;
+    for (let i = 2; i <= level; i++) {
+      cost += inc;
+      inc *= 2;
+    }
+    return cost;
+  }
+  function sparkDamage(level) {
+    return 13 * Math.pow(1.9, level - 1);
+  }
+  function sparkCooldown(level) {
+    return 2 * Math.pow(0.95, level - 1);
+  }
+  function sparkRange(level) {
+    return 2.5 + 0.75 * (level - 1);
+  }
+
+  function getStructureStats(type, level) {
+    if (type === "townhall") {
+      const maxHP = 300 * Math.pow(2, level - 1);
+      return {
+        maxHP,
+        color: tierColorForLevel(level)
+      };
+    }
+    if (type === "wall") {
+      return {
+        maxHP: wallHP(level),
+        cost: wallCost(level),
+        regenRate: (1 / 5) * level, // hp per second
+        color: tierColorForLevel(level)
+      };
+    }
+    if (type === "hunter") {
+      return {
+        maxHP: hunterHP(level),
+        cost: hunterCost(level),
+        damage: hunterDamage(level),
+        cooldown: hunterCooldown(level),
+        pierce: hunterPierce(level),
+        range: hunterRange(level),
+        color: tierColorForLevel(level)
+      };
+    }
+    if (type === "spark") {
+      return {
+        maxHP: sparkHP(level),
+        cost: sparkCost(level),
+        damage: sparkDamage(level),
+        cooldown: sparkCooldown(level),
+        range: sparkRange(level),
+        color: tierColorForLevel(level)
+      };
+    }
+    return {};
+  }
+
+  // ---------- ENEMY STATS & TYPES ----------
+
+  function enemyHP(level, isBoss) {
+    if (level === 1) {
+      return (isBoss ? 2 : 1) * ENEMY_BASE_HP;
+    }
+    let hp = ENEMY_BASE_HP;
+    let inc = ENEMY_HP_INC_BASE;
+    for (let i = 2; i <= level; i++) {
+      hp += inc;
+      inc *= 2;
+    }
+    return hp * (isBoss ? 2 : 1);
+  }
+
+  function enemyDamage(level, isBoss) {
+    const base = ENEMY_BASE_DMG * Math.pow(2, level - 1);
+    return isBoss ? base * 1.5 : base;
+  }
+
+  function enemySpeed(level, isBoss) {
+    let s = Math.min(1.5, 0.45 + 0.05 * level);
+    if (isBoss) s *= 0.9;
+    return s;
+  }
+
+  function pickEnemyType(level) {
+    let basicWeight = 60 + level;
+    let attackerWeight = (level >= 5) ? (10 + 2 * level) : 0;
+    let flyingWeight = (level >= 25) ? (1 + level) : 0;
+    let total = basicWeight + attackerWeight + flyingWeight;
+    let r = Math.random() * total;
+    if (r < basicWeight) return "basic";
+    r -= basicWeight;
+    if (r < attackerWeight) return "attacker";
+    return "flying";
+  }
+
+  // ---------- PATHFINDING (BFS FROM TOWNHALL) ----------
+
+  function recomputePathMap() {
+    distMap.fill(-1);
+    const th = structures.find(s => s.type === "townhall");
+    if (!th) return;
+    const tx = Math.floor(th.x);
+    const ty = Math.floor(th.y);
+    const startIndex = idx(tx, ty);
+    const queue = [startIndex];
+    distMap[startIndex] = 0;
+
+    while (queue.length > 0) {
+      const i = queue.shift();
+      const y = Math.floor(i / WORLD_SIZE);
+      const x = i - y * WORLD_SIZE;
+      const d = distMap[i];
+      const neighbors = [
+        [x + 1, y],
+        [x - 1, y],
+        [x, y + 1],
+        [x, y - 1]
+      ];
+      for (const [nx, ny] of neighbors) {
+        if (nx < 0 || ny < 0 || nx >= WORLD_SIZE || ny >= WORLD_SIZE) continue;
+        const ni = idx(nx, ny);
+        if (distMap[ni] !== -1) continue;
+        if (occupancy[ni]) continue; // blocked by structure
+        distMap[ni] = d + 1;
+        queue.push(ni);
+      }
+    }
+  }
+
+  // ---------- INIT GAME ----------
+
+  function resetGame() {
+    gold = 0;
+    townhallLevel = 1;
+    townhallUpgradeCost = 25;
+    timeToNextWave = 2; // first wave soon
+    waveNumber = 0;
+    isGameOver = false;
+    currentWaveEnemies = 0;
+    waveCleared = true;
+    player.x = WORLD_SIZE / 2 + 0.5;
+    player.y = WORLD_SIZE / 2 + 2.5;
+    player.path = [];
+    structures = [];
+    enemies = [];
+    bullets = [];
+    buildMode = false;
+    buildType = "wall";
+    selectedStructure = null;
+    selectedTile = null;
+    hideStructureMenu();
+    overlay.style.display = "none";
+    occupancy.fill(0);
+    distMap.fill(-1);
+
+    // Townhall at center of tile (centered)
+    const thTileX = Math.floor(WORLD_SIZE / 2);
+    const thTileY = Math.floor(WORLD_SIZE / 2);
+    const thStats = getStructureStats("townhall", 1);
+    const th = {
+      id: 1,
+      type: "townhall",
+      level: 1,
+      x: thTileX + 0.5,
+      y: thTileY + 0.5,
+      maxHP: thStats.maxHP,
+      hp: thStats.maxHP,
+      building: false,
+      buildTime: 0,
+      buildProgress: 0,
+      upgradeInProgress: false,
+      upgradeProgress: 0,
+      upgradeTime: 0,
+      healRemaining: 0,
+      lastShotTime: 0
+    };
+    structures.push(th);
+    occupancy[idx(thTileX, thTileY)] = 1;
+
+    recomputePathMap();
+    updateUI();
+  }
+
+  // ---------- COORD / CAMERA ----------
+
+  function updateTileSize() {
+    const w = gameContainer.clientWidth;
+    const h = gameContainer.clientHeight;
+    const tileX = w / VIEW_TILES_X;
+    const tileY = h / VIEW_TILES_Y;
+    tileSize = Math.min(tileX, tileY);
+    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  }
+
+  function updateCamera() {
+    const w = gameContainer.clientWidth;
+    const h = gameContainer.clientHeight;
+    const viewTilesX = w / tileSize;
+    const viewTilesY = h / tileSize;
+    cameraX = clamp(player.x - viewTilesX / 2, 0, WORLD_SIZE - viewTilesX);
+    cameraY = clamp(player.y - viewTilesY / 2, 0, WORLD_SIZE - viewTilesY);
+  }
+
+  function worldToScreenX(wx) {
+    return (wx - cameraX) * tileSize;
+  }
+  function worldToScreenY(wy) {
+    return (wy - cameraY) * tileSize;
+  }
+
+  function screenToWorld(evt) {
+    const rect = svg.getBoundingClientRect();
+    const sx = evt.clientX - rect.left;
+    const sy = evt.clientY - rect.top;
+    const wx = sx / tileSize + cameraX;
+    const wy = sy / tileSize + cameraY;
+    return { wx, wy };
+  }
+
+  function worldToTile(wx, wy) {
+    return { tx: Math.floor(wx), ty: Math.floor(wy) };
+  }
+
+  function getStructureAtTile(tx, ty) {
+    return structures.find(s => Math.floor(s.x) === tx && Math.floor(s.y) === ty);
+  }
+
+  // ---------- UI HANDLERS ----------
+
+  function setStatus(text) {
+    statusDisplay.textContent = text;
+  }
+
+  function hideStructureMenu() {
+    structureMenu.style.display = "none";
+  }
+
+  function updateUI() {
+    goldDisplay.textContent = "Gold: " + Math.floor(gold);
+    waveDisplay.textContent = "Wave: " + waveNumber +
+      (currentWaveEnemies === 0 && !isGameOver ? " (clear)" : "");
+    townhallDisplay.textContent = "Townhall Lv " + townhallLevel;
+    thUpgradeBtn.textContent = "Upgrade TH (" + Math.floor(townhallUpgradeCost) + "g)";
+    thUpgradeBtn.disabled = (gold < townhallUpgradeCost) || isGameOver;
+
+    moveBtn.classList.toggle('active', !buildMode);
+    buildToggleBtn.classList.toggle('active', buildMode);
+
+    // keep panel in sync with gold / selection
+    if (selectedStructure || buildMode) {
+      showStructureMenu();
+    }
+  }
+
+  function selectTile(tx, ty) {
+
+    selectedTile = { tx, ty };
+    selectedStructure = getStructureAtTile(tx, ty) || null;
+  }
+
+  function tryStartTownhallUpgrade() {
+    if (isGameOver) return false;
+    const th = structures.find(s => s.type === "townhall");
+    if (!th || th.upgradeInProgress) return false;
+    if (gold < townhallUpgradeCost) return false;
+
+    gold -= townhallUpgradeCost;
+    townhallLevel += 1;
+    const newStats = getStructureStats("townhall", townhallLevel);
+    th.upgradeInProgress = true;
+    th.upgradeProgress = 0;
+    th.upgradeTime = 3; // fixed 3s
+    th.newMaxHP = newStats.maxHP;
+    th.healRemaining = 0;
+    townhallUpgradeCost *= 2.25;
+    setStatus("Townhall upgrading...");
+    return true;
+  }
+
+  moveBtn.addEventListener('click', () => {
+    buildMode = false;
+    hideStructureMenu();
+  selectedTile = null;
+    setStatus("Tap to move.");
+    updateUI();
+  });
+
+  buildToggleBtn.addEventListener('click', () => {
+    buildMode = !buildMode;
+    setStatus(buildMode
+      ? "Build mode: tap a tile, choose structure, then Build."
+      : "Tap to move."
+    );
+    updateUI();
+  });
+
+  thUpgradeBtn.addEventListener('click', () => {
+    if (tryStartTownhallUpgrade()) {
+      updateUI();
+    }
+  });
+
+  // Structure / tile panel
+  function showStructureMenu() {
+    if (!selectedTile) {
+      hideStructureMenu();
+      return;
+    }
+    const tx = selectedTile.tx;
+    const ty = selectedTile.ty;
+    if (tx < 0 || ty < 0 || tx >= WORLD_SIZE || ty >= WORLD_SIZE) {
+      hideStructureMenu();
+      return;
+    }
+
+    structureMenu.style.display = "block";
+    smPos.textContent = `Tile: (${tx}, ${ty})`;
+
+    const s = selectedStructure;
+
+    // Empty tile = build menu
+    if (!s) {
+      smName.textContent = "Empty Tile";
+      smLevel.textContent = "";
+      smHp.textContent = "";
+      smDestroy.disabled = true;
+      smUpgradeAll.disabled = true;
+
+      // type buttons
+      const types = ["wall", "hunter", "spark"];
+      smTypeRow.innerHTML = "";
+      types.forEach(t => {
+        const btn = document.createElement("button");
+        btn.textContent = t[0].toUpperCase() + t.slice(1);
+        btn.className = "sm-type-btn" + (buildType === t ? " active" : "");
+        btn.dataset.type = t;
+        smTypeRow.appendChild(btn);
+      });
+
+      const stats = getStructureStats(buildType, 1);
+      const label = buildType[0].toUpperCase() + buildType.slice(1);
+      smExtra.textContent = `Preview: ${label} Lv1 (HP ${Math.floor(stats.maxHP)})`;
+      smHint.innerHTML =
+        `Build ${label} Lv1: <b>${Math.floor(stats.cost)}g</b>`;
+      smUpgrade.textContent = `Build ${label}`;
+      smUpgrade.disabled = isGameOver || !buildMode || gold < stats.cost;
+
+      return;
+    }
+
+    // There *is* a structure on this tile
+    smTypeRow.innerHTML = ""; // no type buttons for existing structure
+
+    smName.textContent = s.type.toUpperCase();
+    smLevel.textContent = "Level: " + s.level;
+    smHp.textContent = "HP: " + Math.floor(s.hp) + " / " + Math.floor(s.maxHP);
+
+    // Extra info line
+    let extra = "";
+    if (s.type === "hunter") {
+      const st = getStructureStats("hunter", s.level);
+      extra = "DMG: " + st.damage.toFixed(1) +
+              " | CD: " + st.cooldown.toFixed(2) + "s" +
+              " | RNG: " + st.range.toFixed(1);
+    } else if (s.type === "spark") {
+      const st = getStructureStats("spark", s.level);
+      extra = "DMG: " + st.damage.toFixed(1) +
+              " | CD: " + st.cooldown.toFixed(2) + "s" +
+              " | RNG: " + st.range.toFixed(1);
+    } else if (s.type === "wall") {
+      const st = getStructureStats("wall", s.level);
+      extra = "Regen: " + st.regenRate.toFixed(2) + "/s";
+    } else if (s.type === "townhall") {
+      extra = "Gold: " +
+        (GOLD_PER_TH_LEVEL * Math.pow(2, townhallLevel - 1)).toFixed(1) +
+        "/s";
+    }
+    smExtra.textContent = extra;
+
+    if (s.type === "townhall") {
+      // townhall upgrade here too
+      smUpgrade.textContent = "Upgrade TH";
+      smUpgrade.disabled = isGameOver || s.upgradeInProgress || gold < townhallUpgradeCost;
+      smDestroy.disabled = true;
+      smUpgradeAll.disabled = true;
+      smHint.innerHTML =
+        `Upgrade TH to Lv ${townhallLevel + 1}: <b>${Math.floor(townhallUpgradeCost)}g</b>`;
+      return;
+    }
+
+    // regular structure upgrade / upgrade-all
+    const nextLevel = s.level + 1;
+    const statsNext = getStructureStats(s.type, nextLevel);
+    const singleCost = statsNext.cost;
+
+    // All towers of same type & level, not building/upgrading
+    const sameList = structures.filter(s2 =>
+      s2.type === s.type &&
+      s2.level === s.level &&
+      !s2.building &&
+      !s2.upgradeInProgress
+    );
+    const totalCost = sameList.length * singleCost;
+
+    smUpgrade.textContent = "Upgrade";
+    smUpgrade.disabled =
+      s.building ||
+      s.upgradeInProgress ||
+      isGameOver ||
+      gold < singleCost;
+
+    smUpgradeAll.textContent = "Upgrade All";
+    smUpgradeAll.disabled =
+      isGameOver ||
+      sameList.length === 0 ||
+      gold < totalCost;
+
+    smDestroy.disabled =
+      isGameOver ||
+      s.building ||
+      s.upgradeInProgress;
+
+    smHint.innerHTML =
+      `<div>Upgrade: <b>${Math.floor(singleCost)}g</b></div>` +
+      `<div>Upgrade All (${sameList.length}): <b>${Math.floor(totalCost)}g</b></div>`;
+  }
+
+  structureMenu.addEventListener('click', (e) => {
+    const btn = e.target.closest('.sm-type-btn');
+    if (!btn) return;
+    buildType = btn.dataset.type;
+    showStructureMenu();
+  });
+
+  smUpgrade.addEventListener('click', () => {
+    if (isGameOver) return;
+
+    // Empty tile + build
+    if (!selectedStructure && selectedTile && buildMode) {
+      const tx = selectedTile.tx;
+      const ty = selectedTile.ty;
+      if (getStructureAtTile(tx, ty)) return;
+      const stats = getStructureStats(buildType, 1);
+      if (gold < stats.cost) return;
+
+      gold -= stats.cost;
+      const buildTime = stats.maxHP / 100;
+      const sx = tx + 0.5;
+      const sy = ty + 0.5;
+      structures.push({
+        id: Date.now() + Math.random(),
+        type: buildType,
+        level: 1,
+        x: sx,
+        y: sy,
+        maxHP: stats.maxHP,
+        hp: 0,
+        building: true,
+        buildTime: buildTime,
+        buildProgress: 0,
+        upgradeInProgress: false,
+        upgradeTime: 0,
+        upgradeProgress: 0,
+        healRemaining: 0,
+        lastShotTime: 0,
+        cooldownTimer: 0
+      });
+      occupancy[idx(tx, ty)] = 1;
+      recomputePathMap();
+      setStatus("Building " + buildType + "...");
+      updateUI();
+      return;
+    }
+
+    if (!selectedStructure) return;
+    const s = selectedStructure;
+
+    // Townhall upgrade from panel
+    if (s.type === "townhall") {
+      if (tryStartTownhallUpgrade()) {
+        updateUI();
+        showStructureMenu();
+      }
+      return;
+    }
+
+    // normal structure upgrade
+    const nextLevel = s.level + 1;
+    const ns = getStructureStats(s.type, nextLevel);
+    const cost = ns.cost;
+    if (gold < cost) return;
+    if (s.upgradeInProgress || s.building) return;
+    gold -= cost;
+    s.upgradeInProgress = true;
+    s.upgradeProgress = 0;
+    s.upgradeTime = 3; // fixed 3s
+    s.newLevel = nextLevel;
+    s.newMaxHP = ns.maxHP;
+    s.healRemaining = 0;
+    setStatus("Upgrading " + s.type + "...");
+    updateUI();
+    showStructureMenu();
+  });
+
+  smDestroy.addEventListener('click', () => {
+    if (!selectedStructure || isGameOver) return;
+    const s = selectedStructure;
+    if (s.type === "townhall") return;
+    const tx = Math.floor(s.x);
+    const ty = Math.floor(s.y);
+    occupancy[idx(tx, ty)] = 0;
+    structures = structures.filter(st => st !== s);
+    selectedStructure = null;
+    showStructureMenu();
+    recomputePathMap();
+  });
+
+  smUpgradeAll.addEventListener('click', () => {
+    if (!selectedStructure || isGameOver) return;
+    const base = selectedStructure;
+    if (base.type === "townhall") return;
+
+    const nextLevel = base.level + 1;
+    const statsNext = getStructureStats(base.type, nextLevel);
+    const singleCost = statsNext.cost;
+
+    // All towers same type+level, not already upgrading/building
+    const sameList = structures.filter(s2 =>
+      s2.type === base.type &&
+      s2.level === base.level &&
+      !s2.building &&
+      !s2.upgradeInProgress
+    );
+    if (sameList.length === 0) return;
+
+    const totalCost = sameList.length * singleCost;
+    if (gold < totalCost) return;
+
+    gold -= totalCost;
+
+    for (const s of sameList) {
+      s.upgradeInProgress = true;
+      s.upgradeProgress = 0;
+      s.upgradeTime = 3;
+      s.newLevel = nextLevel;
+      s.newMaxHP = statsNext.maxHP;
+      s.healRemaining = 0;
+    }
+
+    setStatus(
+      "Upgrading all " +
+      base.type +
+      " Lv " + base.level +
+      " (" + sameList.length + ")..."
+    );
+
+    updateUI();
+    showStructureMenu();
+  });
+
+  restartBtn.addEventListener('click', () => {
+    resetGame();
+  });
+
+  // ---------- INPUT ON SVG ----------
+
+  function handleGameTap(evt) {
+    if (isGameOver) return;
+    const worldPos = screenToWorld(evt);
+    const tile = worldToTile(worldPos.wx, worldPos.wy);
+    const tx = clamp(tile.tx, 0, WORLD_SIZE - 1);
+    const ty = clamp(tile.ty, 0, WORLD_SIZE - 1);
+
+    const clickedStructure = getStructureAtTile(tx, ty);
+
+    // Always select the tile
+    selectedStructure = clickedStructure || null;
+    selectTile(tx, ty);
+
+    // If in build mode, we just select & show panel (no movement)
+    if (buildMode) {
+      setStatus("Tile selected. Choose structure and Build.");
+      return;
+    }
+
+    // If not build mode and clicked on structure -> show its menu, no movement
+    if (clickedStructure) {
+      setStatus("Structure selected.");
+      return;
+    }
+
+    // Movement: simple straight-line tile path
+    const startX = Math.floor(player.x);
+    const startY = Math.floor(player.y);
+    const path = [];
+    let cx = startX;
+    let cy = startY;
+    let guard = 0;
+    while ((cx !== tx || cy !== ty) && guard < 512) {
+      guard++;
+      if (cx < tx) cx++;
+      else if (cx > tx) cx--;
+      else if (cy < ty) cy++;
+      else if (cy > ty) cy--;
+      path.push({ x: cx + 0.5, y: cy + 0.5 });
+    }
+    player.path = path;
+    setStatus("Moving...");
+  }
+
+  svg.addEventListener('pointerdown', function(evt) {
+    if (evt.pointerType === "mouse" && evt.button !== 0) return;
+    handleGameTap(evt);
+  });
+
+  // ---------- WAVES & ENEMIES ----------
+
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function spawnWave() {
+    waveNumber += 1;
+    waveCleared = false;
+    currentWaveEnemies = 0;
+    const level = waveNumber;
+
+    if (waveNumber % 10 === 0) {
+      // Boss wave: single stronger enemy, level+2
+      const bossLevel = level + 2;
+      const t = pickEnemyType(bossLevel);
+      spawnEnemy(bossLevel, t, true);
+    } else {
+      const baseCount = randInt(5, 10);
+      const extraPerLevel = randInt(1, 3);
+      const count = baseCount + extraPerLevel * level;
+      for (let i = 0; i < count; i++) {
+        const t = pickEnemyType(level);
+        spawnEnemy(level, t, false);
+      }
+    }
+    setStatus("Wave " + waveNumber + "!");
+  }
+
+  function spawnEnemy(level, enemyType, isBoss) {
+    // random edge cell that is not blocked
+    let tries = 0;
+    let x = 0, y = 0;
+    while (tries < 200) {
+      tries++;
+      const edge = Math.floor(Math.random() * 4);
+      if (edge === 0) {
+        x = randInt(0, WORLD_SIZE - 1);
+        y = 0;
+      } else if (edge === 1) {
+        x = WORLD_SIZE - 1;
+        y = randInt(0, WORLD_SIZE - 1);
+      } else if (edge === 2) {
+        x = randInt(0, WORLD_SIZE - 1);
+        y = WORLD_SIZE - 1;
+      } else {
+        x = 0;
+        y = randInt(0, WORLD_SIZE - 1);
+      }
+      if (!occupancy[idx(x, y)]) break;
+    }
+    const hpMax = enemyHP(level, isBoss);
+    enemies.push({
+      x: x + 0.5,
+      y: y + 0.5,
+      level,
+      maxHP: hpMax,
+      hp: hpMax,
+      speed: enemySpeed(level, isBoss),
+      attackDamage: enemyDamage(level, isBoss),
+      attackTimer: 0,
+      isBoss: !!isBoss,
+      type: enemyType // 'basic','attacker','flying'
+    });
+    currentWaveEnemies++;
+  }
+
+  // ---------- GAME LOOP UPDATE ----------
+
+  function update(dt) {
+    if (isGameOver) return;
+
+    const th = structures.find(s => s.type === "townhall");
+
+    // Gold from townhall
+    if (th) {
+      const goldRate = GOLD_PER_TH_LEVEL * Math.pow(2, townhallLevel - 1);
+      gold += goldRate * dt;
+    }
+
+    // Wave timer only when current wave cleared (no enemies) and waveCleared == true
+    if (!isGameOver && enemies.length === 0 && waveCleared) {
+      timeToNextWave -= dt;
+      if (timeToNextWave <= 0) {
+        timeToNextWave = WAVE_INTERVAL;
+        spawnWave();
+      }
+    }
+
+    // Player movement
+    if (player.path.length > 0) {
+      const target = player.path[0];
+      const dx = target.x - player.x;
+      const dy = target.y - player.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < 0.01) {
+        player.x = target.x;
+        player.y = target.y;
+        player.path.shift();
+      } else {
+        const maxMove = player.speed * dt;
+        const mx = dx / dist * Math.min(maxMove, dist);
+        const my = dy / dist * Math.min(maxMove, dist);
+        player.x += mx;
+        player.y += my;
+      }
+    }
+
+    // Structures: build/upgrade/regen & attacks
+    for (const s of structures) {
+      // building
+      if (s.building) {
+        s.buildProgress += dt;
+        if (s.buildProgress >= s.buildTime) {
+          s.building = false;
+          s.hp = s.maxHP;
+        }
+      }
+
+      // upgrade
+      if (s.upgradeInProgress) {
+        s.upgradeProgress += dt;
+        if (s.upgradeProgress >= s.upgradeTime) {
+          s.upgradeInProgress = false;
+          const oldMax = s.maxHP;
+          s.level = s.newLevel || (s.level + 1);
+          s.maxHP = s.newMaxHP;
+          const diff = s.maxHP - s.hp;
+          s.healRemaining = diff > 0 ? diff : 0;
+          if (s.type === "townhall") {
+            townhallLevel = s.level;
+          }
+          setStatus(s.type + " upgraded to Lv " + s.level);
+        }
+      }
+
+      // upgrade heal
+      if (s.healRemaining > 0) {
+        const healRate = 100 * townhallLevel;
+        const heal = Math.min(healRate * dt, s.healRemaining);
+        s.healRemaining -= heal;
+        s.hp = Math.min(s.maxHP, s.hp + heal);
+      }
+
+      // wall passive regen
+      if (!s.building && !s.upgradeInProgress && s.type === "wall" && s.hp > 0 && s.hp < s.maxHP) {
+        const st = getStructureStats("wall", s.level);
+        const regen = st.regenRate * dt;
+        s.hp = Math.min(s.maxHP, s.hp + regen);
+      }
+
+      // Tower attacks
+      if (!s.building && !s.upgradeInProgress && s.hp > 0) {
+        if (s.type === "hunter") {
+          const st = getStructureStats("hunter", s.level);
+          s.cooldownTimer = (s.cooldownTimer || 0) - dt;
+          if (s.cooldownTimer <= 0) {
+            // find target in range
+            let best = null;
+            let bestDist = Infinity;
+            for (const e of enemies) {
+              const dx = e.x - s.x;
+              const dy = e.y - s.y;
+              const dist = Math.hypot(dx, dy);
+              if (dist <= st.range && dist < bestDist) {
+                bestDist = dist;
+                best = e;
+              }
+            }
+            if (best) {
+              const dx = best.x - s.x;
+              const dy = best.y - s.y;
+              const dist = Math.hypot(dx, dy) || 0.001;
+              const bulletSpeed = st.range / st.cooldown * 2;
+              const vx = (dx / dist) * bulletSpeed;
+              const vy = (dy / dist) * bulletSpeed;
+              bullets.push({
+                x: s.x,
+                y: s.y,
+                vx,
+                vy,
+                baseDamage: st.damage,
+                pierce: st.pierce,
+                range: st.range,
+                traveled: 0
+              });
+              s.cooldownTimer = st.cooldown;
+            }
+          }
+        } else if (s.type === "spark") {
+          const st = getStructureStats("spark", s.level);
+          s.cooldownTimer = (s.cooldownTimer || 0) - dt;
+          if (s.cooldownTimer <= 0) {
+            let enemiesInRange = [];
+            for (const e of enemies) {
+              const dx = e.x - s.x;
+              const dy = e.y - s.y;
+              const dist = Math.hypot(dx, dy);
+              if (dist <= st.range) {
+                enemiesInRange.push(e);
+              }
+            }
+            if (enemiesInRange.length > 0) {
+              for (const e of enemiesInRange) {
+                let dmg = st.damage / enemiesInRange.length;
+                e.hp -= dmg;
+              }
+            }
+            s.cooldownTimer = st.cooldown;
+          }
+        }
+      }
+    }
+
+    // Bullets
+    for (let i = bullets.length - 1; i >= 0; i--) {
+      const b = bullets[i];
+      const move = Math.hypot(b.vx * dt, b.vy * dt);
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
+      b.traveled += move;
+      if (b.traveled > b.range || b.pierce <= 0) {
+        bullets.splice(i, 1);
+        continue;
+      }
+      // hit check
+      for (const e of enemies) {
+        const dx = e.x - b.x;
+        const dy = e.y - b.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < 0.4) {
+          const tilesTraveled = b.traveled;
+          const dmg = b.baseDamage * Math.pow(0.95, tilesTraveled);
+          e.hp -= dmg;
+          b.pierce -= 1;
+          if (b.pierce <= 0) break;
+        }
+      }
+      if (b.x < 0 || b.x > WORLD_SIZE || b.y < 0 || b.y > WORLD_SIZE) {
+        bullets.splice(i, 1);
+      }
+    }
+
+    // Enemies movement and attacks
+    if (th && th.hp > 0) {
+      for (const e of enemies) {
+        if (e.hp <= 0) continue;
+
+        let targetX = th.x;
+        let targetY = th.y;
+
+        if (e.type === "basic") {
+          // pathfind via distMap
+          const tx = clamp(Math.floor(e.x), 0, WORLD_SIZE - 1);
+          const ty = clamp(Math.floor(e.y), 0, WORLD_SIZE - 1);
+          const i = idx(tx, ty);
+          const d0 = distMap[i];
+          if (d0 >= 0) {
+            let bestD = d0;
+            let best = null;
+            const neighbors = [
+              [tx + 1, ty],
+              [tx - 1, ty],
+              [tx, ty + 1],
+              [tx, ty - 1]
+            ];
+            for (const [nx, ny] of neighbors) {
+              if (nx < 0 || ny < 0 || nx >= WORLD_SIZE || ny >= WORLD_SIZE) continue;
+              const ni = idx(nx, ny);
+              const nd = distMap[ni];
+              if (nd >= 0 && nd < bestD) {
+                bestD = nd;
+                best = { nx, ny };
+              }
+            }
+            if (best) {
+              targetX = best.nx + 0.5;
+              targetY = best.ny + 0.5;
+            } else {
+              targetX = th.x;
+              targetY = th.y;
+            }
+          } else {
+            targetX = th.x;
+            targetY = th.y;
+          }
+        } else if (e.type === "attacker") {
+          // nearest non-townhall structure
+          let nearest = null;
+          let bestDist = Infinity;
+          for (const s of structures) {
+            if (s.type === "townhall") continue;
+            const dx = s.x - e.x;
+            const dy = s.y - e.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < bestDist) {
+              bestDist = dist;
+              nearest = s;
+            }
+          }
+          if (nearest) {
+            targetX = nearest.x;
+            targetY = nearest.y;
+          } else {
+            targetX = th.x;
+            targetY = th.y;
+          }
+        } else if (e.type === "flying") {
+          // straight to townhall, ignoring obstacles
+          targetX = th.x;
+          targetY = th.y;
+        }
+
+        const dx = targetX - e.x;
+        const dy = targetY - e.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 0.05) {
+          const step = e.speed * dt;
+          const mx = dx / dist * Math.min(step, dist);
+          const my = dy / dist * Math.min(step, dist);
+          e.x += mx;
+          e.y += my;
+        }
+
+        // choose structure to attack if close
+        let targetStructure = null;
+        let minDistS = 0.7;
+        for (const s of structures) {
+          const sx = s.x;
+          const sy = s.y;
+          const d2 = Math.hypot(e.x - sx, e.y - sy);
+          if (d2 < minDistS) {
+            minDistS = d2;
+            targetStructure = s;
+          }
+        }
+
+        e.attackTimer -= dt;
+        if (targetStructure && e.attackTimer <= 0 && targetStructure.hp > 0) {
+          targetStructure.hp -= e.attackDamage;
+          e.attackTimer = ENEMY_BASE_CD;
+          if (targetStructure.hp <= 0) {
+            targetStructure.hp = 0;
+            const tx = Math.floor(targetStructure.x);
+            const ty = Math.floor(targetStructure.y);
+            occupancy[idx(tx, ty)] = 0;
+            structures = structures.filter(st => st !== targetStructure);
+            recomputePathMap();
+          }
+        }
+      }
+    }
+
+    // Cleanup enemies & gold rewards
+    let anyDied = false;
+    for (let i = enemies.length - 1; i >= 0; i--) {
+      const e = enemies[i];
+      if (e.hp <= 0) {
+        anyDied = true;
+        // Gold per kill: 2 * 2^(level-1)
+        const reward = 2 * Math.pow(2, e.level - 1);
+        gold += reward;
+        enemies.splice(i, 1);
+        currentWaveEnemies = Math.max(0, currentWaveEnemies - 1);
+      }
+    }
+
+    // Wave clear bonus
+    if (currentWaveEnemies === 0 && !waveCleared && !isGameOver) {
+      waveCleared = true;
+      const bonus = Math.pow(waveNumber + 2, 2);
+      gold += bonus;
+      setStatus("Wave " + waveNumber + " cleared! Bonus +" + bonus + " gold.");
+    }
+
+    // Check townhall HP
+    if (th && th.hp <= 0 && !isGameOver) {
+      isGameOver = true;
+      th.hp = 0;
+      overlayTitle.textContent = "Game Over";
+      overlayText.textContent = "Your Townhall has been destroyed.";
+      overlay.style.display = "flex";
+      setStatus("Dfeated.");
+    }
+
+    updateUI();
+  }
+
+  // ---------- RENDER ----------
+
+  function clearSVG() {
+    while (svg.firstChild) {
+      svg.removeChild(svg.firstChild);
+    }
+  }
+
+  function drawBackground() {
+    const w = gameContainer.clientWidth;
+    const h = gameContainer.clientHeight;
+    const bg = document.createElementNS(svgNS, "rect");
+    bg.setAttribute("x", 0);
+    bg.setAttribute("y", 0);
+    bg.setAttribute("width", w);
+    bg.setAttribute("height", h);
+    bg.setAttribute("fill", "#254b25");
+    svg.appendChild(bg);
+
+    const viewTilesX = w / tileSize;
+    const viewTilesY = h / tileSize;
+
+    const startTileX = Math.floor(cameraX);
+    const endTileX = Math.ceil(cameraX + viewTilesX);
+    const startTileY = Math.floor(cameraY);
+    const endTileY = Math.ceil(cameraY + viewTilesY);
+
+    // vertical lines aligned to world tiles
+    for (let tx = startTileX; tx <= endTileX; tx++) {
+      const x = (tx - cameraX) * tileSize;
+      const line = document.createElementNS(svgNS, "line");
+      line.setAttribute("x1", x);
+      line.setAttribute("y1", 0);
+      line.setAttribute("x2", x);
+      line.setAttribute("y2", h);
+      line.setAttribute("stroke", "rgba(0,0,0,0.25)");
+      line.setAttribute("stroke-width", 0.5);
+      svg.appendChild(line);
+    }
+    // horizontal lines
+    for (let ty = startTileY; ty <= endTileY; ty++) {
+      const y = (ty - cameraY) * tileSize;
+      const line = document.createElementNS(svgNS, "line");
+      line.setAttribute("x1", 0);
+      line.setAttribute("y1", y);
+      line.setAttribute("x2", w);
+      line.setAttribute("y2", y);
+      line.setAttribute("stroke", "rgba(0,0,0,0.25)");
+      line.setAttribute("stroke-width", 0.5);
+      svg.appendChild(line);
+    }
+
+    // Selected tile highlight
+    if (selectedTile) {
+      const { tx, ty } = selectedTile;
+      const left = (tx - cameraX) * tileSize;
+      const top = (ty - cameraY) * tileSize;
+      const rect = document.createElementNS(svgNS, "rect");
+      rect.setAttribute("x", left);
+      rect.setAttribute("y", top);
+      rect.setAttribute("width", tileSize);
+      rect.setAttribute("height", tileSize);
+      rect.setAttribute("fill", "none");
+      rect.setAttribute("stroke", "#00b0ff");
+      rect.setAttribute("stroke-width", 2);
+      svg.appendChild(rect);
+    }
+  }
+
+  function drawPlayer() {
+    const px = worldToScreenX(player.x);
+    const py = worldToScreenY(player.y);
+    const size = tileSize * 0.6;
+    const half = size / 2;
+
+    const g = document.createElementNS(svgNS, "g");
+    g.setAttribute("transform", `translate(${px},${py})`);
+
+    const body = document.createElementNS(svgNS, "circle");
+    body.setAttribute("cx", 0);
+    body.setAttribute("cy", 0);
+    body.setAttribute("r", half * 0.7);
+    body.setAttribute("fill", "#ffd54f");
+    body.setAttribute("stroke", "#b28900");
+    body.setAttribute("stroke-width", 2);
+    g.appendChild(body);
+
+    const dirTriangle = document.createElementNS(svgNS, "polygon");
+    const p1 = `${-half * 0.3},${-half * 0.3}`;
+    const p2 = `${half * 0.6},0`;
+    const p3 = `${-half * 0.3},${half * 0.3}`;
+    dirTriangle.setAttribute("points", `${p1} ${p2} ${p3}`);
+    dirTriangle.setAttribute("fill", "#ffb300");
+    g.appendChild(dirTriangle);
+
+    svg.appendChild(g);
+  }
+
+  function drawStructures() {
+    for (const s of structures) {
+      const st = getStructureStats(s.type, s.level);
+      const x = worldToScreenX(s.x);
+      const y = worldToScreenY(s.y);
+      const size = tileSize * 0.8;
+      const half = size / 2;
+
+      const g = document.createElementNS(svgNS, "g");
+      g.setAttribute("transform", `translate(${x},${y})`);
+
+      // selected structure border
+      if (s === selectedStructure) {
+        const sel = document.createElementNS(svgNS, "rect");
+        sel.setAttribute("x", -half - 3);
+        sel.setAttribute("y", -half - 3);
+        sel.setAttribute("width", size + 6);
+        sel.setAttribute("height", size + 6);
+        sel.setAttribute("fill", "none");
+        sel.setAttribute("stroke", "#00b0ff");
+        sel.setAttribute("stroke-width", 3);
+        g.appendChild(sel);
+      }
+
+      let main;
+      if (s.type === "wall") {
+        main = document.createElementNS(svgNS, "rect");
+        main.setAttribute("x", -half);
+        main.setAttribute("y", -half);
+        main.setAttribute("width", size);
+        main.setAttribute("height", size);
+        main.setAttribute("rx", size * 0.15);
+        main.setAttribute("fill", st.color || "#888");
+        main.setAttribute("stroke", "#333");
+        main.setAttribute("stroke-width", 2);
+      } else if (s.type === "hunter") {
+        main = document.createElementNS(svgNS, "rect");
+        main.setAttribute("x", -half);
+        main.setAttribute("y", -half);
+        main.setAttribute("width", size);
+        main.setAttribute("height", size);
+        main.setAttribute("rx", size * 0.2);
+        main.setAttribute("fill", st.color || "#888");
+        main.setAttribute("stroke", "#222");
+        main.setAttribute("stroke-width", 2);
+
+        const barrel = document.createElementNS(svgNS, "rect");
+        barrel.setAttribute("x", 0);
+        barrel.setAttribute("y", -size * 0.1);
+        barrel.setAttribute("width", size * 0.7);
+        barrel.setAttribute("height", size * 0.2);
+        barrel.setAttribute("fill", "#222");
+        g.appendChild(barrel);
+      } else if (s.type === "spark") {
+        main = document.createElementNS(svgNS, "circle");
+        main.setAttribute("cx", 0);
+        main.setAttribute("cy", 0);
+        main.setAttribute("r", half * 0.8);
+        main.setAttribute("fill", st.color || "#88f");
+        main.setAttribute("stroke", "#222");
+        main.setAttribute("stroke-width", 2);
+
+        const bolt = document.createElementNS(svgNS, "polyline");
+        const p1 = `${-half * 0.3},${-half * 0.5}`;
+        const p2 = `${0},${0}`;
+        const p3 = `${half * 0.3},${-half * 0.1}`;
+        const p4 = `${0},${half * 0.5}`;
+        bolt.setAttribute("points", `${p1} ${p2} ${p3} ${p4}`);
+        bolt.setAttribute("fill", "none");
+        bolt.setAttribute("stroke", "#ffeb3b");
+        bolt.setAttribute("stroke-width", 2);
+        g.appendChild(bolt);
+      } else if (s.type === "townhall") {
+        main = document.createElementNS(svgNS, "rect");
+        main.setAttribute("x", -half);
+        main.setAttribute("y", -half);
+        main.setAttribute("width", size);
+        main.setAttribute("height", size * 0.6);
+        main.setAttribute("fill", st.color || "#d9b46c");
+        main.setAttribute("stroke", "#222");
+        main.setAttribute("stroke-width", 3);
+
+        const roof = document.createElementNS(svgNS, "polygon");
+        const rp1 = `${-half},${-half}`;
+        const rp2 = `0,${-size}`;
+        const rp3 = `${half},${-half}`;
+        roof.setAttribute("points", `${rp1} ${rp2} ${rp3}`);
+        roof.setAttribute("fill", "#444");
+        roof.setAttribute("stroke", "#111");
+        roof.setAttribute("stroke-width", 2);
+        g.appendChild(roof);
+      } else {
+        main = document.createElementNS(svgNS, "rect");
+        main.setAttribute("x", -half);
+        main.setAttribute("y", -half);
+        main.setAttribute("width", size);
+        main.setAttribute("height", size);
+        main.setAttribute("fill", "#999");
+      }
+
+      g.appendChild(main);
+
+      // HP bar (only if not full OR while building/upgrading)
+      const showHpBar = (s.hp < s.maxHP - 0.1) || s.building || s.upgradeInProgress;
+      if (showHpBar) {
+        const barWidth = size;
+        const barHeight = 3;
+        const hpBg = document.createElementNS(svgNS, "rect");
+        hpBg.setAttribute("x", -barWidth / 2);
+        hpBg.setAttribute("y", half + 2);
+        hpBg.setAttribute("width", barWidth);
+        hpBg.setAttribute("height", barHeight);
+        hpBg.setAttribute("fill", "#333");
+        g.appendChild(hpBg);
+
+        const hpFrac = s.maxHP > 0 ? s.hp / s.maxHP : 0;
+        const hpFg = document.createElementNS(svgNS, "rect");
+        hpFg.setAttribute("x", -barWidth / 2);
+        hpFg.setAttribute("y", half + 2);
+        hpFg.setAttribute("width", barWidth * hpFrac);
+        hpFg.setAttribute("height", barHeight);
+        hpFg.setAttribute("fill", "#76ff03");
+        g.appendChild(hpFg);
+      }
+
+      if (s.building || s.upgradeInProgress) {
+        const text = document.createElementNS(svgNS, "text");
+        text.setAttribute("x", 0);
+        text.setAttribute("y", half + 12);
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("fill", "#ffeb3b");
+        text.setAttribute("font-size", 8);
+        text.textContent = s.building ? "Building" : "Upgrading";
+        g.appendChild(text);
+      }
+
+      svg.appendChild(g);
+    }
+  }
+
+  function drawEnemies() {
+    for (const e of enemies) {
+      const x = worldToScreenX(e.x);
+      const y = worldToScreenY(e.y);
+      const size = tileSize * 0.7;
+      const half = size / 2;
+      const g = document.createElementNS(svgNS, "g");
+      g.setAttribute("transform", `translate(${x},${y})`);
+
+      const body = document.createElementNS(svgNS, "rect");
+      body.setAttribute("x", -half);
+      body.setAttribute("y", -half);
+      body.setAttribute("width", size);
+      body.setAttribute("height", size);
+      body.setAttribute("rx", size * 0.2);
+      body.setAttribute("fill", tierColorForLevel(e.level));
+      body.setAttribute("stroke", "#111");
+      body.setAttribute("stroke-width", 2);
+      g.appendChild(body);
+
+      if (e.isBoss) {
+        const hornL = document.createElementNS(svgNS, "polygon");
+        const hornR = document.createElementNS(svgNS, "polygon");
+        const hp1 = `${-half * 0.6},${-half}`;
+        const hp2 = `${-half * 0.2},${-size}`;
+        const hp3 = `${0},${-half * 0.6}`;
+        hornL.setAttribute("points", `${hp1} ${hp2} ${hp3}`);
+        hornL.setAttribute("fill", "#fff");
+        hornR.setAttribute("points", `${0},${-half * 0.6} ${half * 0.2},${-size} ${half * 0.6},${-half}`);
+        hornR.setAttribute("fill", "#fff");
+        g.appendChild(hornL);
+        g.appendChild(hornR);
+      }
+
+      const barWidth = size;
+      const barHeight = 3;
+      const hpBg = document.createElementNS(svgNS, "rect");
+      hpBg.setAttribute("x", -barWidth / 2);
+      hpBg.setAttribute("y", half + 2);
+      hpBg.setAttribute("width", barWidth);
+      hpBg.setAttribute("height", barHeight);
+      hpBg.setAttribute("fill", "#333");
+      g.appendChild(hpBg);
+
+      const frac = e.maxHP > 0 ? e.hp / e.maxHP : 0;
+      const hpFg = document.createElementNS(svgNS, "rect");
+      hpFg.setAttribute("x", -barWidth / 2);
+      hpFg.setAttribute("y", half + 2);
+      hpFg.setAttribute("width", barWidth * frac);
+      hpFg.setAttribute("height", barHeight);
+      hpFg.setAttribute("fill", "#ff5252");
+      g.appendChild(hpFg);
+
+      svg.appendChild(g);
+    }
+  }
+
+  function drawBullets() {
+    for (const b of bullets) {
+      const x = worldToScreenX(b.x);
+      const y = worldToScreenY(b.y);
+      const r = tileSize * 0.15;
+      const c = document.createElementNS(svgNS, "circle");
+      c.setAttribute("cx", x);
+      c.setAttribute("cy", y);
+      c.setAttribute("r", r);
+      c.setAttribute("fill", "#ffeb3b");
+      c.setAttribute("stroke", "#f57f17");
+      c.setAttribute("stroke-width", 1);
+      svg.appendChild(c);
+    }
+  }
+
+  function render() {
+    updateTileSize();
+    updateCamera();
+    clearSVG();
+    drawBackground();
+    drawStructures();
+    drawEnemies();
+    drawPlayer();
+    drawBullets();
+  }
+
+  // ---------- MAIN LOOP ----------
+
+  let lastTime = null;
+
+  function loop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    const dt = (timestamp - lastTime) / 1000;
+    lastTime = timestamp;
+
+    update(dt);
+    render();
+
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener('resize', () => {
+    updateTileSize();
+  });
+
+  resetGame();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
