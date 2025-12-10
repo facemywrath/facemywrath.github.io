@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Faceuro Games</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="app-header">
+      <h1>Faceuro Games</h1>
+    </header>
+
+    <main class="app-main">
+      <section id="status-section" class="status-section">
+        <div id="status-message">Connecting to server...</div>
+        <button id="retry-button" class="hidden">Retry</button>
+      </section>
+
+      <section id="game-list-section" class="game-list-section hidden">
+        <h2>Available Games</h2>
+        <div id="game-list" class="game-list"></div>
+      </section>
+
+      <section id="game-frame-section" class="game-frame-section hidden">
+        <div class="game-frame-header">
+          <button id="back-to-menu">⬅ Back</button>
+          <h2 id="current-game-title">Loading...</h2>
+        </div>
+        <iframe id="game-frame" class="game-frame" src=""></iframe>
+      </section>
+    </main>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
