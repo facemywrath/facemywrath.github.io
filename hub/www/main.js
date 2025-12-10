@@ -2,7 +2,7 @@
 
 // CHANGE THIS TO YOUR REAL SERVER DOMAIN / IP
 // Example: "https://faceurogames.net" or "http://192.168.0.10:3000"
-const API_BASE_URL = "https://home.faceurogames.net:3000";
+const API_BASE_URL = "https://home.faceurogames.net";
 
 const statusSection = document.getElementById('status-section');
 const statusMessage = document.getElementById('status-message');
