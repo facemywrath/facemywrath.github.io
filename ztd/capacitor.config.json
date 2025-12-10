@@ -1,0 +1,8 @@
+{
+  "appId": "com.ztd.app",
+  "appName": "ztd",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
