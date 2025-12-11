@@ -4,6 +4,35 @@
 // Example: "https://faceurogames.net" or "http://192.168.0.10:3000"
 const API_BASE_URL = "https://home.faceurogames.net";
 
+function normalizeUrl(raw) {
+  if (!raw) return null;
+  let url = raw.trim();
+
+  // If already absolute
+  if (/^https?:\/\//i.test(url)) {
+    try {
+      const u = new URL(url);
+
+      // If it's http on one of our domains, upgrade to https
+      if (
+        u.protocol === 'http:' &&
+        (u.hostname === 'home.faceurogames.net' || u.hostname === 'faceurogames.net')
+      ) {
+        u.protocol = 'https:';
+        return u.toString();
+      }
+
+      return url;
+    } catch (e) {
+      console.warn('Invalid URL in launchUrl/thumbnail:', url, e);
+      return url;
+    }
+  }
+
+  // Relative: prefix with API_BASE_URL
+  return `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+}
+
 const statusSection = document.getElementById('status-section');
 const statusMessage = document.getElementById('status-message');
 const retryButton = document.getElementById('retry-button');
@@ -23,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadGames();
   retryButton.addEventListener('click', loadGames);
   backToMenuButton.addEventListener('click', () => {
+    retryButton.classList.remove("hidden")
     gameFrame.src = '';
     gameFrameSection.classList.add('hidden');
     gameListSection.classList.remove('hidden');
@@ -54,7 +84,7 @@ async function loadGames() {
 function setStatus(message, showRetry) {
   statusMessage.textContent = message;
   statusSection.classList.remove('hidden');
-  retryButton.classList.toggle('hidden', !showRetry);
+  
 }
 
 function renderGameList(games) {
@@ -64,6 +94,7 @@ function renderGameList(games) {
     gameListEl.innerHTML = '<p>No games available yet.</p>';
     return;
   }
+  retryButton.classList.remove("hidden");
 
   games.forEach(game => {
     const card = document.createElement('div');
@@ -71,10 +102,12 @@ function renderGameList(games) {
 
     const thumb = document.createElement('img');
     thumb.className = 'game-thumb';
-    thumb.src = game.thumbnail || '';
     thumb.alt = game.name;
-    // If no thumbnail, just hide broken image icon visually
-    if (!game.thumbnail) {
+
+    if (game.thumbnail) {
+      thumb.src = normalizeUrl(game.thumbnail);
+      console.log(thumb.src)
+    } else {
       thumb.style.display = 'none';
     }
 
@@ -104,6 +137,13 @@ function renderGameList(games) {
     gameListEl.appendChild(card);
   });
 }
+function toggleRetryButton(visibility){
+  if(visibility){
+    
+  }else{
+    
+  }
+}
 
 function openGame(game) {
   if (!game.launchUrl) {
@@ -111,8 +151,13 @@ function openGame(game) {
     return;
   }
 
+  const url = normalizeUrl(game.launchUrl);
+  console.log('Opening game at:', url);
+
   currentGameTitle.textContent = game.name;
-  gameFrame.src = game.launchUrl;
+  gameFrame.src = url;
+  retryButton.classList.add("hidden")
+  console.log(gameFrame.src)
 
   // Switch views
   gameListSection.classList.add('hidden');
