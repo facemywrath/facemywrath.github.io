@@ -672,9 +672,24 @@ function setPlayingLayout(isPlaying){
   const shell = document.querySelector(".app-shell");
   if (shell) shell.classList.toggle("is-playing", !!isPlaying);
 }
+function dumpLayout(tag){
+  const shell = document.querySelector(".app-shell");
+  const nav = document.querySelector(".side-nav");
+  const main = document.querySelector(".app-main");
+  const stage = document.querySelector(".main-stage");
+  const player = document.getElementById("player-view");
+  const frame = document.getElementById("game-frame");
+
+  
+  for (const [name, el] of [["shell", shell], ["nav", nav], ["main", main], ["stage", stage], ["player", player], ["frame", frame]]) {
+    if (!el) { console.log(name, "MISSING"); continue; }
+    const r = el.getBoundingClientRect();
+    ws.send({type: "debug",name, { x:r.x, y:r.y, w:r.width, h:r.height }, getComputedStyle(el).display);
+  });
+}
 function enterGame(game){
   if (!game) return;
-
+  dumpLayout("before layout")
   isPlaying = true;
   setPlayingLayout(isPlaying)
   closeAllDropdowns();
@@ -700,6 +715,7 @@ function enterGame(game){
     el.gameFrame.src = buildGameUrl(game);
     el.gameFrame.title = game.name || "Game";
   }
+  dumpLayout("after layout")
 }
 
 function exitGame(){
@@ -774,16 +790,7 @@ if(el.featuredSection){
   el.featuredSection.classList.remove("hidden")
 }
 }
-function hideNavSection(){
-if(el.sideNav){
-  el.sideNav.classList.add("hidden")
-}
-}
-function showNavSection(){
-if(el.sideNav){
-  el.sideNav.classList.remove("hidden")
-}
-}
+
   // -------------------------
   // Events
   // -------------------------

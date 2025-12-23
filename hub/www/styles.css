@@ -454,8 +454,9 @@ body {
   transition: transform .12s ease, box-shadow .12s ease;
 }
 /* When playing a game, remove the side-nav column cleanly */
+/* When playing, remove the left grid column entirely */
 .app-shell.is-playing{
-  grid-template-columns: 0px 1fr;
+  grid-template-columns: 0 1fr !important;
 }
 
 /* Hide nav without breaking layout calculations */
