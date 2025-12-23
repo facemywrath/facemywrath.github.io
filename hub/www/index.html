@@ -2,35 +2,138 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Faceuro Games</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Faceuro Games Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
-  <div id="app">
-    <header class="app-header">
-      <h1>Faceuro Games</h1>
-    </header>
+  <div id="app" class="app-shell">
 
-    <main class="app-main">
-              <button id="retry-button">Refresh</button>
-      <section id="status-section" class="status-section">
-        <div id="status-message">Connecting to server...</div>
-      </section>
+    <!-- LEFT MENU -->
+    <aside class="side-nav" aria-label="Primary">
+      <button id="nav-search" class="side-nav-btn" type="button">Search</button>
+      <button id="nav-main" class="side-nav-btn is-active" type="button">Main</button>
+      <button id="nav-favorites" class="side-nav-btn" type="button">Favorites</button>
+    </aside>
 
-      <section id="game-list-section" class="game-list-section hidden">
-        <h2>Available Games</h2>
-        <div id="game-list" class="game-list"></div>
-      </section>
+    <!-- MAIN AREA -->
+    <div class="app-main">
 
-      <section id="game-frame-section" class="game-frame-section hidden">
-        <div class="game-frame-header">
-          <button id="back-to-menu">⬅ Back</button>
-          <h2 id="current-game-title">Loading...</h2>
+      <!-- TOP BAR -->
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <div class="top-bar-title">Faceuro Games</div>
         </div>
-        <iframe id="game-frame" class="game-frame" src=""></iframe>
-      </section>
-    </main>
+
+        <div class="top-bar-right">
+          <button id="refresh-button" class="icon-btn" type="button" aria-label="Refresh">
+            ⟳
+          </button>
+        </div>
+      </header>
+
+      <!-- CONTENT -->
+      <main class="content">
+
+        <!-- STATUS (optional, you can show/hide from JS) -->
+        <section id="status-section" class="status-section hidden">
+          <div id="status-message">Connecting to server...</div>
+        </section>
+
+        <!-- FEATURED (30vh box) -->
+        <section id="featured-section" class="featured-section" aria-label="Featured games">
+          <div class="section-caption">Featured</div>
+
+          <div class="featured-viewport">
+            <!-- Horizontal drag/scroll area -->
+            <div id="featured-track" class="featured-track" role="list">
+              <!-- JS injects featured cards here -->
+            </div>
+
+            <!-- Fade arrow indicator (JS can hide it when at end) -->
+            <div id="featured-next-indicator" class="featured-next-indicator" aria-hidden="true">
+              <span class="featured-next-arrow">›</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- FILTERS / SORT -->
+        <section class="controls-section" aria-label="Filters and sorting">
+          <div class="controls-row">
+            <div class="control">
+              <button id="type-dropdown-button" class="control-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+                Type: <span id="type-dropdown-label">All</span>
+                <span class="chev">▾</span>
+              </button>
+
+              <!-- Dropdown menu populated by JS -->
+              <div id="type-dropdown-menu" class="dropdown-menu hidden" role="listbox" aria-label="Type">
+                <!-- JS injects unique tags here -->
+              </div>
+            </div>
+
+            <div class="control">
+              <button id="sort-dropdown-button" class="control-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+                Sort: <span id="sort-dropdown-label">ABC: Ascending</span>
+                <span class="chev">▾</span>
+              </button>
+
+              <div id="sort-dropdown-menu" class="dropdown-menu hidden" role="listbox" aria-label="Sort">
+                <!-- JS injects sort options here -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- GRID -->
+        <section id="grid-section" class="grid-section" aria-label="Games grid">
+          <div id="games-grid" class="games-grid">
+            <!-- JS injects grid cards here -->
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- MODAL OVERLAY (blur background) -->
+  <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Game details">
+    <div id="modal" class="modal">
+      <!-- Header area -->
+      <div class="modal-header">
+        <img id="modal-icon" class="modal-icon" alt="" src="" />
+        <div class="modal-header-text">
+          <div id="modal-title" class="modal-title">Game Name</div>
+          <div id="modal-desc" class="modal-desc">Game description goes here.</div>
+        </div>
+
+        <button id="modal-close" class="icon-btn modal-close" type="button" aria-label="Close">
+          ✕
+        </button>
+      </div>
+
+      <!-- Details list (cfg.json data: releaseDate, lastUpdate, totalPlays, favorites, tags, etc.) -->
+      <div class="modal-body">
+        <div id="modal-meta" class="modal-meta">
+          <!-- JS injects key/value rows here -->
+        </div>
+      </div>
+
+      <!-- Footer actions -->
+      <div class="modal-footer">
+        <div class="modal-footer-spacer"></div>
+
+        <button id="modal-play" class="primary-btn" type="button">
+          Play
+        </button>
+
+        <button id="modal-favorite" class="favorite-btn" type="button" aria-pressed="false">
+          <span class="star">★</span>
+          <span id="modal-favorite-label">Favorite</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <script src="main.js"></script>
