@@ -2,8 +2,11 @@ name: Hub Android Debug APK
 
 on:
   push:
-    branches:
-      - main   # or master if that's your default
+    branches: [ "main" ]
+    paths:
+      - "hub/**"
+      - ".github/workflows/**"
+  workflow_dispatch:
 
 jobs:
   build-android-hub:
