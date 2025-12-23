@@ -453,6 +453,21 @@ body {
   background: rgba(0,0,0,0.35);
   transition: transform .12s ease, box-shadow .12s ease;
 }
+/* When playing a game, remove the side-nav column cleanly */
+.app-shell.is-playing{
+  grid-template-columns: 0px 1fr;
+}
+
+/* Hide nav without breaking layout calculations */
+.app-shell.is-playing .side-nav{
+  width: 0 !important;
+  padding: 0 !important;
+  border-right: 0 !important;
+  overflow: hidden !important;
+
+  visibility: hidden;
+  pointer-events: none;
+}
 
 .game-card:hover{
   transform: translateY(-2px);

@@ -35,6 +35,7 @@
     refresh: document.getElementById("refresh-button"),
 
     navSearch: document.getElementById("nav-search"),
+    sideNav: document.getElementById("side-nav"),
     navMain: document.getElementById("nav-main"),
     navFav: document.getElementById("nav-favorites"),
     
@@ -667,11 +668,15 @@ function buildGameUrl(game){
   if (game.playUrl) return game.playUrl;
   return `/${encodeURIComponent(game.id)}/`;
 }
-
+function setPlayingLayout(isPlaying){
+  const shell = document.querySelector(".app-shell");
+  if (shell) shell.classList.toggle("is-playing", !!isPlaying);
+}
 function enterGame(game){
   if (!game) return;
 
   isPlaying = true;
+  setPlayingLayout(isPlaying)
   closeAllDropdowns();
   closeModal();
 
@@ -702,7 +707,7 @@ function exitGame(){
 
   // unload iframe (prevents audio continuing, frees memory)
   if (el.gameFrame) el.gameFrame.src = "about:blank";
-
+  setPlayingLayout(isPlaying)
   // swap views back
   el.playerView?.classList.add("hidden");
   el.hubView?.classList.remove("hidden");
@@ -767,6 +772,16 @@ if(el.featuredSection){
 function showFeaturedSection(){
 if(el.featuredSection){
   el.featuredSection.classList.remove("hidden")
+}
+}
+function hideNavSection(){
+if(el.sideNav){
+  el.sideNav.classList.add("hidden")
+}
+}
+function showNavSection(){
+if(el.sideNav){
+  el.sideNav.classList.remove("hidden")
 }
 }
   // -------------------------
