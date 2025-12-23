@@ -20,6 +20,7 @@
   // 3) Featured list is loaded from a cfg.json located next to server.js (ex: /api/featured)
   //
   // If your server endpoints differ, change these two constants.
+  const ROOT_URL = "https://home.faceurogames.net";
   const API_GAMES = "/api/games";       // returns array of game objects (merged or with cfg fields)
   const API_FEATURED = "/api/featured"; // returns array of game ids/paths or full game objects
 
@@ -36,7 +37,8 @@
     navSearch: document.getElementById("nav-search"),
     navMain: document.getElementById("nav-main"),
     navFav: document.getElementById("nav-favorites"),
-
+    
+    featuredSection: document.getElementById("featured-section"),
     featuredTrack: document.getElementById("featured-track"),
     featuredNextIndicator: document.getElementById("featured-next-indicator"),
 
@@ -48,8 +50,14 @@
     sortLabel: document.getElementById("sort-dropdown-label"),
     sortMenu: document.getElementById("sort-dropdown-menu"),
 
+topTitle: document.getElementById("top-title"),
+    topSearchWrap: document.getElementById("top-search"),
+    topSearchInput: document.getElementById("top-search-input"),
+    topSearchClear: document.getElementById("top-search-clear"),
     grid: document.getElementById("games-grid"),
-
+searchSection: document.getElementById("search-section"),
+    searchInput: document.getElementById("search-input"),
+    searchClear: document.getElementById("search-clear"),
     modalOverlay: document.getElementById("modal-overlay"),
     modal: document.getElementById("modal"),
     modalClose: document.getElementById("modal-close"),
@@ -65,6 +73,7 @@
   // -------------------------
   // State
   // -------------------------
+  let searchQuery = "";
   let allGames = [];         // full list from server
   let featuredGames = [];    // list for featured carousel (resolved to full objects)
   let activeTab = "main";    // main | search | favorites
@@ -162,7 +171,7 @@
   // Data fetching
   // -------------------------
   async function fetchJson(url) {
-    const r = await fetch(url, { cache: "no-store" });
+    const r = await fetch(ROOT_URL+url, { cache: "no-store" });
     if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
     return await r.json();
   }
@@ -194,11 +203,12 @@
     // ensure each has id, name, desc, icon, tags
     return arr.map((g, idx) => {
       const id = (g.id ?? g.slug ?? g.path ?? g.gameId ?? `game_${idx}`).toString();
+      console.log( `${ROOT_URL}${g.icon}`,)
       return {
         id,
         name: (g.name ?? "Untitled").toString(),
         desc: (g.desc ?? g.description ?? "").toString(),
-        icon: (g.icon ?? g.iconPath ?? "").toString(), // should be a URL
+        icon: `${ROOT_URL}${g.icon}`,
         tags: safeArray(g.tags).map(t => t.toString()),
         releaseDate: g.releaseDate ?? g.released ?? "",
         lastUpdate: g.lastUpdate ?? g.updated ?? "",
@@ -303,9 +313,14 @@
       // Click card opens modal
       card.addEventListener("click", () => openModal(g));
 
-      card.appendChild(iconWrap);
-      card.appendChild(info);
-      card.appendChild(playOverlay);
+      const iconCol = document.createElement("div");
+iconCol.className = "featured-icon-column";
+
+iconCol.appendChild(iconWrap);
+iconCol.appendChild(playOverlay);
+
+card.appendChild(iconCol);
+card.appendChild(info);
 
       el.featuredTrack.appendChild(card);
     }
@@ -440,6 +455,11 @@
       const favs = getFavoritesSet();
       list = list.filter(g => favs.has(g.id));
     }
+    // search tab filter (name contains)
+    if (activeTab === "search") {
+      const q = toLowerStr(searchQuery).trim();
+      if (q) list = list.filter(g => toLowerStr(g.name).includes(q));
+    }
 
     // type filter
     if (selectedType && selectedType !== "All") {
@@ -451,6 +471,7 @@
     list.sort((a, b) => compareBySort(a, b, selectedSort));
     return list;
   }
+
 
   function compareBySort(a, b, sortId) {
     switch (sortId) {
@@ -628,17 +649,47 @@
   // -------------------------
   function setTab(tabId) {
     activeTab = tabId;
+    if(activeTab != "main"){
+      hideFeaturedSection()
+    }else{
+      showFeaturedSection();
+    }
 
     el.navSearch.classList.toggle("is-active", tabId === "search");
     el.navMain.classList.toggle("is-active", tabId === "main");
     el.navFav.classList.toggle("is-active", tabId === "favorites");
 
-    localStorage.setItem(LS_LAST_TAB, tabId);
+    // Top-bar title vs search
+    const showSearch = tabId === "search";
 
-    // (Optional) Search tab can show search UI later; for now same grid but not favorites-only.
+    if (el.topTitle) el.topTitle.classList.toggle("hidden", showSearch);
+    if (el.topSearchWrap) el.topSearchWrap.classList.toggle("hidden", !showSearch);
+
+    if (showSearch && el.topSearchInput) {
+      // keep input in sync with current query
+      el.topSearchInput.value = searchQuery || "";
+
+      requestAnimationFrame(() => {
+        el.topSearchInput.focus({ preventScroll: true });
+        const v = el.topSearchInput.value || "";
+        el.topSearchInput.setSelectionRange(v.length, v.length);
+      });
+    }
+
+    localStorage.setItem(LS_LAST_TAB, tabId);
     renderCurrentView();
   }
 
+function hideFeaturedSection(){
+if(el.featuredSection){
+  el.featuredSection.classList.add("hidden")
+}
+}
+function showFeaturedSection(){
+if(el.featuredSection){
+  el.featuredSection.classList.remove("hidden")
+}
+}
   // -------------------------
   // Events
   // -------------------------
@@ -650,6 +701,42 @@
       // reload data
       loadAll().catch(err => console.error(err));
     });
+    
+    // search input
+    if (el.searchInput) {
+      el.searchInput.addEventListener("input", () => {
+        
+        searchQuery = el.searchInput.value || "";
+        renderCurrentView();
+      });
+    }
+    // top-bar search input
+    if (el.topSearchInput) {
+      el.topSearchInput.addEventListener("input", () => {
+        searchQuery = el.topSearchInput.value || "";
+        renderCurrentView();
+      });
+    }
+
+    // top-bar clear
+    if (el.topSearchClear) {
+      el.topSearchClear.addEventListener("click", () => {
+        searchQuery = "";
+        if (el.topSearchInput) el.topSearchInput.value = "";
+        renderCurrentView();
+        el.topSearchInput?.focus({ preventScroll: true });
+      });
+    }
+
+    // clear search
+    if (el.searchClear) {
+      el.searchClear.addEventListener("click", () => {
+        searchQuery = "";
+        if (el.searchInput) el.searchInput.value = "";
+        renderCurrentView();
+        el.searchInput?.focus({ preventScroll: true });
+      });
+    }
 
     // nav
     el.navSearch.addEventListener("click", () => setTab("search"));

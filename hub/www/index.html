@@ -12,9 +12,9 @@
 
     <!-- LEFT MENU -->
     <aside class="side-nav" aria-label="Primary">
-      <button id="nav-search" class="side-nav-btn" type="button">Search</button>
-      <button id="nav-main" class="side-nav-btn is-active" type="button">Main</button>
-      <button id="nav-favorites" class="side-nav-btn" type="button">Favorites</button>
+      <button id="nav-main" class="side-nav-btn is-active" type="button">🏠</button>
+      <button id="nav-search" class="side-nav-btn" type="button">🔍</button>
+      <button id="nav-favorites" class="side-nav-btn" type="button">★</button>
     </aside>
 
     <!-- MAIN AREA -->
@@ -23,8 +23,22 @@
       <!-- TOP BAR -->
       <header class="top-bar">
         <div class="top-bar-left">
-          <div class="top-bar-title">Faceuro Games</div>
-        </div>
+  <!-- Title (shown when NOT searching) -->
+  <div id="top-title" class="top-bar-title">Faceuro Games</div>
+
+  <!-- Search (shown when Search tab active) -->
+  <div id="top-search" class="top-search hidden" role="search">
+    <input
+      id="top-search-input"
+      class="top-search-input"
+      type="search"
+      placeholder="Search games…"
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <button id="top-search-clear" class="icon-btn top-search-clear" type="button" aria-label="Clear search">✕</button>
+  </div>
+</div>
 
         <div class="top-bar-right">
           <button id="refresh-button" class="icon-btn" type="button" aria-label="Refresh">
@@ -123,15 +137,15 @@
       <!-- Footer actions -->
       <div class="modal-footer">
         <div class="modal-footer-spacer"></div>
+        <button id="modal-favorite" class="favorite-btn" type="button" aria-pressed="false">
+          <span class="star">★</span>
+          <span id="modal-favorite-label">Favorite</span>
+        </button>
 
         <button id="modal-play" class="primary-btn" type="button">
           Play
         </button>
 
-        <button id="modal-favorite" class="favorite-btn" type="button" aria-pressed="false">
-          <span class="star">★</span>
-          <span id="modal-favorite-label">Favorite</span>
-        </button>
       </div>
     </div>
   </div>
