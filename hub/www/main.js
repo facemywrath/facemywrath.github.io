@@ -41,6 +41,10 @@
     featuredSection: document.getElementById("featured-section"),
     featuredTrack: document.getElementById("featured-track"),
     featuredNextIndicator: document.getElementById("featured-next-indicator"),
+    back: document.getElementById("back-button"),
+hubView: document.getElementById("hub-view"),
+playerView: document.getElementById("player-view"),
+gameFrame: document.getElementById("game-frame"),
 
     typeBtn: document.getElementById("type-dropdown-button"),
     typeLabel: document.getElementById("type-dropdown-label"),
@@ -295,7 +299,7 @@ searchSection: document.getElementById("search-section"),
       playOverlay.textContent = "Play";
       playOverlay.addEventListener("click", (e) => {
         e.stopPropagation();
-        playGame(g);
+        enterGame(g);
       });
 
       // put overlay inside icon area but absolutely positioned to the card,
@@ -603,12 +607,35 @@ card.appendChild(info);
     el.modalOverlay.removeEventListener("click", onOverlayClick);
     modalGame = null;
   }
+  
+  
+
+// month names array
+const monthNames = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+function formatDate(val){
+  const date = new Date(Date.parse(val))
+  const month = monthNames[date.getMonth()];
+const day = date.getDate();
+const year = date.getFullYear();
+const formatted = `${month} ${day}, ${year}`;
+return formatted
+}
+// get components
+
+
+// format string
+
+
+ // "December 25, 2025"
 
   function renderModalMeta(game) {
     const rows = [
       ["Tags", safeArray(game.tags).join(", ") || "—"],
-      ["Release Date", game.releaseDate || "—"],
-      ["Last Update", game.lastUpdate || "—"],
+      ["Release Date", game.releaseDate ? formatDate(game.releaseDate) : "—"],
+      ["Last Update", game.lastUpdate ? formatDate(game.lastUpdate) : "—"],
       ["Total Plays", String(parseNumber(game.totalPlays))],
       ["Most Favorited", String(parseNumber(game.totalFavorites))]
     ];
@@ -633,16 +660,68 @@ card.appendChild(info);
   // -------------------------
   // Play
   // -------------------------
-  function playGame(game) {
-    // You can replace this with your hub's router/iframe loader/etc.
-    // For now, if playUrl exists, navigate there.
-    if (game.playUrl) {
-      window.location.href = game.playUrl;
-      return;
-    }
-    // fallback: try id as path
-    window.location.href = `/${encodeURIComponent(game.id)}/`;
+   
+    let isPlaying = false;
+
+function buildGameUrl(game){
+  if (game.playUrl) return game.playUrl;
+  return `/${encodeURIComponent(game.id)}/`;
+}
+
+function enterGame(game){
+  if (!game) return;
+
+  isPlaying = true;
+  closeAllDropdowns();
+  closeModal();
+
+  // swap views
+  el.hubView?.classList.add("hidden");
+  el.playerView?.classList.remove("hidden");
+
+  // top bar buttons
+  el.refresh?.classList.add("hidden");
+  el.back?.classList.remove("hidden");
+
+  // top bar title becomes the game name
+  if (el.topSearchWrap) el.topSearchWrap.classList.add("hidden");
+  if (el.topTitle){
+    el.topTitle.classList.remove("hidden");
+    el.topTitle.textContent = game.name || "Game";
   }
+
+  // load iframe
+  if (el.gameFrame){
+    el.gameFrame.src = buildGameUrl(game);
+    el.gameFrame.title = game.name || "Game";
+  }
+}
+
+function exitGame(){
+  isPlaying = false;
+
+  // unload iframe (prevents audio continuing, frees memory)
+  if (el.gameFrame) el.gameFrame.src = "about:blank";
+
+  // swap views back
+  el.playerView?.classList.add("hidden");
+  el.hubView?.classList.remove("hidden");
+
+  // top bar buttons
+  el.back?.classList.add("hidden");
+  el.refresh?.classList.remove("hidden");
+
+  // restore top bar title/search based on active tab
+  const showSearch = activeTab === "search";
+  if (el.topTitle) el.topTitle.classList.toggle("hidden", showSearch);
+  if (el.topSearchWrap) el.topSearchWrap.classList.toggle("hidden", !showSearch);
+
+  if (!showSearch && el.topTitle) el.topTitle.textContent = "Faceuro Games";
+  if (showSearch && el.topSearchInput) el.topSearchInput.value = searchQuery || "";
+
+  renderCurrentView();
+}
+  
 
   // -------------------------
   // Tabs
@@ -701,7 +780,7 @@ if(el.featuredSection){
       // reload data
       loadAll().catch(err => console.error(err));
     });
-    
+    el.back?.addEventListener("click", () => exitGame());
     // search input
     if (el.searchInput) {
       el.searchInput.addEventListener("input", () => {
@@ -769,7 +848,7 @@ if(el.featuredSection){
     // modal play
     el.modalPlay.addEventListener("click", () => {
       if (!modalGame) return;
-      playGame(modalGame);
+      enterGame(modalGame);
     });
 
     // modal favorite

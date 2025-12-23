@@ -41,73 +41,82 @@
 </div>
 
         <div class="top-bar-right">
-          <button id="refresh-button" class="icon-btn" type="button" aria-label="Refresh">
-            ⟳
-          </button>
-        </div>
+  <button id="back-button" class="icon-btn hidden" type="button" aria-label="Back">
+    ←
+  </button>
+
+  <button id="refresh-button" class="icon-btn" type="button" aria-label="Refresh">
+    ⟳
+  </button>
+</div>
       </header>
 
       <!-- CONTENT -->
-      <main class="content">
+<!-- CONTENT STAGE (hub OR player) -->
+<div class="main-stage">
 
-        <!-- STATUS (optional, you can show/hide from JS) -->
-        <section id="status-section" class="status-section hidden">
-          <div id="status-message">Connecting to server...</div>
-        </section>
+<main id="hub-view" class="content">
 
-        <!-- FEATURED (30vh box) -->
-        <section id="featured-section" class="featured-section" aria-label="Featured games">
-          <div class="section-caption">Featured</div>
+  <!-- STATUS (optional, you can show/hide from JS) -->
+  <section id="status-section" class="status-section hidden">
+    <div id="status-message">Connecting to server...</div>
+  </section>
 
-          <div class="featured-viewport">
-            <!-- Horizontal drag/scroll area -->
-            <div id="featured-track" class="featured-track" role="list">
-              <!-- JS injects featured cards here -->
-            </div>
+  <!-- FEATURED (30vh box) -->
+  <section id="featured-section" class="featured-section" aria-label="Featured games">
+    <div class="section-caption">Featured</div>
 
-            <!-- Fade arrow indicator (JS can hide it when at end) -->
-            <div id="featured-next-indicator" class="featured-next-indicator" aria-hidden="true">
-              <span class="featured-next-arrow">›</span>
-            </div>
-          </div>
-        </section>
+    <div class="featured-viewport">
+      <div id="featured-track" class="featured-track" role="list"></div>
 
-        <!-- FILTERS / SORT -->
-        <section class="controls-section" aria-label="Filters and sorting">
-          <div class="controls-row">
-            <div class="control">
-              <button id="type-dropdown-button" class="control-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
-                Type: <span id="type-dropdown-label">All</span>
-                <span class="chev">▾</span>
-              </button>
+      <div id="featured-next-indicator" class="featured-next-indicator" aria-hidden="true">
+        <span class="featured-next-arrow">›</span>
+      </div>
+    </div>
+  </section>
 
-              <!-- Dropdown menu populated by JS -->
-              <div id="type-dropdown-menu" class="dropdown-menu hidden" role="listbox" aria-label="Type">
-                <!-- JS injects unique tags here -->
-              </div>
-            </div>
+  <!-- FILTERS / SORT -->
+  <section class="controls-section" aria-label="Filters and sorting">
+    <div class="controls-row">
+      <div class="control">
+        <button id="type-dropdown-button" class="control-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+          Type: <span id="type-dropdown-label">All</span>
+          <span class="chev">▾</span>
+        </button>
+        <div id="type-dropdown-menu" class="dropdown-menu hidden" role="listbox" aria-label="Type"></div>
+      </div>
 
-            <div class="control">
-              <button id="sort-dropdown-button" class="control-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
-                Sort: <span id="sort-dropdown-label">ABC: Ascending</span>
-                <span class="chev">▾</span>
-              </button>
+      <div class="control">
+        <button id="sort-dropdown-button" class="control-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+          Sort: <span id="sort-dropdown-label">ABC: Ascending</span>
+          <span class="chev">▾</span>
+        </button>
+        <div id="sort-dropdown-menu" class="dropdown-menu hidden" role="listbox" aria-label="Sort"></div>
+      </div>
+    </div>
+  </section>
 
-              <div id="sort-dropdown-menu" class="dropdown-menu hidden" role="listbox" aria-label="Sort">
-                <!-- JS injects sort options here -->
-              </div>
-            </div>
-          </div>
-        </section>
+  <!-- GRID -->
+  <section id="grid-section" class="grid-section" aria-label="Games grid">
+    <div id="games-grid" class="games-grid"></div>
+  </section>
 
-        <!-- GRID -->
-        <section id="grid-section" class="grid-section" aria-label="Games grid">
-          <div id="games-grid" class="games-grid">
-            <!-- JS injects grid cards here -->
-          </div>
-        </section>
+</main>
 
-      </main>
+  <!-- PLAYER VIEW (iframe) -->
+  <section id="player-view" class="player-view hidden" aria-label="Game player">
+    <iframe
+      id="game-frame"
+      class="game-frame"
+      src="about:blank"
+      title="Game"
+      loading="eager"
+      referrerpolicy="no-referrer"
+      allow="fullscreen; autoplay; clipboard-read; clipboard-write"
+    ></iframe>
+  </section>
+
+</div>
     </div>
   </div>
 
