@@ -158,7 +158,21 @@
       </div>
     </div>
   </div>
+<!-- ERROR POPUP -->
+<div id="error-overlay" class="error-overlay hidden" role="dialog" aria-modal="true">
+  <div class="error-popup">
+    <div class="error-title">Error</div>
 
+    <div id="error-content" class="error-content">
+      <!-- JS injects error text here -->
+    </div>
+    <button id="copy-btn">Copy</button>
+
+    <button id="error-close" class="primary-btn error-close-btn" type="button">
+      Close
+    </button>
+  </div>
+</div>
   <script src="main.js"></script>
 </body>
 </html>

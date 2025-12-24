@@ -87,6 +87,7 @@ searchSection: document.getElementById("search-section"),
   let selectedSort = "ABC_ASC";
 
   let modalGame = null;      // currently open modal game
+  let debugStr = ""
 
   // -------------------------
   // Sort options
@@ -664,9 +665,40 @@ return formatted
    
     let isPlaying = false;
 
+function forceHttpsIfSameHost(url){
+  if (!url) return url;
+
+  try {
+    const u = new URL(url, ROOT_URL);
+
+    // If it's your domain and it's http, upgrade to https
+    const hostIsOurs =
+      u.hostname === "home.faceurogames.net" ||
+      u.hostname.endsWith(".faceurogames.net");
+
+    if (hostIsOurs && u.protocol === "http:") {
+      u.protocol = "https:";
+    }
+
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
 function buildGameUrl(game){
-  if (game.playUrl) return game.playUrl;
-  return `/${encodeURIComponent(game.id)}/`;
+  let url = (game.playUrl && game.playUrl.trim())
+    ? game.playUrl.trim()
+    : `/${encodeURIComponent(game.id)}/`;
+
+  // If relative, make absolute to ROOT_URL
+  try {
+    url = new URL(url, ROOT_URL).toString();
+  } catch {}
+
+  // Force https for your domain
+  url = forceHttpsIfSameHost(url);
+
+  return url;
 }
 function setPlayingLayout(isPlaying){
   const shell = document.querySelector(".app-shell");
@@ -680,20 +712,31 @@ function dumpLayout(tag){
   const player = document.getElementById("player-view");
   const frame = document.getElementById("game-frame");
 
-  
+  debugStr += "\n----" + tag + "----"
   for (const [name, el] of [["shell", shell], ["nav", nav], ["main", main], ["stage", stage], ["player", player], ["frame", frame]]) {
     if (!el) { console.log(name, "MISSING"); continue; }
     const r = el.getBoundingClientRect();
-    ws.send({type: "debug",name, { x:r.x, y:r.y, w:r.width, h:r.height }, getComputedStyle(el).display);
+    debugStr += "\n" + JSON.stringify({name, x:r.x, y:r.y, w:r.width, h:r.height , style: getComputedStyle(el).display});
+  }
+  showErrorPopup(debugStr)
+}
+document.getElementById("copy-btn").addEventListener("click", () => {
+  copyToClipboard(debugStr);
+});
+function copyToClipboard(text){
+  navigator.clipboard.writeText(text).then(() => {
+    console.log("Copied to clipboard");
+  }).catch(err => {
+    console.error("Clipboard copy failed:", err);
   });
 }
 function enterGame(game){
   if (!game) return;
-  dumpLayout("before layout")
+ // dumpLayout("before layout")
   isPlaying = true;
   setPlayingLayout(isPlaying)
-  closeAllDropdowns();
-  closeModal();
+ // closeAllDropdowns();
+ // closeModal();
 
   // swap views
   el.hubView?.classList.add("hidden");
@@ -712,10 +755,13 @@ function enterGame(game){
 
   // load iframe
   if (el.gameFrame){
+    const url = buildGameUrl(game);
+console.log("IFRAME URL:", url, "origin:", location.origin);
+el.gameFrame.src = url;
     el.gameFrame.src = buildGameUrl(game);
     el.gameFrame.title = game.name || "Game";
   }
-  dumpLayout("after layout")
+ // dumpLayout("after layout")
 }
 
 function exitGame(){
@@ -890,6 +936,34 @@ if(el.featuredSection){
       }
     });
   }
+  const errorOverlay = document.getElementById("error-overlay");
+const errorContent = document.getElementById("error-content");
+const errorCloseBtn = document.getElementById("error-close");
+
+function showErrorPopup(message, title = "Error"){
+  const titleEl = errorOverlay.querySelector(".error-title");
+  titleEl.textContent = title;
+
+  errorContent.textContent = message ?? "Unknown error.";
+  errorOverlay.classList.remove("hidden");
+
+  // Scroll to top on open
+  errorContent.scrollTop = 0;
+}
+
+function hideErrorPopup(){
+  errorOverlay.classList.add("hidden");
+}
+
+// Events
+errorCloseBtn.addEventListener("click", hideErrorPopup);
+
+// Click outside popup closes it
+errorOverlay.addEventListener("click", (e) => {
+  if (e.target === errorOverlay) hideErrorPopup();
+});
+
+
 
   // -------------------------
   // Boot
