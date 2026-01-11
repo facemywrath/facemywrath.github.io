@@ -1,0 +1,1091 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Fluxx Card Maker (Canvas)</title>
+  <style>
+    :root{
+      --bg:#0f1115;
+      --panel:#151a22;
+      --line:#263043;
+      --text:#e7eefc;
+      --muted:#a7b3cc;
+      --accent:#6aa6ff;
+      --btn:#1b2230;
+      --btnHover:#232d40;
+      --field:#0f141c;
+      --danger:#ff6a6a;
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; width: 150%}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .app{
+      height:100%;
+      display:flex;
+      gap:12px;
+      padding:12px;
+    }
+    .left{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      overflow:auto;
+      width: 420px;
+      min-width: 360px;
+      max-width: 520px;
+    }
+    .right{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+      flex: 1;
+    }
+    h2{
+      margin:0 0 10px;
+      font-size:16px;
+      color:var(--text);
+    }
+    .group{
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px;
+      margin:0 0 10px;
+      background:rgba(0,0,0,0.12);
+    }
+    .group-title{
+      font-size:12px;
+      color:var(--muted);
+      margin:0 0 8px;
+      letter-spacing:.2px;
+    }
+    .row{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      margin:6px 0;
+      flex-wrap:wrap;
+    }
+    label{
+      font-size:12px;
+      color:var(--muted);
+      min-width:72px;
+    }
+    select, input[type="number"], input[type="text"]{
+      padding:8px 8px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:var(--field);
+      color:var(--text);
+      outline:none;
+    }
+    select{ width: 100%; }
+    input[type="number"]{ width: 110px; }
+    input[type="text"]{ width: 160px; }
+    input[type="text"].wide{ width:100%; }
+    input[type="file"]{
+      width:100%;
+      color:var(--muted);
+    }
+
+    .btnrow{ display:flex; gap:10px; }
+    button{
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:var(--btn);
+      color:var(--text);
+      font-weight:600;
+      cursor:pointer;
+    }
+    button:hover{ background:var(--btnHover); }
+    button:disabled{ opacity:.55; cursor:not-allowed; }
+    .iconbtn{
+      width: 44px;
+      padding: 10px 0;
+      text-align:center;
+      font-weight:900;
+    }
+    .danger{
+      border-color: rgba(255,106,106,0.5);
+      background: rgba(255,106,106,0.12);
+    }
+    .danger:hover{ background: rgba(255,106,106,0.18); }
+
+    .split{
+      display:grid;
+      grid-template-columns: 160px 1fr;
+      gap:10px;
+      align-items:stretch;
+    }
+
+    .listbox{
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:rgba(0,0,0,0.12);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      min-height: 260px;
+      max-height: 360px;
+    }
+    .listbox .head{
+      padding:8px 10px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      gap:8px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .listbox .head .title{
+      font-size:12px;
+      color:var(--muted);
+      letter-spacing:.2px;
+    }
+    .list{
+      overflow:auto;
+      padding:6px;
+      flex: 1;
+    }
+    .item{
+      border:1px solid transparent;
+      border-radius:10px;
+      padding:8px 8px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      user-select:none;
+    }
+    .item:hover{
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.06);
+    }
+    .item.active{
+      background: rgba(106,166,255,0.12);
+      border-color: rgba(106,166,255,0.35);
+    }
+    .item .id{
+      font-size:12px;
+      color:var(--text);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 110px;
+    }
+    .item .meta{
+      font-size:11px;
+      color:var(--muted);
+      white-space:nowrap;
+    }
+
+    .canvas-wrap{
+      flex:1;
+      display:grid;
+      place-items:center;
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:rgba(0,0,0,0.15);
+      padding:10px;
+    }
+    canvas{
+      max-width:80%;
+      height:auto;
+      image-rendering:auto;
+      border-radius:10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      background:transparent;
+    }
+    .metaBar{
+      margin-top:10px;
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .pill{
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:6px 10px;
+      background:rgba(0,0,0,0.12);
+    }
+    .small{
+      font-size:11px;
+      color:var(--muted);
+      line-height:1.35;
+    }
+
+    .hidden{ display:none !important; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="left">
+      <h2>Fluxx Card Maker (HTML + Canvas)</h2>
+
+      <div class="group">
+        <div class="group-title">Card Type</div>
+
+        <div class="row" style="align-items:center;">
+          <div style="flex:1; min-width:220px;">
+            <select id="typeSelect">
+              <option value="">— Select a type —</option>
+              <option value="Action">Action</option>
+              <option value="NewRule">New Rule</option>
+              <option value="Keeper">Keeper</option>
+              <option value="Creeper">Creeper</option>
+              <option value="Goal">Goal</option>
+              <option value="Surprise">Surprise</option>
+            </select>
+          </div>
+
+          <!-- only appears after a type is selected AND only for Keeper/Creeper -->
+          <div id="detailsWrap" class="hidden" style="margin-left:8px;">
+            <label style="min-width:auto; display:flex; gap:8px; align-items:center;">
+              <input id="typeDetailsToggle" type="checkbox" />
+              Details
+            </label>
+          </div>
+        </div>
+
+        <div class="small" style="margin-top:6px;">
+          Background is preset per type. Keeper/Creeper can swap to a details background.
+        </div>
+      </div>
+
+      <div id="editorWrap" class="hidden">
+
+        <div class="group">
+          <div class="group-title">Card Name (used by $Name$)</div>
+          <div class="row">
+            <input id="cardName" class="wide" type="text" value="Card Name" />
+          </div>
+          <div class="small">Place <code>$Name$</code> inside any text field label to auto-insert this name.</div>
+        </div>
+
+        <div class="group">
+          <div class="group-title">Art File</div>
+          <div class="row">
+            <label>Art</label>
+          </div>
+          <input id="artFile" type="file" accept="image/*" />
+        </div>
+
+        <div class="group">
+          <div class="group-title">Art: Crop (source image)</div>
+          <div class="row">
+            <label>x</label><input id="cropX" type="number" value="0" step="1">
+            <label>y</label><input id="cropY" type="number" value="0" step="1">
+          </div>
+          <div class="row">
+            <label>w</label><input id="cropW" type="number" value="500" step="1">
+            <label>h</label><input id="cropH" type="number" value="600" step="1">
+          </div>
+        </div>
+
+        <div class="group">
+          <div class="group-title">Art: Scale multipliers (after crop)</div>
+          <div class="row">
+            <label>scaleW</label><input id="scaleW" type="number" value="1" step="0.01">
+            <label>scaleH</label><input id="scaleH" type="number" value="1" step="0.01">
+          </div>
+        </div>
+
+        <div class="group">
+          <div class="group-title">Art: Paste (on card)</div>
+          <div class="row">
+            <label>x</label><input id="pasteX" type="number" value="90" step="1">
+            <label>y</label><input id="pasteY" type="number" value="140" step="1">
+          </div>
+        </div>
+
+        <div class="group">
+          <div class="group-title">Text Input Fields</div>
+
+          <div class="split">
+            <div class="listbox">
+              <div class="head">
+                <div class="title">Fields</div>
+                <div style="display:flex; gap:8px;">
+                  <button id="btnAddField" class="iconbtn" title="Add field" type="button">+</button>
+                  <button id="btnDelField" class="iconbtn danger" title="Delete selected field" type="button">−</button>
+                </div>
+              </div>
+              <div id="fieldList" class="list"></div>
+            </div>
+
+            <div>
+              <div class="small" style="margin-bottom:8px;">
+                Select a field on the left to edit it. Each field is anchored by <b>cx,cy</b> (center),
+                plus <b>offsetX,offsetY</b>.
+              </div>
+
+              <div class="row">
+                <label>id</label>
+                <input id="f_id" type="text" value="" />
+              </div>
+
+              <div class="row">
+                <label>cx</label><input id="f_cx" type="number" value="0" step="1">
+                <label>cy</label><input id="f_cy" type="number" value="0" step="1">
+              </div>
+
+              <div class="row">
+                <label>offsetX</label><input id="f_offx" type="number" value="0" step="1">
+                <label>offsetY</label><input id="f_offy" type="number" value="0" step="1">
+              </div>
+
+              <div class="row">
+                <label>fontSize</label><input id="f_font" type="number" value="32" step="1">
+              </div>
+              <div class="row">
+  <label>angle</label><input id="f_angle" type="number" value="0" step="1">
+</div>
+<div class="small">Degrees. Positive = clockwise.</div>
+<div class="row">
+  <label>color</label>
+  <input id="f_color" type="color" value="#000000">
+</div>
+              <div class="row">
+                <label>label</label>
+                <input id="f_label" class="wide" type="text" value="" />
+              </div>
+              <div class="row">
+  <label>bold</label>
+  <input id="f_bold" type="checkbox">
+</div>
+
+              <div class="row" style="margin-top:8px;">
+                <label>font file</label>
+              </div>
+              <input id="f_fontFile" type="file" accept=".ttf,.otf,.woff,.woff2" />
+              <div class="row">
+                <button id="btnClearFont" class="danger" type="button">Clear Field Font</button>
+              </div>
+              <div class="small">
+                If no font is selected, the default browser font is used.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="btnrow">
+          <button id="renderBtn" type="button" style="flex:1;">Render</button>
+          <button id="downloadBtn" type="button" disabled style="flex:1;">Download PNG</button>
+        </div>
+
+        <div class="small" style="margin-top:10px;">
+          Render order: <b>Type background</b> → <b>Art</b> → <b>Text Fields</b>.
+        </div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="canvas-wrap">
+        <canvas id="c" width="700" height="1100"></canvas>
+      </div>
+      <div class="metaBar">
+        <div class="pill" id="canvasSizePill">Canvas: 700×1100</div>
+        <div class="pill" id="statusPill">Status: select a type</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+    const $ = (id) => document.getElementById(id);
+
+    const canvas = $("c");
+    const ctx = canvas.getContext("2d", { alpha: true });
+
+    function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+    function readNum(id, fallback){
+      const el = $(id);
+      if(!el) return fallback;
+      const v = parseFloat(el.value);
+      return Number.isFinite(v) ? v : fallback;
+    }
+    function setStatus(msg){ $("statusPill").textContent = "Status: " + msg; }
+    function setCanvasSize(w, h){
+      canvas.width = Math.max(1, Math.floor(w));
+      canvas.height = Math.max(1, Math.floor(h));
+      $("canvasSizePill").textContent = `Canvas: ${canvas.width}×${canvas.height}`;
+    }
+
+    function fileToImage(file){
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+        img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+        img.src = url;
+      });
+    }
+
+    // -------------------------
+    // Preset BG paths
+    // Put your images here:
+    //   bgs/action.png
+    //   bgs/newrule.png
+    //   bgs/goal.png
+    //   bgs/surprise.png
+    //   bgs/keeper.png
+    //   bgs/keeper_details.png
+    //   bgs/creeper.png
+    //   bgs/creeper_details.png
+    // -------------------------
+    const TYPE_BG_URLS = {
+      Action:   { basic: "bgs/action.png" },
+      NewRule:  { basic: "bgs/newrule.png" },
+      Goal:     { basic: "bgs/goal.png" },
+      Surprise: { basic: "bgs/surprise.png" },
+      Keeper:   { basic: "bgs/keeper.png",  details: "bgs/keeper_details.png" },
+      Creeper:  { basic: "bgs/creeper.png", details: "bgs/creeper_details.png" },
+    };
+
+    const presetBGImgs = {}; // { [type]: { basic: Image|null, details: Image|null } }
+
+    function loadImageFromURL(url){
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
+
+    async function preloadTypeBGs(){
+      const types = Object.keys(TYPE_BG_URLS);
+      for(const t of types){
+        const urls = TYPE_BG_URLS[t];
+        presetBGImgs[t] = { basic: null, details: null };
+
+        try { presetBGImgs[t].basic = await loadImageFromURL(urls.basic); }
+        catch(e){ console.warn("Failed to load basic BG for", t, urls.basic, e); }
+
+        if(urls.details){
+          try { presetBGImgs[t].details = await loadImageFromURL(urls.details); }
+          catch(e){ console.warn("Failed to load details BG for", t, urls.details, e); }
+        }
+      }
+    }
+
+    function typeSupportsDetails(type){
+      return type === "Keeper" || type === "Creeper";
+    }
+
+    function updateDetailsUI(){
+      const wrap = $("detailsWrap");
+      const cb = $("typeDetailsToggle");
+
+      if(!state.type){
+        wrap.classList.add("hidden");
+        cb.checked = false;
+        state.detailsMode = false;
+        return;
+      }
+
+      if(typeSupportsDetails(state.type)){
+        wrap.classList.remove("hidden");
+      }else{
+        wrap.classList.add("hidden");
+        cb.checked = false;
+        state.detailsMode = false;
+      }
+    }
+
+    // -------------------------
+    // Text Input Field class
+    // -------------------------
+    class TextInputField {
+  constructor({
+    id,
+    cx,
+    cy,
+    offsetX = 0,
+    offsetY = 0,
+    fontSize = 32,
+    label = "",
+    font = null,
+    angleDeg = 0,
+    fontColor = "#000000",
+    bold = false
+  }) {
+    this.id = id || "field";
+
+    this.cx = Number.isFinite(cx) ? cx : 0;
+    this.cy = Number.isFinite(cy) ? cy : 0;
+
+    this.offsetX = Number.isFinite(offsetX) ? offsetX : 0;
+    this.offsetY = Number.isFinite(offsetY) ? offsetY : 0;
+
+    this.fontSize = Number.isFinite(fontSize) ? fontSize : 32;
+
+    this.label = label ?? "";
+
+    // Optional per-field font loaded via FontFace
+    this.font = font || null;
+
+    // Rotation (degrees, clockwise)
+    this.angleDeg = Number.isFinite(angleDeg) ? angleDeg : 0;
+
+    // Fill color
+    this.fontColor = fontColor || "#000000";
+
+    // Bold toggle
+    this.bold = !!bold;
+  }
+
+  getText(card){
+    const name = (card?.name ?? "").toString();
+    return (this.label ?? "").toString().split("$Name$").join(name);
+  }
+}
+    // -------------------------
+    // Card type presets (you will tweak cx/cy as you calibrate)
+    // -------------------------
+    const TYPE_PRESETS = {
+  Action: {
+    basic: [
+      new TextInputField({ id:"name_top", cx:330, cy:240, fontSize:64, label:"$Name$", bold: true }),
+            new TextInputField({ id:"name_side", cx:50, cy:340, fontSize:80, label:"$Name$", angleDeg: 270}),
+      new TextInputField({ id:"body", cx:300, cy:370, fontSize:30, label:"Do something cool." }),
+    ]
+  },
+
+  NewRule: {
+    basic: [
+      new TextInputField({ id:"name_top", cx:340, cy:700, fontSize:64, label:"$Name$" }),
+      new TextInputField({ id:"name_side", cx:60, cy:460, fontSize:64, label:"$Name$", angleDeg: 270}),
+      new TextInputField({ id:"rule", cx:350, cy:790, fontSize:30, label:"New rule text goes here." }),
+    ]
+  },
+
+  Goal: {
+    basic: [
+      new TextInputField({ id:"name_top", cx:350, cy:140, fontSize:64, label:"$Name$" }),
+      new TextInputField({ id:"name_side", cx:50, cy:340, fontSize:80, label:"$Name$", angleDeg: 270}),
+      new TextInputField({ id:"goal_text", cx:350, cy:960, fontSize:40, label:"To win: have X and Y." }),
+    ]
+  },
+
+  Surprise: {
+    basic: [
+      new TextInputField({ id:"name_top", cx:350, cy:250, fontSize:64, label:"$Name$" }),
+      new TextInputField({ id:"name_side", cx:50, cy:340, fontSize:80, label:"$Name$", angleDeg: 270}),
+      new TextInputField({ id:"out-of-turn", cx:350, cy: 350, fontSize:30, label:"Out of turn:", bold: true}),
+      new TextInputField({ id:"out-of-turn-effect", cx:350, cy: 390, fontSize:30, label:"Fill in"}),
+      new TextInputField({ id:"your-turn", cx:350, cy:600, fontSize:30, label:"During Your Turn:", bold: true }),
+      new TextInputField({ id:"your-turn-effect", cx:350, cy:640, fontSize:30, label:"Fill in"}),
+      new TextInputField({ id:"any-time", cx:350, cy:880, fontSize:30, label:"At any time:", bold: true }),
+      new TextInputField({ id:"any-time-effect", cx:370, cy:925, fontSize:30, label:"This card can cancel other surprises." }),
+    ]
+  },
+
+  Keeper: {
+    basic: [
+      new TextInputField({ id:"name_top", cx:350, cy:130, fontSize:64, label:"$Name$" }),
+      new TextInputField({ id:"name_side", cx:50, cy:340, fontSize:80, label:"$Name$", angleDeg: 270}),
+    ],
+    details: [
+            new TextInputField({ id:"name_top", cx:350, cy:130, fontSize:64, label:"$Name$" }),
+      new TextInputField({ id:"name_side", cx:50, cy:340, fontSize:80, label:"$Name$", angleDeg: 270}),
+      new TextInputField({ id:"desc", cx:350, cy:870, fontSize:28, label:"This Keeper lets you do something." })
+    ]
+  },
+
+  Creeper: {
+    basic: [
+      new TextInputField({ id:"name_top", cx:350, cy:130, fontSize:64, label:"$Name$", fontColor: "#ffffff"}),
+      new TextInputField({ id:"name_side", cx:50, cy:340, fontSize:80, label:"$Name$", angleDeg: 270, fontColor: "#ffffff"}),
+    ],
+    details: [
+            new TextInputField({ id:"name_top", cx:350, cy:130, fontSize:64, label:"$Name$", fontColor: "#ffffff"}),
+      new TextInputField({ id:"name_side", cx:50, cy:340, fontSize:80, label:"$Name$", angleDeg: 270, fontColor: "#ffffff"}),
+      new TextInputField({ id:"desc", cx:350, cy:870, fontSize:28, label:"This Keeper lets you do something.", fontColor: "#ffffff"})
+    ]
+  }
+};
+function getPresetForType(type, details){
+  const pack = TYPE_PRESETS[type];
+  if (!pack) return [];
+
+  if (details && pack.details) return pack.details;
+  return pack.basic || [];
+}
+
+    // -------------------------
+    // State
+    // -------------------------
+    const state = {
+      type: "",
+      detailsMode: false,
+      name: "Card Name",
+      artImg: null,
+      fields: [],
+      selectedFieldIndex: -1,
+    };
+
+    // -------------------------
+    // Per-field font loading
+    // -------------------------
+    let fontCounter = 0;
+    async function loadFontFromFileForField(file){
+      try{
+        const buf = await file.arrayBuffer();
+        const family = "FluxxFieldFont_" + (++fontCounter);
+        const ff = new FontFace(family, buf, { style: "normal", weight: "400" });
+        await ff.load();
+        document.fonts.add(ff);
+        return { family, ready: true };
+      }catch(e){
+        console.warn("Field font load failed:", e);
+        return null;
+      }
+    }
+
+    // -------------------------
+    // UI Helpers
+    // -------------------------
+    function deepCloneFields(fields){
+  return fields.map(f => new TextInputField({
+    id: f.id,
+    cx: f.cx,
+    cy: f.cy,
+    offsetX: f.offsetX,
+    offsetY: f.offsetY,
+    fontSize: f.fontSize,
+    label: f.label,
+    font: null,
+    angleDeg: f.angleDeg ?? 0,
+    fontColor: f.fontColor ?? "#000000",
+    bold: f.bold ?? false
+  }));
+}
+
+    function showEditor(show){
+      $("editorWrap").classList.toggle("hidden", !show);
+    }
+
+    function setSelectedFieldIndex(i){
+      state.selectedFieldIndex = i;
+      renderFieldList();
+      fillFieldEditorFromSelection();
+      scheduleRender();
+    }
+
+    function renderFieldList(){
+      const list = $("fieldList");
+      list.innerHTML = "";
+      state.fields.forEach((f, idx) => {
+        const div = document.createElement("div");
+        div.className = "item" + (idx === state.selectedFieldIndex ? " active" : "");
+        div.title = f.id;
+
+        const idSpan = document.createElement("div");
+        idSpan.className = "id";
+        idSpan.textContent = f.id;
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = `${Math.round(f.cx)},${Math.round(f.cy)}`;
+
+        div.appendChild(idSpan);
+        div.appendChild(meta);
+
+        div.addEventListener("click", () => setSelectedFieldIndex(idx));
+        list.appendChild(div);
+      });
+
+      $("btnDelField").disabled = state.selectedFieldIndex < 0 || state.fields.length === 0;
+    }
+
+    function fillFieldEditorFromSelection(){
+      const f = state.fields[state.selectedFieldIndex];
+      const disabled = !f;
+
+      const ids = ["f_id","f_cx","f_cy","f_offx","f_offy","f_font","f_angle","f_color","f_bold","f_label"];
+      ids.forEach(id => $(id).disabled = disabled);
+      $("f_fontFile").disabled = disabled;
+      $("btnClearFont").disabled = disabled;
+
+      if(!f){
+        $("f_id").value = "";
+        $("f_cx").value = 0;
+        $("f_cy").value = 0;
+        $("f_offx").value = 0;
+        $("f_offy").value = 0;
+        $("f_font").value = 32;
+        $("f_label").value = "";
+        $("f_fontFile").value = "";
+        $("f_color").value = "#000000";
+        $("f_angle").value = 0;
+        $("f_bold").checked = false;
+        return;
+      }
+
+      $("f_id").value = f.id;
+      $("f_cx").value = f.cx;
+      $("f_cy").value = f.cy;
+      $("f_offx").value = f.offsetX;
+      $("f_offy").value = f.offsetY;
+      $("f_font").value = f.fontSize;
+      $("f_label").value = f.label;
+      $("f_angle").value = f.angleDeg ?? 0;
+      $("f_fontFile").value = "";
+      $("f_color").value = f.fontColor || "#000000";
+      $("f_bold").checked = !!f.bold;
+    }
+
+    function syncSelectionFromEditor(){
+      const f = state.fields[state.selectedFieldIndex];
+      if(!f) return;
+
+      f.id = ($("f_id").value || "").trim() || "field";
+      f.cx = readNum("f_cx", f.cx);
+      f.cy = readNum("f_cy", f.cy);
+      f.offsetX = readNum("f_offx", f.offsetX);
+      f.offsetY = readNum("f_offy", f.offsetY);
+      f.fontSize = readNum("f_font", f.fontSize);
+      f.angleDeg = readNum("f_angle", f.angleDeg ?? 0);
+      f.bold = $("f_bold").checked;
+      f.label = $("f_label").value ?? "";
+      f.fontColor = $("f_color").value || "#000000";
+      renderFieldList();
+      scheduleRender();
+    }
+
+    // -------------------------
+    // Rendering
+    // -------------------------
+    function getActiveTypeBackgroundImage(){
+      if(!state.type) return null;
+      const pack = presetBGImgs[state.type];
+      if(!pack) return null;
+      if(state.detailsMode && pack.details) return pack.details;
+      return pack.basic;
+    }
+
+    // Fit a single line to width and center on x,y
+    function drawCenteredFitText(text, x, y, startSize, maxW, fill, fontFamily){
+      const t = (text ?? "").toString();
+      if(!t.trim()) return;
+
+      const family = fontFamily || "system-ui";
+      let size = Math.max(6, Math.floor(startSize || 30));
+
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = fill;
+
+      while(size >= 6){
+const weight = window.__currentBold ? "bold" : "normal";
+ctx.font = `${weight} ${size}px ${family}`;
+        const w = ctx.measureText(t).width;
+        if(w <= maxW) break;
+        size--;
+      }
+
+      const weight = window.__currentBold ? "bold" : "normal";
+ctx.font = `${weight} ${size}px ${family}`;
+      ctx.fillText(t, x, y);
+    }
+
+    function render(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+
+  // 1) art: crop -> scale -> paste (trim to bounds)
+  if(state.artImg){
+    const artImg = state.artImg;
+
+    const cx0 = Math.floor(readNum("cropX", 0));
+    const cy0 = Math.floor(readNum("cropY", 0));
+    const cw0 = Math.floor(readNum("cropW", artImg.naturalWidth));
+    const ch0 = Math.floor(readNum("cropH", artImg.naturalHeight));
+
+    const cx = clamp(cx0, 0, Math.max(0, artImg.naturalWidth - 1));
+    const cy = clamp(cy0, 0, Math.max(0, artImg.naturalHeight - 1));
+    const cw = clamp(cw0, 1, artImg.naturalWidth - cx);
+    const ch = clamp(ch0, 1, artImg.naturalHeight - cy);
+
+    const sw = readNum("scaleW", 1);
+    const sh = readNum("scaleH", 1);
+
+    const dw = Math.max(1, Math.round(cw * sw));
+    const dh = Math.max(1, Math.round(ch * sh));
+
+    const px = Math.floor(readNum("pasteX", 0));
+    const py = Math.floor(readNum("pasteY", 0));
+
+    const maxW = Math.max(0, canvas.width - px);
+    const maxH = Math.max(0, canvas.height - py);
+    if(maxW > 0 && maxH > 0){
+      const drawW = Math.min(dw, maxW);
+      const drawH = Math.min(dh, maxH);
+
+      const srcW = Math.round(cw * (drawW / dw));
+      const srcH = Math.round(ch * (drawH / dh));
+
+      ctx.drawImage(
+        artImg,
+        cx, cy, srcW, srcH,
+        px, py, drawW, drawH
+      );
+    }
+  }
+  // 0) background: preset image
+  const bgImg = getActiveTypeBackgroundImage();
+  if(bgImg){
+    ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+  }else{
+    // if missing bg, fill with dark so you can still see stuff
+    ctx.fillStyle = "#11161f";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+  }
+
+  // 2) fields
+  const card = { type: state.type, name: state.name };
+  
+
+  for (const f of state.fields) {
+    const text = f.getText(card);
+    const fill = f.fontColor || "#000";
+    // anchor point (center) including offsets
+    const x = (f.cx + f.offsetX);
+    const y = (f.cy + f.offsetY);
+
+    const family = f.font?.ready ? f.font.family : "system-ui";
+
+    // rotation (degrees -> radians)
+    const degRaw = Number.isFinite(f.angleDeg) ? f.angleDeg : 0;
+    const rad = degRaw * Math.PI / 180;
+
+    // If text is rotated 90/270, its "fit width" should be based on canvas height
+    const a = ((degRaw % 360) + 360) % 360; // normalize 0..359
+    const isVertical = (a === 90 || a === 270);
+
+    let maxW;
+    if (isVertical) {
+      // after rotation, the text runs along the canvas height
+      maxW = canvas.height * 0.90;
+    } else {
+      // default: constrain by left/right room
+      const leftRoom = x;
+      const rightRoom = canvas.width - x;
+      maxW = Math.max(60, 2 * Math.min(leftRoom, rightRoom) * 0.95);
+    }
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rad);
+
+    // draw at 0,0 because we translated to the anchor point
+    window.__currentBold = !!f.bold;
+    drawCenteredFitText(text, 0, 0, f.fontSize, maxW, fill, family);
+
+    ctx.restore();
+    window.__currentBold = false;
+  }
+
+  $("downloadBtn").disabled = !state.type;
+  setStatus(`type: ${state.type}${state.detailsMode ? " (details)" : ""} • bg: preset • art: ${state.artImg ? "ok" : "none"}`);
+}
+
+    // Debounced render
+    let raf = 0;
+    function scheduleRender(){
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(render);
+    }
+
+    // -------------------------
+    // Events
+    // -------------------------
+    $("typeSelect").addEventListener("change", () => {
+      const typeVal = $("typeSelect").value;
+      state.type = typeVal;
+
+      if(!typeVal){
+        showEditor(false);
+        state.fields = [];
+        state.selectedFieldIndex = -1;
+        renderFieldList();
+        fillFieldEditorFromSelection();
+        setStatus("select a type");
+        updateDetailsUI();
+        scheduleRender();
+        return;
+      }
+
+      showEditor(true);
+
+      // reset details when switching types
+      $("typeDetailsToggle").checked = false;
+      state.detailsMode = false;
+
+      // apply field presets
+      const preset = getPresetForType(typeVal, state.detailsMode);
+state.fields = deepCloneFields(preset);
+      state.fields = deepCloneFields(preset);
+      state.selectedFieldIndex = state.fields.length ? 0 : -1;
+
+      renderFieldList();
+      fillFieldEditorFromSelection();
+
+      // show details only for keeper/creeper *after* type is selected
+      updateDetailsUI();
+
+      scheduleRender();
+    });
+
+$("typeDetailsToggle").addEventListener("change", () => {
+  if(!typeSupportsDetails(state.type)){
+    $("typeDetailsToggle").checked = false;
+    state.detailsMode = false;
+    return;
+  }
+
+  state.detailsMode = $("typeDetailsToggle").checked;
+
+  // Reload the correct preset fields
+  const preset = getPresetForType(state.type, state.detailsMode);
+  state.fields = deepCloneFields(preset);
+  state.selectedFieldIndex = state.fields.length ? 0 : -1;
+
+  renderFieldList();
+  fillFieldEditorFromSelection();
+  scheduleRender();
+});
+
+    $("cardName").addEventListener("input", () => {
+      state.name = $("cardName").value ?? "";
+      scheduleRender();
+    });
+
+    $("artFile").addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+      try{
+        setStatus("loading art...");
+        state.artImg = await fileToImage(file);
+
+        if(readNum("cropW", 0) > state.artImg.naturalWidth) $("cropW").value = state.artImg.naturalWidth;
+        if(readNum("cropH", 0) > state.artImg.naturalHeight) $("cropH").value = state.artImg.naturalHeight;
+
+        scheduleRender();
+      }catch(err){
+        console.error(err);
+        alert("Failed to load art image.");
+      }
+    });
+
+    // Art numeric inputs -> re-render
+    ["cropX","cropY","cropW","cropH","scaleW","scaleH","pasteX","pasteY"].forEach(id=>{
+      $(id).addEventListener("input", scheduleRender);
+    });
+
+    $("btnAddField").addEventListener("click", () => {
+      if(!state.type) return;
+
+      const base = "field";
+      let n = 1;
+      const used = new Set(state.fields.map(f=>f.id));
+      let id = bae + n;
+      while(used.has(id)){ n++; id = base + n; }
+
+const f = new TextInputField({
+  id,
+  cx: Math.round(canvas.width * 0.5),
+  cy: Math.round(canvas.height * 0.5),
+  offsetX: 0,
+  offsetY: 0,
+  fontSize: 32,
+  label: "$Name$",
+  angleDeg: 0,
+  fontColor: "#000000",
+  bold: false
+});
+
+      state.fields.push(f);
+      setSelectedFieldIndex(state.fields.length - 1);
+    });
+
+    $("btnDelField").addEventListener("click", () => {
+      const i = state.selectedFieldIndex;
+      if(i < 0) return;
+      state.fields.splice(i, 1);
+      if(state.fields.length === 0) setSelectedFieldIndex(-1);
+      else setSelectedFieldIndex(Math.min(i, state.fields.length - 1));
+    });
+
+    // Field editor inputs
+["f_id","f_cx","f_cy","f_offx","f_offy","f_font","f_angle","f_color","f_label", "f_bold"].forEach(id=>{
+  $(id).addEventListener("input", syncSelectionFromEditor);
+});
+    $("f_fontFile").addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      const f = state.fields[state.selectedFieldIndex];
+      if(!file || !f) return;
+
+      setStatus("loading field font...");
+      const fontObj = await loadFontFromFileForField(file);
+      if(fontObj){
+        f.font = fontObj;
+        setStatus("field font loaded");
+      }else{
+        setStatus("field font load failed (using fallback)");
+      }
+      $("f_fontFile").value = "";
+      scheduleRender();
+    });
+
+    $("btnClearFont").addEventListener("click", () => {
+      const f = state.fields[state.selectedFieldIndex];
+      if(!f) return;
+      f.font = null;
+      scheduleRender();
+    });
+
+    $("renderBtn").addEventListener("click", () => render());
+
+    $("downloadBtn").addEventListener("click", () => {
+      if(!state.type) return;
+      canvas.toBlob((blob) => {
+        if(!blob) return;
+        const a = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        const safeName = (state.name || "card").toString().replace(/[^a-z0-9]+/gi,"_").replace(/^_+|_+$/g,"");
+        a.href = url;
+        a.download = `fluxx_${state.type.toLowerCase()}_${safeName || "card"}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }, "image/png");
+    });
+
+    // Initial
+    setCanvasSize(700, 1100);
+    showEditor(false);
+    setStatus("select a type");
+    scheduleRender();
+    preloadTypeBGs().then(() => scheduleRender());
+  </script>
+</body>
+</html>
