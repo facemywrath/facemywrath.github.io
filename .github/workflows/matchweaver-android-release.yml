@@ -50,12 +50,12 @@ jobs:
       - name: Build Android release APK (matchweaver)
         working-directory: matchweaver/android
         run: |
-          ./gradlew assembleRelease
+          ./gradlew bundleRelease
 
       - name: Sign APK
         uses: r0adkll/sign-android-release@v1
         with:
-          releaseDirectory: matchweaver/android/app/build/outputs/apk/release
+          releaseDirectory: matchweaver/android/app/build/outputs/bundle/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.KEY_ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -67,4 +67,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: matchweaver-release-apk
-          path: matchweaver/android/app/build/outputs/apk/release/app-release-unsigned-signed.apk
+          path: matchweaver/android/app/build/outputs/bundle/release/app-release.aab
