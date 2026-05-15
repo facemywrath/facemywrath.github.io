@@ -1,4 +1,4 @@
-name: Matchweaver Android Release APK
+name: Matchweaver Android Release
 
 on:
   push:
@@ -47,13 +47,26 @@ jobs:
         run: |
           npx cap sync android
 
-      - name: Build Android release APK (matchweaver)
+      - name: Build Android release APK and AAB (matchweaver)
         working-directory: matchweaver/android
         run: |
-          ./gradlew bundleRelease
+          ./gradlew assembleRelease bundleRelease
 
       - name: Sign APK
         uses: r0adkll/sign-android-release@v1
+        id: sign_apk
+        with:
+          releaseDirectory: matchweaver/android/app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
+
+      - name: Sign AAB
+        uses: r0adkll/sign-android-release@v1
+        id: sign_aab
         with:
           releaseDirectory: matchweaver/android/app/build/outputs/bundle/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
@@ -63,8 +76,14 @@ jobs:
         env:
           BUILD_TOOLS_VERSION: "34.0.0"
 
-      - name: Upload release APK artifact
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: matchweaver-release-apk
+          path: matchweaver/android/app/build/outputs/apk/release/app-release-unsigned-signed.apk
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: matchweaver-release-aab
           path: matchweaver/android/app/build/outputs/bundle/release/app-release.aab
