@@ -485,10 +485,10 @@ body::before {
 .spell-slot.can-cast.spell-yellow { border-color: #908000; }
 .spell-slot.can-cast.spell-blue   { border-color: #0858a8; }
 .spell-slot.can-cast.spell-green  { border-color: #188840; }
-.spell-slot.can-cast.spell-red:hover    { border-color: #ff4050; background: rgba(180,18,28,0.28); }
-.spell-slot.can-cast.spell-yellow:hover { border-color: #ffd000; background: rgba(180,150,0,0.28); }
-.spell-slot.can-cast.spell-blue:hover   { border-color: #40a0ff; background: rgba(18,70,180,0.28); }
-.spell-slot.can-cast.spell-green:hover  { border-color: #40ff80; background: rgba(18,120,50,0.28); }
+.spell-slot.can-cast.spell-red:hover    { border: 2px solid #ff4050; background: rgba(180,18,28,0.28); }
+.spell-slot.can-cast.spell-yellow:hover { border: 2px solid #ffd000; background: rgba(180,150,0,0.28); }
+.spell-slot.can-cast.spell-blue:hover   { border: 2px solid #40a0ff; background: rgba(18,70,180,0.28); }
+.spell-slot.can-cast.spell-green:hover  { border: 2px solid #40ff80; background: rgba(18,120,50,0.28); }
 .spell-slot.no-mana  { opacity: .45; cursor: default; }
 .spell-slot.active   { border-color: var(--gold); box-shadow: 0 0 10px #ffd70033; }
 .spell-sprite-cv { display: block; image-rendering: pixelated; }
@@ -598,8 +598,57 @@ body::before {
   font-size: 10px; color: #ffffff22;
   font-family: 'Cinzel', serif; letter-spacing: 2px;
 }
+
+/* ── No Ads corner button ── */
+.mm-no-ads-btn {
+  position: absolute;
+  top: 12px; right: 12px;
+  z-index: 2;
+  font-family: 'Cinzel', serif;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--gold);
+  background: rgba(232, 200, 74, 0.08);
+  border: 1px solid rgba(232, 200, 74, 0.30);
+  border-radius: 20px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, transform .1s;
+  white-space: nowrap;
+}
+.mm-no-ads-btn:hover {
+  background: rgba(232, 200, 74, 0.15);
+  border-color: rgba(232, 200, 74, 0.60);
+}
+.mm-no-ads-btn:active { transform: scale(.95); }
 .hearts-display { display: flex; gap: 2px; justify-content: center; margin-top: 6px; }
 .heart-icon { font-size: 14px; line-height: 1; }
+.skull-timer-display { display: flex; justify-content: center; margin-top: 6px; }
+.skull-timer-wrap { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; }
+.skull-timer-icon { font-size: 28px; line-height: 1; transition: filter 0.2s; }
+.skull-timer-count {
+  position: absolute;
+  bottom: -2px;
+  right: -4px;
+  background: #1a1a2e;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  font-family: inherit;
+  line-height: 1;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  border: 1px solid #444;
+  letter-spacing: 0;
+}
+.skull-imminent .skull-timer-icon { filter: drop-shadow(0 0 4px #ff3030) brightness(1.2); animation: skull-pulse 0.5s ease-in-out infinite alternate; }
+.skull-imminent .skull-timer-count { background: #c0392b; border-color: #ff6060; color: #fff; }
+@keyframes skull-pulse { from { transform: scale(1); } to { transform: scale(1.12); } }
 
 /* ── Spell Loadout Grid ── */
 .sl-count { font-family: 'Cinzel', serif; font-size: 18px; color: var(--gold); }
@@ -702,3 +751,24 @@ body::before {
 }
 .toggle-btn.on  { background: #3b1fa8; color: #a78bfa; box-shadow: 0 0 8px #7c3aed44; }
 .toggle-btn.off { background: var(--bg2); color: var(--muted); border: 1px solid var(--border); }
+
+/* ── Ad Gate ── */
+/* Chapter header when requirements are met but ad not yet watched */
+.ch-header.ch-ad-gated {
+  cursor: pointer;
+  border-color: #4a2a80;
+  background: #1a0e38;
+}
+.ch-header.ch-ad-gated:hover { background: #220d44; border-color: #7c3aed88; }
+.ch-header.ch-ad-gated:active { background: #2a1050; }
+
+/* ▶ Unlock button overlaid on the right side of an ad-gated chapter header.
+   pointer-events: none so all taps fall through to the header's pointerdown. */
+.ch-unlock-btn {
+  display: flex; align-items: center; justify-content: center;
+  padding: 4px 11px; border-radius: 20px; border: none;
+  background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%);
+  color: #e8e0ff; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.5px;
+  flex-shrink: 0; pointer-events: none;
+  box-shadow: 0 2px 0 #2e1065, 0 0 10px #7c3aed55;
+}

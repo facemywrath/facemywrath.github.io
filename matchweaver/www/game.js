@@ -6,6 +6,12 @@
 // ═══════════════════════════════════════════════════════════
 'use strict';
 
+// ── AD / PURCHASE GATE ────────────────────────────────────────
+// bypassAds: set to true to skip the ad gate for every chapter.
+// On load, if bypassAds is true, SAVE.purchased is automatically set to true.
+// ↓ CHANGE THIS LINE to toggle the ad gate for dev/testing:
+const bypassAds = true;
+
 // ── SEEDED PRNG (mulberry32) ─────────────────────────────────
 const MASTER_SEED = 0xDEADBEEF;
 function mulberry32(seed) {
@@ -58,7 +64,7 @@ const MANA = {
 // Row 2 (y=256): feature icons  [4thColor, 4tiles, gradient, skull, boardSize, 5thColor]
 // Row 3 (y=384): feature/spell  [stone, void-sphere, 5tiles, cut, gravity, bomb]
 // Row 4 (y=512): spell icons    [swap, shield, pillar-of-fire, suspension, transmute, mend]
-// Row 5 (y=640): spell icons    [mass-transmute, -, -, -, -, -]
+// Row 5 (y=640): spell icons    [wild-transmute, -, -, -, -, -]
 const SPRITE_SIZE = 128;
 const SPRITE_COLS = 6;
 const SPRITE_ORDER = ['red', 'yellow', 'blue', 'green', 'purple', 'void'];
@@ -86,7 +92,7 @@ const SPRITE_IDX = {
   'transmute':      28,
   'mend':           29,
   // Row 5 — spells
-  'mass-transmute': 30,
+  'wild-transmute': 30,
 };
 
 const SPELL_SPRITE_IDX = {
@@ -99,7 +105,7 @@ const SPELL_SPRITE_IDX = {
   'mend':           SPRITE_IDX['mend'],
   'pillar-of-fire': SPRITE_IDX['pillar-of-fire'],
   'shield':         SPRITE_IDX['shield-spell'],
-  'mass-transmute': SPRITE_IDX['mass-transmute'],
+  'wild-transmute': SPRITE_IDX['wild-transmute'],
 };
 
 // Feature id → flat sprite index
@@ -158,7 +164,7 @@ function drawSpellSprite(ctx, spellId, x, y, size, alpha = 1) {
 
 
 // ── GRID ─────────────────────────────────────────────────────
-const BASE_COLS = 8, BASE_ROWS = 16;
+const BASE_COLS = 6, BASE_ROWS = 12;
 // Actual dimensions stored in G.cols / G.rows, set per level by getLevelConfig
 
 // ── SHAPES ───────────────────────────────────────────────────
@@ -318,10 +324,10 @@ const FEATURES = [
   {
     id:       'boardSize',
     icon:     '📐',
-    name:     'Expanded Board',
-    desc:     'The board grows — extra rows, columns, or both.',
+    name:     'Shrunk Board',
+    desc:     'The board shrinks — one fewer row and column.',
     unlockLvl: 121,
-    tutorial: 'The Arcane Nexus has expanded! Extra channels glow at the edges. More space to weave — and more mana to channel.',
+    tutorial: 'The Arcane Nexus has contracted! The weaving space is tighter — plan carefully with less room to maneuver.',
   },
   {
     id:       'stone',
@@ -336,7 +342,7 @@ const FEATURES = [
     icon:     '💀',
     name:     'Skull Tiles',
     desc:     'Cursed tiles lurk on the board. Matching them deals 1 damage. Lose all 3 hearts and the level is failed.',
-    unlockLvl: 100,
+    unlockLvl: 81,
     tutorial: 'Skull Tiles! Dangerous cursed gems hide among the mana. Matching a skull tile deals 1 damage — lose all 3 hearts and the level fails. Use your Shield spell to block damage!',
   },
   {
@@ -456,14 +462,9 @@ function getActiveFeatures(lvl) {
 // Uses a third RNG seed offset (+2) to stay independent.
 function getBoardSize(lvl, featureIds) {
   if (!featureIds.includes('boardSize')) return { cols: BASE_COLS, rows: BASE_ROWS };
-  const maxPts = Math.min(8, Math.ceil(lvl / 50));   // 1@35-50, 2@51-100 … cap 8
-  if (maxPts === 0) return { cols: BASE_COLS, rows: BASE_ROWS };
-  const r       = mulberry32(((MASTER_SEED ^ (lvl * 0x9e3779b9)) + 2) >>> 0);
-  const addRows = Math.max(1, Math.floor(r() * (maxPts + 1)));
-  const addCols = Math.max(1, Math.floor(r() * (maxPts + 1)));
   return {
-    cols: Math.min(BASE_COLS + 8, BASE_COLS + addCols),
-    rows: Math.min(BASE_ROWS + 8, BASE_ROWS + addRows),
+    cols: Math.max(3, BASE_COLS - 1),
+    rows: Math.max(3, BASE_ROWS - 1),
   };
 }
 function getLevelConfig(lvl) {
@@ -483,14 +484,14 @@ function getLevelConfig(lvl) {
   const base   = Math.round(15 + 65 * (1 - Math.exp(-lvl / 80)));
   const quota  = {};
 
-  // Chapter theme: override all quota to a single color
+  const { cols, rows } = getBoardSize(lvl, featureIds);
+
+  // Chapter theme: quota only for the theme color, but all colors still spawn
   const theme = CHAPTER_THEMES[chapterOf(lvl)];
   if (theme && colors.includes(theme.color)) {
     colors.forEach(c => { quota[c] = c === theme.color ? (base + rngInt(0, 3)) : 0; });
-    // Remove zero-quota colors from active color list for piece generation
-    const themeColors = [theme.color];
     return {
-      colors: themeColors, quota, featureIds,
+      colors, quota, featureIds,
       cols, rows,
       has4Tiles:   featureIds.includes('4tiles'),
       has5Tiles:   featureIds.includes('5tiles'),
@@ -501,8 +502,6 @@ function getLevelConfig(lvl) {
   }
 
   colors.forEach(c => { quota[c] = base + rngInt(0, 3); });
-
-  const { cols, rows } = getBoardSize(lvl, featureIds);
 
   return {
     colors, quota, featureIds,
@@ -531,7 +530,7 @@ function calcStars(lvl, moves) {
 const SPELLS = [
   {
     id: 'cut', name: 'Blade Cut', icon: '🗡️', unlockLvl: 5,
-    cost: { red: 20 }, costLabel: '20 ⚔️', bgClass: 'spell-red', targets: 1,
+    cost: { red: 15 }, costLabel: '15 ⚔️', bgClass: 'spell-red', targets: 1,
     desc: 'Spend 20 Attack Mana to destroy a single tile instantly.',
     tutorial: 'Spells! You\'ve unlocked Blade Cut. Tap it, tap any tile to target it, then Cast. Costs 20 ⚔️ Attack Mana.',
   },
@@ -549,7 +548,7 @@ const SPELLS = [
   },
   {
     id: 'bomb-tile', name: 'Conjure Bomb', icon: '💣', unlockLvl: 61,
-    cost: { red: 20 }, costLabel: '20 ⚔️', bgClass: 'spell-red', targets: 1,
+    cost: { red: 25 }, costLabel: '2 ⚔️', bgClass: 'spell-red', targets: 1,
     desc: 'Spend 20 Attack Mana to enchant any tile, turning it into a Bomb.',
     tutorial: 'New Spell: Conjure Bomb! Plant a bomb on any tile. Costs 20 ⚔️ Attack Mana.',
   },
@@ -584,10 +583,10 @@ const SPELLS = [
     tutorial: 'New Spell: Mana Shield! Absorbs the next Skull hit. Costs 40 🛡️ Defense Mana.',
   },
   {
-    id: 'mass-transmute', name: 'Mass Transmute', icon: '🌊', unlockLvl: 181,
-    cost: { blue: 100 }, costLabel: '100 🧠', bgClass: 'spell-blue', targets: 2,
-    desc: 'Spend 100 Mind Mana to change ALL tiles of one color into another. Tap a tile of the color to change, then tap a tile of the target color.',
-    tutorial: 'New Spell: Mass Transmute! Tap a tile of the color to replace, then a tile of the color to become. ALL matching tiles transform. Costs 100 🧠 Mind Mana.',
+    id: 'wild-transmute', name: 'Wild Weave', icon: '🌊', unlockLvl: 181,
+    cost: { blue: 30, red: 10, yellow: 10 }, costLabel: '100 🧠', bgClass: 'spell-blue', targets: 1,
+    desc: 'Spend various Mana to transmute a single tile into a Wild crystal — it matches any color and credits all colors you still need.',
+    tutorial: 'New Spell: Wild Weave! Tap any tile to turn it into a Wild crystal. Wild tiles match every color and fill all your remaining quotas at once. Costs 100 🧠 Mind Mana.',
   },
 ];
 
@@ -634,7 +633,7 @@ const LORE = [
     text: 'The rune lattice shifts — larger crystal formations now tumble from the Spire. Four-part runes offer richer patterns and more powerful matches.' },
   { level: 41,  icon: '💎', title: 'Prismatic Shards',
     text: 'Prismatic Shards have appeared — dual-aspected crystals born at the confluence of two ley lines. They resonate with either mana type. Use them to bridge gaps in your weave.' },
-  { level: 100, icon: '💀', title: 'The Shadow Lich\'s Curse',
+  { level: 81, icon: '💀', title: 'The Shadow Lich\'s Curse',
     text: 'The Shadow Lich has cursed the crystal stream. Skull-marked shards deal damage when matched. Three wounds and the ritual fails. Guard yourself with the Mana Shield.' },
   { level: 101, icon: '🔥', title: 'The Firelands',
     text: 'You descend into the Firelands — a molten realm where only Attack Mana burns bright. The crystals here run red with rage. Forge your path through the flame.' },
@@ -681,13 +680,15 @@ const PIECE_QUEUE = Array.from({ length: QUEUE_SIZE }, () => ({
 // ── SAVE / LOAD ───────────────────────────────────────────────
 const SAVE_KEY = 'sugarDrop_v7';
 let SAVE = {
-  unlockedLevels: new Set([1]),
-  levelStars:     {},
-  totalScore:     0,
-  tutorialsSeen:  {},
-  equippedSpells: ['cut'],
-  redeemedKeys:   [],
-  settings:       { showTileIcons: true },
+  unlockedLevels:    new Set([1]),
+  levelStars:        {},
+  totalScore:        0,
+  tutorialsSeen:     {},
+  equippedSpells:    ['cut'],
+  redeemedKeys:      [],
+  settings:          { showTileIcons: true },
+  purchased:         false,         // true = ad gate permanently disabled (set by IAP)
+  adWatchedChapters: [],            // chapter numbers whose ad has been watched
 };
 let qHead = 0;
 
@@ -721,13 +722,15 @@ function redeemKey(code) {
 function saveGame() {
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
-      unlockedLevels:  [...SAVE.unlockedLevels],
-      levelStars:      SAVE.levelStars,
-      totalScore:      SAVE.totalScore,
-      tutorialsSeen:   SAVE.tutorialsSeen,
-      equippedSpells:  SAVE.equippedSpells,
-      redeemedKeys:    SAVE.redeemedKeys,
-      settings:        SAVE.settings,
+      unlockedLevels:    [...SAVE.unlockedLevels],
+      levelStars:        SAVE.levelStars,
+      totalScore:        SAVE.totalScore,
+      tutorialsSeen:     SAVE.tutorialsSeen,
+      equippedSpells:    SAVE.equippedSpells,
+      redeemedKeys:      SAVE.redeemedKeys,
+      settings:          SAVE.settings,
+      purchased:         SAVE.purchased         || false,
+      adWatchedChapters: SAVE.adWatchedChapters || [],
       qHead,
     }));
   } catch (e) {}
@@ -741,13 +744,15 @@ function loadSave() {
 function clearSave() {
   try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
   SAVE = {
-    unlockedLevels: new Set([1]),
-    levelStars:     {},
-    totalScore:     0,
-    tutorialsSeen:  {},
-    equippedSpells: ['cut'],
-    redeemedKeys:   [],
-    settings:       { showTileIcons: true },
+    unlockedLevels:    new Set([1]),
+    levelStars:        {},
+    totalScore:        0,
+    tutorialsSeen:     {},
+    equippedSpells:    ['cut'],
+    redeemedKeys:      [],
+    settings:          { showTileIcons: true },
+    purchased:         false,
+    adWatchedChapters: [],
   };
   qHead = 0;
 }
@@ -755,14 +760,16 @@ function clearSave() {
 function initSave() {
   const d = loadSave();
   if (d) {
-    SAVE.unlockedLevels = new Set(d.unlockedLevels || [1]);
-    SAVE.levelStars     = d.levelStars    || {};
-    SAVE.totalScore     = d.totalScore    || 0;
-    SAVE.tutorialsSeen  = d.tutorialsSeen || {};
-    SAVE.equippedSpells = d.equippedSpells || ['cut'];
-    SAVE.redeemedKeys   = d.redeemedKeys  || [];
-    SAVE.settings       = Object.assign({ showTileIcons: true }, d.settings || {});
-    qHead               = d.qHead         || 0;
+    SAVE.unlockedLevels    = new Set(d.unlockedLevels || [1]);
+    SAVE.levelStars        = d.levelStars    || {};
+    SAVE.totalScore        = d.totalScore    || 0;
+    SAVE.tutorialsSeen     = d.tutorialsSeen || {};
+    SAVE.equippedSpells    = d.equippedSpells || ['cut'];
+    SAVE.redeemedKeys      = d.redeemedKeys  || [];
+    SAVE.settings          = Object.assign({ showTileIcons: true }, d.settings || {});
+    SAVE.purchased         = d.purchased         || false;
+    SAVE.adWatchedChapters = d.adWatchedChapters || [];
+    qHead                  = d.qHead         || 0;
   }
 }
 
@@ -864,6 +871,15 @@ window.executeClearSave = () => {
 
 
 window.closeSettings = () => {
+  // If test mode is off, unequip any spells the player hasn't actually unlocked
+  if (!(SAVE.settings && SAVE.settings.testMode)) {
+    const highestLvl = highestCompletedLevel();
+    SAVE.equippedSpells = (SAVE.equippedSpells || []).filter(id => {
+      const spell = SPELLS.find(s => s.id === id);
+      return spell && spell.unlockLvl <= highestLvl;
+    });
+    saveGame();
+  }
   const cb = window._settingsDoneCb;
   window._settingsDoneCb = null;
   hideCard();
@@ -933,6 +949,7 @@ function initGame() {
     hearts:       3,
     shielded:     false,
     suspendGravity: false,
+    skullPlacementCounter: 5,
   };
 }
 
@@ -957,6 +974,7 @@ function beginLevel(lvl) {
   G.hearts  = 3;
   G.shielded = false;
   G.suspendGravity = false;
+  G.skullPlacementCounter = 5;
   COLORS.forEach(c => { G.mana[c] = SAVE.settings.bonusMana ? 10 : 0; });
   renderQuota();
   updateTileLegend();
@@ -1128,16 +1146,26 @@ function updateTileLegend() {
 // rawFloat is a pre-rolled 0..1 value from the piece queue.
 function pickWeightedColor(avail, rawFloat) {
   // Build weight table
-  const weights = avail.map(c => {
-    const need = G.quota[c]    || 0;
+  const totalQuota = avail.reduce((s, c) => s + (G.quota[c] || 0), 0);
+  const base       = totalQuota * 0.2;
+  const weights    = avail.map(c => {
+    const need = G.quota[c]  || 0;
     const done = G.cleared[c] || 0;
-    return done >= need ? 0.7 : 1.0;
+    const left = Math.max(0, need - done);
+    let mul = 5;
+    const lvl = G.level;
+    const ch = chapterOf(lvl);
+    const isThemed = !!CHAPTER_THEMES[ch];
+    if(isThemed) mul = 0.2
+    return  base + left*mul;
   });
   const total = weights.reduce((a, b) => a + b, 0);
+  if (total === 0) return avail[0]; // all quotas done, fallback
   let cursor  = rawFloat * total;
   for (let i = 0; i < avail.length; i++) {
+    if (weights[i] === 0) continue;
     cursor -= weights[i];
-    if (cursor <= 0) return avail[i];
+    if (cursor < 0) return avail[i];
   }
   return avail[avail.length - 1]; // fallback
 }
@@ -1152,7 +1180,7 @@ function resolvePiece(entry, lvl) {
 
   const isStone    = cfg.hasStone    && entry.stoneRoll    < 0.20;
   const isGradient = cfg.hasGradient && entry.gradientRoll < 0.20;
-  const isSkull    = cfg.hasSkull    && entry.skullRoll    < 0.15;
+  const isSkull    = cfg.hasSkull    && G.skullPlacementCounter === 0;
   const stoneIdx   = isStone    ? entry.stoneTileIdx % n : -1;
   const gradIdx    = isGradient ? (entry.gradientTileIdx % n === stoneIdx && stoneIdx >= 0
                                     ? (entry.gradientTileIdx + 1) % n
@@ -1164,15 +1192,28 @@ function resolvePiece(entry, lvl) {
     if (si !== stoneIdx && si !== gradIdx) skullIdx = si;
   }
 
+  // Pre-compute all tile colors so we can check color distribution before assigning skull
+  const tileColors  = shape.map((_, i) => pickWeightedColor(avail, entry.tileColors[i]  / 6));
+  const tileColors2 = shape.map((_, i) => {
+    let c2 = pickWeightedColor(avail, entry.tileColors2[i] / 6);
+    if (c2 === tileColors[i]) c2 = avail[(avail.indexOf(tileColors[i]) + 1) % avail.length];
+    return c2;
+  });
+
+  // Suppress skull if its color appears 3 or more times among the piece's tiles
+  let effectiveSkullIdx = skullIdx;
+  if (skullIdx >= 0) {
+    const skullColor = tileColors[skullIdx];
+    const colorCount = tileColors.filter((c, i) => i !== stoneIdx && c === skullColor).length;
+    if (colorCount >= 3) effectiveSkullIdx = -1;
+  }
+
   const tiles = shape.map((_, i) => {
-    const rawF  = entry.tileColors[i]  / 6;
-    const rawF2 = entry.tileColors2[i] / 6;
-    const color  = pickWeightedColor(avail, rawF);
-    let   color2 = pickWeightedColor(avail, rawF2);
-    if (color2 === color) color2 = avail[(avail.indexOf(color) + 1) % avail.length];
-    if (i === stoneIdx) return makeCell(color, 'stone');
-    if (i === gradIdx)  return makeCell(color, 'gradient', color2);
-    if (i === skullIdx) return makeCell(color, 'skull');
+    const color  = tileColors[i];
+    const color2 = tileColors2[i];
+    if (i === stoneIdx)        return makeCell(color, 'stone');
+    if (i === gradIdx)         return makeCell(color, 'gradient', color2);
+    if (i === effectiveSkullIdx) return makeCell(color, 'skull');
     return makeCell(color, 'normal');
   });
 
@@ -1249,6 +1290,10 @@ function dropPiece() {
   });
   G.piece = null;   // clear so afterClear knows to spawn a new piece
   G.moves++;
+  if (G.cfg && G.cfg.hasSkull) {
+    G.skullPlacementCounter--;
+    if (G.skullPlacementCounter < 0) G.skullPlacementCounter = 5;
+  }
   G.phase = 'clearing';
   processMatches();
 }
@@ -1260,6 +1305,7 @@ function dropPiece() {
 
 function cellMatchColor(cell, color) {
   if (!cell) return false;
+  if (cell.type === 'wild') return true;
   if (cell.color === color) return true;
   if (cell.type === 'gradient' && cell.color2 === color) return true;
   return false;
@@ -1422,10 +1468,25 @@ function processMatches() {
       const cell = G.board[r][c];
       if (cell) {
         G.board[r][c] = null;
-        G.cleared[cell.color] = (G.cleared[cell.color] || 0) + 1;
-        G.mana[cell.color]    = (G.mana[cell.color]    || 0) + 1;
+        if (cell.type === 'wild') {
+          // wild: give quota+mana for every level color that still has quota left
+          const levelColors = G.cfg ? G.cfg.colors : [];
+          levelColors.forEach(col => {
+            if ((G.quota[col] || 0) > (G.cleared[col] || 0)) {
+              G.cleared[col] = (G.cleared[col] || 0) + 1;
+              G.mana[col]    = (G.mana[col]    || 0) + 1;
+            }
+          });
+        } else {
+          const colors = cell.type === 'gradient' && cell.color2
+            ? [cell.color, cell.color2] : [cell.color];
+          colors.forEach(col => {
+            G.cleared[col] = (G.cleared[col] || 0) + 1;
+            G.mana[col]    = (G.mana[col]    || 0) + 1;
+          });
+        }
         if (cell.type === 'skull') takeDamage();
-        gain += cell.type === 'stone' ? 15 : cell.type === 'gradient' ? 12 : 10;
+        gain += cell.type === 'stone' ? 15 : (cell.type === 'gradient' || cell.type === 'wild') ? 12 : 10;
       }
     });
 
@@ -1434,8 +1495,22 @@ function processMatches() {
       const cell = G.board[r][c];
       if (cell) {
         G.board[r][c] = null;
-        G.cleared[cell.color] = (G.cleared[cell.color] || 0) + 1;
-        G.mana[cell.color]    = (G.mana[cell.color]    || 0) + 2;  // bombs give 2x mana
+        if (cell.type === 'wild') {
+          const levelColors = G.cfg ? G.cfg.colors : [];
+          levelColors.forEach(col => {
+            if ((G.quota[col] || 0) > (G.cleared[col] || 0)) {
+              G.cleared[col] = (G.cleared[col] || 0) + 1;
+              G.mana[col]    = (G.mana[col]    || 0) + 2;
+            }
+          });
+        } else {
+          const colors = cell.type === 'gradient' && cell.color2
+            ? [cell.color, cell.color2] : [cell.color];
+          colors.forEach(col => {
+            G.cleared[col] = (G.cleared[col] || 0) + 1;
+            G.mana[col]    = (G.mana[col]    || 0) + 2;
+          });
+        }
         gain += 20;
       }
     });
@@ -1513,6 +1588,21 @@ function renderHearts() {
   }
 }
 
+function renderSkullTimer() {
+  const el = document.getElementById('skull-timer-display');
+  if (!el) return;
+  if (!G.cfg || !G.cfg.hasSkull) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  const count = G.skullPlacementCounter || 5;
+  const isImminent = count === 0;
+  el.innerHTML = `
+    <div class="skull-timer-wrap${isImminent ? ' skull-imminent' : ''}">
+      <span class="skull-timer-icon">💀</span>
+      <span class="skull-timer-count">${count}</span>
+    </div>
+  `;
+}
+
 function afterClear() {
   // If a tutorial is mid-display, defer until it's dismissed
   if (G.phase === 'tutorial' || _tutorialQueue.length) {
@@ -1580,7 +1670,7 @@ function nextPlayableLevel() {
   const candidates = [...SAVE.unlockedLevels].sort((a, b) => b - a);
   for (const lvl of candidates) {
     const ch = chapterOf(lvl);
-    if (isChapterUnlocked(ch)) return lvl;
+    if (isChapterUnlocked(ch) && isChapterAdWatched(ch)) return lvl;
   }
   return 1;
 }
@@ -1599,6 +1689,58 @@ function hasBeatenAllLevels(ch) {
   return true;
 }
 
+// ── AD GATE HELPERS ────────────────────────────────────────────
+// Chapter 1 is always free. For all others, access requires either:
+//   • SAVE.purchased === true (IAP or bypassAds set it on load), OR
+//   • The chapter number is in SAVE.adWatchedChapters
+// bypassAds is also checked directly here as a safety net so clearing
+// save mid-session doesn't accidentally re-enable the gate.
+function isChapterAdWatched(ch) {
+  if (ch === 1) return true;
+  if (bypassAds || SAVE.purchased) return true;
+  return (SAVE.adWatchedChapters || []).includes(ch);
+}
+
+function markChapterAdWatched(ch) {
+  if (!SAVE.adWatchedChapters) SAVE.adWatchedChapters = [];
+  if (!SAVE.adWatchedChapters.includes(ch)) {
+    SAVE.adWatchedChapters.push(ch);
+    saveGame();
+  }
+}
+
+// ── AD GATE MODAL ──────────────────────────────────────────────
+// Stub that will be replaced with your AdMob rewarded-ad call.
+// Contract: call onComplete() after the ad finishes successfully.
+//
+// TODO (AdMob): Replace the simulated completion inside this function.
+// Typical pattern:
+//   admob.showRewardedAd().then(onComplete).catch(err => console.warn('Ad failed:', err));
+// ⚠️  Do NOT call onComplete() in the catch — that would unlock the chapter
+//     even when the user skips or the ad fails to load.
+function showAdGate(ch, onComplete) {
+  showCard(`
+    <div style="font-size:38px;margin-bottom:10px">📺</div>
+    <div class="lore-title">Unlock Chapter ${ch}</div>
+    <div class="lore-text" style="margin-bottom:18px">
+      Watch a short ad to unlock Chapter ${ch} and support the developer.
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="pill-btn secondary small-btn" id="ad-gate-cancel">Cancel</button>
+      <button class="pill-btn small-btn" id="ad-gate-watch">▶ Watch Ad</button>
+    </div>
+  `);
+  document.getElementById('ad-gate-cancel').addEventListener('pointerdown', e => {
+    e.stopPropagation(); hideCard();
+  });
+  document.getElementById('ad-gate-watch').addEventListener('pointerdown', e => {
+    e.stopPropagation();
+    hideCard();
+    // ── TODO (AdMob): replace the line below with your real ad call ──
+    onComplete(); // simulated instant completion — remove when AdMob is wired up
+  });
+}
+
 window.openSpellLoadout = (returnCb) => {
   window._spellLoadoutReturn = returnCb || null;
   _renderSpellLoadout();
@@ -1607,11 +1749,12 @@ window.openSpellLoadout = (returnCb) => {
 function _renderSpellLoadout() {
   const equipped   = SAVE.equippedSpells || [];
   const highestLvl = highestCompletedLevel();
+  const testMode   = !!(SAVE.settings && SAVE.settings.testMode);
 
   // Build grid HTML — all spells including locked ones
   const gridHtml = SPELLS.map(spell => {
     const isEquipped = equipped.includes(spell.id);
-    const isUnlocked = spell.unlockLvl <= highestLvl;
+    const isUnlocked = testMode || spell.unlockLvl <= highestLvl;
 
     if (!isUnlocked) {
       return `<div class="sl-cell sl-locked">
@@ -1622,7 +1765,7 @@ function _renderSpellLoadout() {
 
     return `<div class="sl-cell ${isEquipped ? 'sl-equipped' : 'sl-available'}" onclick="toggleEquipSpell('${spell.id}')">
       <canvas class="spell-loadout-cv" width="40" height="40" data-spell="${spell.id}" style="image-rendering:pixelated"></canvas>
-      <span class="sl-name">${spell.name}</span>
+      <span class="sl-name">${spell.name}${testMode && spell.unlockLvl > highestLvl ? ' <span style="font-size:9px;opacity:.6">TEST</span>' : ''}</span>
       <span class="sl-cost">${spell.costLabel}</span>
       ${isEquipped ? `<span class="sl-remove">✕</span>` : ''}
     </div>`;
@@ -1782,7 +1925,15 @@ function checkChapterUnlocks() {
 
 window.openLevelSelect = () => {
   hideCard();
-  chapterPage = Math.max(0, Math.floor((chapterOf(G.level) - 1) / 10)); // jump to current chapter's page
+  // Find the furthest chapter the player has unlocked/reached
+  let furthestCh = 1;
+  for (let ch = 1; ch <= CHAPTER_COUNT; ch++) {
+    if (ch === 1 || hasBeatenAnyLevel(ch - 1)) furthestCh = ch;
+    else break;
+  }
+  expandedChapters.clear();
+  expandedChapters.add(furthestCh);
+  chapterPage = Math.max(0, Math.floor((furthestCh - 1) / 10));
   buildLevelGrid();
   document.getElementById('level-select-modal').classList.remove('hidden');
 };
@@ -1952,6 +2103,11 @@ function buildLevelGrid() {
     const playable   = playableChs.includes(ch);
     const isTest     = ch > lastVisibleCh;
 
+    // Ad-gate split: requirements met but ad not yet watched → adGated
+    //                requirements met AND ad watched (or purchased) → fullyUnlocked
+    const fullyUnlocked = playable && isChapterAdWatched(ch);
+    const adGated       = playable && !isChapterAdWatched(ch);
+
     const featIconHtml  = `<span class="ch-feat-icons"></span>`;
     const spellIconHtml = `<span class="ch-spell-icons"></span>`;
 
@@ -1965,7 +2121,7 @@ function buildLevelGrid() {
         <span class="ch-stars-pct" style="color:var(--muted);font-size:10px">🔮 Test</span>
         <span class="ch-arrow">${expanded ? '▾' : '▸'}</span>`;
       header.addEventListener('click', () => window.toggleChapter(ch));
-    } else if (playable) {
+    } else if (fullyUnlocked) {
       header.className = 'ch-header unlocked' + (hasCurrent ? ' current' : '');
       header.innerHTML = `
         ${featIconHtml}
@@ -1974,6 +2130,24 @@ function buildLevelGrid() {
         <span class="ch-stars-pct">${chStars}/${STARS_PER_CHAPTER}★</span>
         <span class="ch-arrow">${expanded ? '▾' : '▸'}</span>`;
       header.addEventListener('click', () => window.toggleChapter(ch));
+    } else if (adGated) {
+      // Requirements met — player needs to watch an ad to access this chapter
+      header.className = 'ch-header ch-ad-gated' + (hasCurrent ? ' current' : '');
+      header.innerHTML = `
+        ${featIconHtml}
+        ${spellIconHtml}
+        <span class="ch-title">Chapter ${ch} <span class="ch-lvl-range">${chFirst}–${chLast}</span></span>
+        <span class="ch-stars-pct">${chStars}/${STARS_PER_CHAPTER}★</span>
+        <button class="ch-unlock-btn">▶ Unlock</button>`;
+      header.addEventListener('pointerdown', e => {
+        e.stopPropagation();
+        showAdGate(ch, () => {
+          markChapterAdWatched(ch);
+          expandedChapters.clear();
+          expandedChapters.add(ch);
+          buildLevelGrid();
+        });
+      });
     } else {
       const beaten    = Array.from({length: CHAPTER_SIZE}, (_, i) => {
         const l = chapterStart(ch - 1) + i;
@@ -1993,7 +2167,7 @@ function buildLevelGrid() {
     renderChapterFeatureIcons(header.querySelector('.ch-feat-icons'), ch);
     renderChapterSpellIcons(header.querySelector('.ch-spell-icons'), ch);
 
-    if (!expanded || (!playable && !isTest)) continue;
+    if (!expanded || (!fullyUnlocked && !isTest)) continue;
 
     const lvlGrid = document.createElement('div');
     lvlGrid.className = 'lvlsel-grid';
@@ -2398,8 +2572,8 @@ function updateSpellBar() {
       label = targets.length === 0 ? 'Tap first tile' : 'Tap adjacent tile';
     } else if (spell && spell.id === 'transmute') {
       label = targets.length === 0 ? 'Tap tile to change' : 'Tap adjacent tile to copy';
-    } else if (spell && spell.id === 'mass-transmute') {
-      label = targets.length === 0 ? 'Tap color to replace' : 'Tap color to become';
+    } else if (spell && spell.id === 'wild-transmute') {
+      label = 'Tap tile to make Wild';
     } else if (spell && spell.id === 'pillar-of-fire') {
       label = 'Tap any tile in the column';
     }
@@ -2407,9 +2581,17 @@ function updateSpellBar() {
     castBar.className = 'cast-bar';
     castBar.innerHTML = `
       <span class="cast-label">${label}</span>
-      ${ready ? `<button class="pill-btn small-btn" onclick="castSpell()">Cast</button>` : ''}
-      <button class="pill-btn danger small-btn" onclick="cancelSpell()">Cancel</button>`;
+      ${ready ? `<button class="pill-btn small-btn" id="cast-bar-cast-btn">Cast</button>` : ''}
+      <button class="pill-btn danger small-btn" id="cast-bar-cancel-btn">Cancel</button>`;
     bar.appendChild(castBar);
+    // Use pointerdown (not onclick) so these buttons match the spell slot event model
+    // and don't fire as ghost clicks immediately after a spell button pointerup.
+    if (ready) {
+      const castBtn = castBar.querySelector('#cast-bar-cast-btn');
+      if (castBtn) castBtn.addEventListener('pointerdown', e => { e.stopPropagation(); castSpell(); });
+    }
+    const cancelBtn = castBar.querySelector('#cast-bar-cancel-btn');
+    if (cancelBtn) cancelBtn.addEventListener('pointerdown', e => { e.stopPropagation(); cancelSpell(); });
   }
 }
 
@@ -2484,8 +2666,22 @@ function executeSpell(spell, targets) {
     const { r, c } = targets[0];
     const cell = G.board[r][c];
     if (cell) {
-      G.cleared[cell.color] = (G.cleared[cell.color] || 0) + 1;
-      G.mana[cell.color]    = (G.mana[cell.color]    || 0) + 1;
+      if (cell.type === 'wild') {
+        const levelColors = G.cfg ? G.cfg.colors : [];
+        levelColors.forEach(col => {
+          if ((G.quota[col] || 0) > (G.cleared[col] || 0)) {
+            G.cleared[col] = (G.cleared[col] || 0) + 1;
+            G.mana[col]    = (G.mana[col]    || 0) + 1;
+          }
+        });
+      } else {
+        const colors = cell.type === 'gradient' && cell.color2
+          ? [cell.color, cell.color2] : [cell.color];
+        colors.forEach(col => {
+          G.cleared[col] = (G.cleared[col] || 0) + 1;
+          G.mana[col]    = (G.mana[col]    || 0) + 1;
+        });
+      }
       G.board[r][c] = null;
     }
     applyGravity(); renderQuota(); redraw();
@@ -2541,8 +2737,22 @@ function executeSpell(spell, targets) {
     for (let row = 0; row < rows; row++) {
       const cell = G.board[row][col];
       if (cell) {
-        G.cleared[cell.color] = (G.cleared[cell.color] || 0) + 1;
-        G.mana[cell.color]    = (G.mana[cell.color]    || 0) + 1;
+        if (cell.type === 'wild') {
+          const levelColors = G.cfg ? G.cfg.colors : [];
+          levelColors.forEach(lc => {
+            if ((G.quota[lc] || 0) > (G.cleared[lc] || 0)) {
+              G.cleared[lc] = (G.cleared[lc] || 0) + 1;
+              G.mana[lc]    = (G.mana[lc]    || 0) + 1;
+            }
+          });
+        } else {
+          const colors = cell.type === 'gradient' && cell.color2
+            ? [cell.color, cell.color2] : [cell.color];
+          colors.forEach(lc => {
+            G.cleared[lc] = (G.cleared[lc] || 0) + 1;
+            G.mana[lc]    = (G.mana[lc]    || 0) + 1;
+          });
+        }
         G.board[row][col] = null;
       }
     }
@@ -2559,19 +2769,13 @@ function executeSpell(spell, targets) {
     G.piece = savedPiece;
     renderHearts(); updateSpellBar(); redraw();
 
-  } else if (spell.id === 'mass-transmute') {
-    // targets[0] = tile of color to change FROM, targets[1] = tile of color to change TO
-    const fromColor = G.board[targets[0].r][targets[0].c]?.color;
-    const toColor   = G.board[targets[1].r][targets[1].c]?.color;
-    if (fromColor && toColor && fromColor !== toColor) {
-      const rows = G.rows || BASE_ROWS, cols = G.cols || BASE_COLS;
-      for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-          const cell = G.board[row][col];
-          if (cell && cell.color === fromColor) cell.color = toColor;
-          if (cell && cell.color2 === fromColor) cell.color2 = toColor;
-        }
-      }
+  } else if (spell.id === 'wild-transmute') {
+    const { r, c } = targets[0];
+    if (G.board[r][c]) {
+      G.board[r][c].type   = 'wild';
+      G.board[r][c].color  = 'red';    // color fields unused for wild but kept for safety
+      G.board[r][c].color2 = null;
+      G.board[r][c].hp     = 1;
     }
     G.piece = savedPiece;
     redraw();
@@ -2612,23 +2816,7 @@ function handleSpellTap(row, col) {
     updateSpellBar(); redraw(); return true;
   }
 
-  // Mass Transmute: any two tiles (no adjacency — just need 2 different colors)
-  if (spell.id === 'mass-transmute') {
-    if (!G.board[row][col]) return false;
-    const targets = G.spellTargets || [];
-    if (targets.length === 1 && targets[0].r === row && targets[0].c === col) {
-      G.spellTargets = [];
-      updateSpellBar(); redraw(); return true;
-    }
-    if (targets.length === 1) {
-      G.spellTargets.push({ r: row, c: col });
-      updateSpellBar(); redraw(); return true;
-    }
-    G.spellTargets = [{ r: row, c: col }];
-    updateSpellBar(); redraw(); return true;
-  }
-
-  // Single-target spells (cut, bomb-tile, pillar-of-fire)
+  // Single-target spells (cut, bomb-tile, pillar-of-fire, wild-transmute)
   if (!G.board[row][col] && spell.id !== 'pillar-of-fire') return false;
   G.spellTargets = [{ r: row, c: col }];
   updateSpellBar(); redraw();
@@ -2909,11 +3097,83 @@ function drawStoneOverlay(ctx, x, y, size, hp, alpha = 1) {
   ctx.restore();
 }
 
+function drawWildGem(ctx, x, y, size, alpha = 1, scale = 1) {
+  const allColors = ['red', 'blue', 'yellow', 'green', 'purple', 'void'];
+  const cx = x + size / 2, cy = y + size / 2, r = size / 2 - 1;
+  const slices = allColors.length;
+  const angleStep = (Math.PI * 2) / slices;
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  if (scale !== 1) { ctx.translate(cx, cy); ctx.scale(scale, scale); ctx.translate(-cx, -cy); }
+
+  // clip to circle
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+
+  // draw each color slice as a pie wedge
+  allColors.forEach((colorName, i) => {
+    const pal = C[colorName];
+    const startAngle = i * angleStep - Math.PI / 2;
+    const endAngle   = startAngle + angleStep;
+    const grad = ctx.createRadialGradient(cx, cy, r * 0.1, cx, cy, r);
+    grad.addColorStop(0,   pal.lit);
+    grad.addColorStop(0.5, pal.mid);
+    grad.addColorStop(1,   pal.drk);
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, startAngle, endAngle);
+    ctx.closePath();
+    ctx.fill();
+  });
+
+  // thin divider lines between slices
+  ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 0.8;
+  allColors.forEach((_, i) => {
+    const angle = i * angleStep - Math.PI / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r);
+    ctx.stroke();
+  });
+
+  // shared shine
+  const shi = ctx.createRadialGradient(cx - r * .32, cy - r * .38, 0, cx - r * .18, cy - r * .18, r * .52);
+  shi.addColorStop(0, 'rgba(255,255,255,.55)'); shi.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = shi;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+
+  // outer rim
+  ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+
+  ctx.restore();
+
+  // sparkle — white star in centre
+  ctx.save();
+  ctx.globalAlpha = alpha * 0.95;
+  ctx.fillStyle   = '#ffffff';
+  ctx.strokeStyle = 'rgba(0,0,0,0.3)'; ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(cx,     cy - 5);
+  ctx.lineTo(cx + 2, cy - 2);
+  ctx.lineTo(cx + 5, cy);
+  ctx.lineTo(cx + 2, cy + 2);
+  ctx.lineTo(cx,     cy + 5);
+  ctx.lineTo(cx - 2, cy + 2);
+  ctx.lineTo(cx - 5, cy);
+  ctx.lineTo(cx - 2, cy - 2);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+
 // Unified cell draw: picks the right combination of drawers
 function drawCell(ctx, x, y, size, cell, alpha = 1, scale = 1) {
   if (!cell) return;
   const isBomb = cell.type === 'bomb' || cell.type === 'superbomb';
-  if (cell.type === 'gradient') {
+  if (cell.type === 'wild') {
+    drawWildGem(ctx, x, y, size, alpha, scale);
+  } else if (cell.type === 'gradient') {
     drawGradientGem(ctx, x, y, size, cell.color, cell.color2, alpha, scale);
   } else {
     drawGem(ctx, x, y, size, cell.color, alpha, scale, isBomb);
@@ -3067,6 +3327,7 @@ function redraw() {
   renderMana();
   drawSpellTarget();
   renderHearts();
+  renderSkullTimer();
 }
 
 function updateLiveStars() {
@@ -3439,6 +3700,12 @@ function showMainMenu() {
   const menuEl  = document.getElementById('main-menu');
   menuEl.innerHTML = `
     <div class="mm-bg"></div>
+
+    ${(!SAVE.purchased && !bypassAds) ? `
+    <button class="mm-no-ads-btn" onclick="mmPurchaseNoAds()">
+      ✨ No Ads
+    </button>` : ''}
+
     <div class="mm-content">
       <div class="mm-logo-wrap">
         <div class="mm-logo-top">MATCH</div>
@@ -3450,6 +3717,7 @@ function showMainMenu() {
         ${hasSave
           ? `<button class="mm-btn mm-btn-primary" onclick="mmContinue()">▶ Continue</button>`
           : `<button class="mm-btn mm-btn-primary" onclick="mmNewGame()">▶ Begin Weaving</button>`}
+        ${hasSave ? `<button class="mm-btn mm-btn-secondary" onclick="mmLevelSelect()">☰ Level Select</button>` : ''}
         <button class="mm-btn mm-btn-secondary" onclick="mmSettings()">⚙ Settings</button>
         <a class="mm-btn mm-btn-discord" href="https://discord.gg/mzWrMsf7B9" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="flex-shrink:0">
@@ -3464,6 +3732,35 @@ function showMainMenu() {
   `;
   menuEl.classList.remove('hidden');
 }
+
+// ── NO ADS PURCHASE ───────────────────────────────────────────
+// TODO (IAP): Replace the body of this function with your real
+// Play Store / App Store purchase flow, e.g.:
+//   store.order('no_ads').then(() => {
+//     SAVE.purchased = true; saveGame(); showMainMenu();
+//   }).catch(err => console.warn('Purchase cancelled:', err));
+window.mmPurchaseNoAds = () => {
+  showCard(`
+    <div style="font-size:38px;margin-bottom:10px">✨</div>
+    <div class="lore-title">Remove Ads</div>
+    <div class="lore-text" style="margin-bottom:18px">
+      Unlock all chapters forever — no ads, ever again.<br><br>
+      <strong style="color:var(--gold)">One-time purchase</strong>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="pill-btn secondary small-btn" onclick="hideCard();showMainMenu()">Cancel</button>
+      <button class="pill-btn small-btn" id="purchase-confirm-btn">Buy Now</button>
+    </div>
+  `);
+  document.getElementById('purchase-confirm-btn').addEventListener('pointerdown', e => {
+    e.stopPropagation();
+    hideCard();
+    // ── TODO (IAP): replace the lines below with your real store purchase call ──
+    SAVE.purchased = true;
+    saveGame();
+    showMainMenu(); // re-render to hide the No Ads button
+  });
+};
 
 function hideMainMenu() {
   document.getElementById('main-menu').classList.add('hidden');
@@ -3506,6 +3803,11 @@ window.mmSettings = () => {
   openSettingsWithReturn(() => showMainMenu());
 };
 
+window.mmLevelSelect = () => {
+  hideMainMenu();
+  openLevelSelect();
+};
+
 window.onStartGame = () => { hideMainMenu(); goToLevel(1, LORE[0]); };
 window.onContinue  = () => {
   hideMainMenu();
@@ -3521,5 +3823,6 @@ window.openLevelSelectFromStart = () => {
 
 // ── BOOT ─────────────────────────────────────────────────────
 initSave();
+if (bypassAds) SAVE.purchased = true; // dev shortcut: bypass flag sets the purchase flag
 initGame();
 requestAnimationFrame(() => { resizeCanvas(); showMainMenu(); });
