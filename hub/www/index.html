@@ -2,177 +2,2247 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Faceuro Games Hub</title>
+  <title>Faceuro Games</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <link rel="stylesheet" href="styles.css" />
-</head>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+/* ==============================================
+   Faceuro Games Hub — styles.css
+   Font: Syne (display/headings) + DM Sans (body)
+   ============================================== */
 
+/* ---------- RESET ---------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+  overflow: hidden; /* outer shell never scrolls */
+}
+img { max-width: 100%; display: block; }
+button { font: inherit; cursor: pointer; }
+input { font: inherit; }
+.hidden { display: none !important; }
+
+/* ---------- THEME TOKENS ---------- */
+:root {
+  --bg:        #080c11;
+  --surface:   #0d1520;
+  --surface2:  #111d2b;
+  --surface3:  #0e1926;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.13);
+  --text:      rgba(255,255,255,0.93);
+  --muted:     rgba(255,255,255,0.55);
+  --muted2:    rgba(255,255,255,0.35);
+  --accent:    #5b9cf6;
+  --accent2:   #38e07b;
+  --danger:    #ff4d5e;
+  --glow:      rgba(91,156,246,0.18);
+
+  --nav-w:     58px;
+  --bar-h:     54px;
+  --radius:    14px;
+  --radius-lg: 20px;
+  --shadow:    0 12px 36px rgba(0,0,0,0.55);
+  --shadow-sm: 0 4px 14px rgba(0,0,0,0.4);
+}
+
+/* ---------- BACKGROUND ---------- */
+body {
+  background:
+    radial-gradient(ellipse 140% 80% at 15% -10%, rgba(91,156,246,0.09) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 60% at 88% 8%,   rgba(56,224,123,0.07) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 60% 90%,  rgba(91,156,246,0.05) 0%, transparent 45%),
+    var(--bg);
+  color: var(--text);
+}
+
+/* ================================================
+   SHELL LAYOUT
+   grid: [nav | main]
+   app-main grid: [top-bar | stage]
+   ================================================ */
+
+.app-shell {
+  height: 100dvh;
+  display: grid;
+  grid-template-columns: var(--nav-w) 1fr;
+  overflow: hidden;
+}
+
+/* ------------------------------------------------
+   SIDE NAV
+   ------------------------------------------------ */
+.side-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 0 16px;
+  gap: 6px;
+  border-right: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,0.025) 0%, transparent 60%),
+              rgba(0,0,0,0.18);
+  z-index: 10;
+  transition: width 0.25s ease, opacity 0.25s ease;
+}
+
+.side-nav-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  color: #fff;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.side-nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 0 8px;
+}
+
+.nav-btn {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, background 0.15s, border-color 0.15s, transform 0.1s;
+}
+.nav-btn svg { width: 18px; height: 18px; }
+.nav-btn:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.05);
+  border-color: var(--border);
+}
+.nav-btn:active { transform: scale(0.94); }
+.nav-btn.is-active {
+  color: var(--accent);
+  background: rgba(91,156,246,0.12);
+  border-color: rgba(91,156,246,0.3);
+}
+
+/* ------------------------------------------------
+   APP MAIN
+   ------------------------------------------------ */
+.app-main {
+  display: grid;
+  grid-template-rows: var(--bar-h) 1fr;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* ------------------------------------------------
+   TOP BAR (hub mode)
+   ------------------------------------------------ */
+.top-bar {
+  height: var(--bar-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(8,12,17,0.7);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  gap: 12px;
+  flex-shrink: 0;
+  z-index: 5;
+}
+
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1;
+}
+
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.top-bar-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top-bar-title .accent-dot {
+  color: var(--accent);
+}
+
+/* icon buttons */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 7px 11px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.12s, border-color 0.12s, transform 0.1s;
+  white-space: nowrap;
+}
+.icon-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+.icon-btn:hover { background: rgba(255,255,255,0.07); border-color: var(--border2); }
+.icon-btn:active { transform: scale(0.96); }
+
+/* search bar in top */
+.top-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 480px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 0 10px;
+  height: 38px;
+}
+.search-icon { display: flex; align-items: center; color: var(--muted); flex-shrink: 0; }
+.search-icon svg { width: 15px; height: 15px; }
+.top-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  min-width: 0;
+}
+.top-search-input::placeholder { color: var(--muted2); }
+.top-search-clear {
+  border: none;
+  background: transparent;
+  padding: 4px;
+  border-radius: 6px;
+  color: var(--muted);
+}
+.top-search-clear svg { width: 14px; height: 14px; }
+.top-search-clear:hover { color: var(--text); background: rgba(255,255,255,0.07); }
+
+/* ------------------------------------------------
+   MAIN STAGE
+   ------------------------------------------------ */
+.main-stage {
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+
+/* ------------------------------------------------
+   HUB VIEW
+   ------------------------------------------------ */
+.hub-view {
+  height: 100%;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overscroll-behavior: contain;
+}
+
+.hub-view::-webkit-scrollbar { width: 4px; }
+.hub-view::-webkit-scrollbar-track { background: transparent; }
+.hub-view::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+}
+
+/* section labels */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.section-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ------------------------------------------------
+   FEATURED CAROUSEL
+   ------------------------------------------------ */
+.featured-section {
+  flex-shrink: 0;
+}
+
+.featured-dots {
+  display: flex;
+  gap: 5px;
+}
+.featured-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--border2);
+  transition: background 0.2s, width 0.2s;
+}
+.featured-dot.is-active {
+  width: 14px;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+.featured-viewport {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  height: min(28vh, 200px);
+  min-height: 160px;
+}
+
+.featured-track {
+  height: 100%;
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0 2px 0 0;
+  scroll-behavior: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.featured-track::-webkit-scrollbar { display: none; }
+
+.featured-card {
+  flex: 0 0 auto;
+  width: min(75vw, 520px);
+  height: 100%;
+  background: linear-gradient(135deg, var(--surface2) 0%, var(--surface3) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  padding: 14px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.featured-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 60% at 20% 40%, rgba(91,156,246,0.07), transparent 70%);
+  pointer-events: none;
+}
+.featured-card:hover {
+  border-color: var(--border2);
+  transform: translateY(-1px);
+}
+.featured-card:active { transform: scale(0.99); }
+
+.featured-icon-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.featured-icon-wrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+  border: 1px solid var(--border2);
+  overflow: hidden;
+  background: rgba(0,0,0,0.3);
+  flex-shrink: 0;
+}
+.featured-icon-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.featured-play-btn {
+  width: 100%;
+  border: 1px solid rgba(91,156,246,0.35);
+  background: rgba(91,156,246,0.14);
+  color: var(--accent);
+  border-radius: 9px;
+  padding: 5px 0;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'Syne', sans-serif;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: background 0.12s, border-color 0.12s, transform 0.1s;
+}
+.featured-play-btn:hover { background: rgba(91,156,246,0.22); border-color: rgba(91,156,246,0.55); }
+.featured-play-btn:active { transform: scale(0.97); }
+
+.featured-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.featured-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.featured-desc {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.featured-tag-row {
+  margin-top: auto;
+  padding-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.featured-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(8,12,17,0.7);
+  border: 1px solid var(--border2);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 2;
+}
+.featured-arrow svg { width: 14px; height: 14px; }
+.featured-arrow-right { right: 6px; }
+.featured-arrow-left  { left: 6px; }
+.featured-arrow.is-hidden { opacity: 0; }
+
+/* ------------------------------------------------
+   PILLS / TAGS
+   ------------------------------------------------ */
+.pill {
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.04);
+  color: var(--muted);
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* ------------------------------------------------
+   FILTER CONTROLS
+   ------------------------------------------------ */
+.controls-section { flex-shrink: 0; }
+
+.controls-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.control { position: relative; }
+
+.control-btn {
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: background 0.12s, border-color 0.12s, transform 0.1s;
+  white-space: nowrap;
+}
+.control-icon { width: 13px; height: 13px; color: var(--muted); flex-shrink: 0; }
+.chev { width: 13px; height: 13px; color: var(--muted2); flex-shrink: 0; }
+.control-btn:hover { background: rgba(255,255,255,0.06); border-color: var(--border2); }
+.control-btn:active { transform: scale(0.97); }
+
+.dropdown-menu {
+  position: absolute;
+  z-index: 100;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 210px;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid var(--border2);
+  background: rgba(10,16,24,0.97);
+  backdrop-filter: blur(16px);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 5px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+.dropdown-item {
+  width: 100%;
+  text-align: left;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  padding: 9px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  transition: background 0.1s, border-color 0.1s;
+}
+.dropdown-item:hover { background: rgba(255,255,255,0.05); border-color: var(--border); }
+.dropdown-item.is-active {
+  background: rgba(91,156,246,0.13);
+  border-color: rgba(91,156,246,0.3);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+
+/* ------------------------------------------------
+   DEVELOPMENT PROGRESS BADGES
+   ------------------------------------------------ */
+.dev-progress-badge {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: calc(100% - 14px);
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(8,12,17,0.78);
+  color: rgba(255,255,255,0.92);
+  border-radius: 999px;
+  padding: 3px 6px;
+  font-family: 'Syne', sans-serif;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.35px;
+  line-height: 1;
+  text-transform: uppercase;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+.dev-progress-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  font-size: 9px;
+  line-height: 1;
+}
+.dev-progress-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dev-progress-poc      { border-color: rgba(255,255,255,0.20); color: rgba(255,255,255,0.80); }
+.dev-progress-demo     { border-color: rgba(91,156,246,0.45);  color: #a8ccff; }
+.dev-progress-alpha    { border-color: rgba(255,190,88,0.50);  color: #ffd392; }
+.dev-progress-beta     { border-color: rgba(183,119,255,0.50); color: #d7b7ff; }
+.dev-progress-finished { border-color: rgba(56,224,123,0.50);  color: #a8ffc7; }
+.dev-progress-featured {
+  top: 5px;
+  right: 5px;
+  padding: 3px 5px;
+}
+.dev-progress-modal {
+  position: static;
+  flex-shrink: 0;
+  margin-left: 8px;
+  transform: translateY(1px);
+}
+
+/* ------------------------------------------------
+   GAMES GRID
+   ------------------------------------------------ */
+.grid-section { flex: 1; }
+
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.game-card {
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.13s, border-color 0.13s, box-shadow 0.13s;
+  position: relative;
+}
+.game-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border2);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+}
+.game-card:active { transform: scale(0.97); }
+
+.game-card-icon {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+}
+
+.game-card-footer {
+  padding: 8px 9px 9px;
+  background: linear-gradient(0deg, var(--surface2) 0%, transparent 100%);
+}
+.game-card-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+.game-card-tag {
+  font-size: 10px;
+  color: var(--muted2);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grid-empty {
+  grid-column: 1 / -1;
+  padding: 32px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* ================================================
+   PLAYER VIEW + SLIDE-DOWN GAME TOPBAR
+   ================================================ */
+.player-view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+}
+
+/* The in-game top bar — hidden above the top edge by default */
+.game-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  transform: translateY(-100%);
+  transition: transform 0.28s cubic-bezier(0.32, 0, 0.24, 1);
+  will-change: transform;
+}
+
+.game-topbar.is-visible {
+  transform: translateY(0);
+}
+
+.game-topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 14px;
+  height: 50px;
+  background: rgba(8,12,17,0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--border2);
+}
+
+.gtb-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  text-align: center;
+}
+
+.gtb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border2);
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  border-radius: 9px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.12s, transform 0.1s;
+}
+.gtb-btn svg { width: 15px; height: 15px; }
+.gtb-btn:hover { background: rgba(255,255,255,0.10); }
+.gtb-btn:active { transform: scale(0.96); }
+
+/* Floating toggle button */
+.gtb-toggle {
+  position: absolute;
+  z-index: 190;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(8,12,17,0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: rgba(255,255,255,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  touch-action: none;
+  user-select: none;
+}
+.gtb-toggle svg {
+  width: 13px;
+  height: 13px;
+  transition: transform 0.25s cubic-bezier(0.32,0,0.24,1);
+  pointer-events: none;
+}
+.gtb-toggle:hover {
+  background: rgba(20,30,45,0.88);
+  color: #fff;
+}
+.gtb-toggle:active { opacity: 0.7; }
+/* Rotate chevron when bar is open */
+.gtb-toggle.is-open svg {
+  transform: rotate(180deg);
+}
+
+/* the iframe fills the rest */
+.game-frame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  display: block;
+  background: #000;
+}
+
+/* ================================================
+   MODAL
+   ================================================ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.modal {
+  position: relative;
+  width: min(88vw, 560px);
+  max-height: 86vh;
+  background: linear-gradient(160deg, var(--surface2) 0%, var(--surface) 100%);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow), 0 0 0 1px rgba(255,255,255,0.04) inset;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border2);
+  background: rgba(0,0,0,0.5);
+  color: var(--text);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, transform 0.1s;
+}
+.modal-close-btn svg { width: 14px; height: 14px; }
+.modal-close-btn:hover { background: rgba(255,255,255,0.1); }
+.modal-close-btn:active { transform: scale(0.93); }
+
+/* hero area: icon + glow */
+.modal-hero {
+  position: relative;
+  height: 130px;
+  overflow: hidden;
+  background: var(--surface3);
+  flex-shrink: 0;
+}
+.modal-icon {
+  position: absolute;
+  bottom: -16px;
+  left: 20px;
+  width: 86px;
+  height: 86px;
+  border-radius: 18px;
+  border: 2px solid var(--border2);
+  object-fit: cover;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  z-index: 2;
+}
+.modal-hero-glow {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background-size: cover;
+  background-position: center;
+  filter: blur(24px) saturate(1.4);
+  transform: scale(1.1);
+  z-index: 1;
+}
+
+/* scrollable body */
+.modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 56px 20px 20px; /* top pad so content clears the icon */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+
+.modal-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1.1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.modal-desc {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.modal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.modal-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+.meta-row {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+}
+.meta-key { color: var(--muted); }
+.meta-val { color: var(--text); overflow-wrap: anywhere; }
+
+.modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+
+/* play button */
+.play-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(91,156,246,0.4);
+  background: rgba(91,156,246,0.18);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 11px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Syne', sans-serif;
+  transition: background 0.12s, border-color 0.12s, transform 0.1s;
+}
+.play-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+.play-btn:hover { background: rgba(91,156,246,0.27); border-color: rgba(91,156,246,0.6); }
+.play-btn:active { transform: scale(0.97); }
+
+/* favorite button */
+.fav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--border2);
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.12s, border-color 0.12s, transform 0.1s;
+}
+.fav-icon { width: 15px; height: 15px; flex-shrink: 0; }
+.fav-btn:hover { background: rgba(255,255,255,0.07); border-color: var(--border2); }
+.fav-btn:active { transform: scale(0.97); }
+.fav-btn.is-favorited {
+  background: rgba(56,224,123,0.12);
+  border-color: rgba(56,224,123,0.4);
+}
+.fav-btn.is-favorited .fav-icon {
+  fill: var(--accent2);
+  stroke: var(--accent2);
+}
+.fav-btn.is-favorited span { color: var(--accent2); }
+
+/* spacer in action row */
+.modal-actions-spacer { flex: 1; }
+
+/* ================================================
+   ERROR DIALOG
+   ================================================ */
+.error-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+}
+.error-popup {
+  width: min(90vw, 480px);
+  max-height: 75vh;
+  background: rgba(10,16,24,0.97);
+  border: 1px solid rgba(255,77,94,0.3);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  overflow: hidden;
+}
+.error-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.error-icon { width: 20px; height: 20px; color: var(--danger); flex-shrink: 0; }
+.error-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--danger);
+}
+.error-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  color: var(--text);
+  font-size: 12.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+.error-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* ================================================
+   PLAYING STATE — full-viewport iframe
+   ================================================ */
+.app-shell.is-playing {
+  grid-template-columns: 0 1fr;
+}
+.app-shell.is-playing .side-nav {
+  width: 0;
+  padding: 0;
+  border-right: none;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+/* Switch app-main to plain block so no grid row math can go wrong */
+.app-shell.is-playing .app-main {
+  display: block;
+  height: 100dvh;
+}
+.app-shell.is-playing .top-bar {
+  display: none;
+}
+.app-shell.is-playing .main-stage {
+  height: 100dvh;
+}
+
+/* ================================================
+   SCROLLBAR STYLING
+   ================================================ */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+
+/* ================================================
+   RESPONSIVE
+   ================================================ */
+@media (max-width: 520px) {
+  :root { --nav-w: 50px; }
+  .games-grid { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 9px; }
+  .featured-card { width: min(84vw, 380px); }
+  .modal { width: 95vw; }
+  .meta-row { grid-template-columns: 100px 1fr; }
+}
+
+  </style>
+</head>
 <body>
   <div id="app" class="app-shell">
 
-    <!-- LEFT MENU -->
-    <aside id="side-nav" class="side-nav" aria-label="Primary">
-      <button id="nav-main" class="side-nav-btn is-active" type="button">🏠</button>
-      <button id="nav-search" class="side-nav-btn" type="button">🔍</button>
-      <button id="nav-favorites" class="side-nav-btn" type="button">★</button>
+    <!-- SIDE NAV -->
+    <aside id="side-nav" class="side-nav" aria-label="Primary navigation">
+      <div class="side-nav-logo">F</div>
+      <nav class="side-nav-links">
+        <button id="nav-main"      class="nav-btn is-active" type="button" title="Home">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </button>
+        <button id="nav-search"    class="nav-btn" type="button" title="Search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <button id="nav-favorites" class="nav-btn" type="button" title="Favorites">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </button>
+      </nav>
     </aside>
 
-    <!-- MAIN AREA -->
+    <!-- MAIN COLUMN -->
     <div class="app-main">
 
-      <!-- TOP BAR -->
-      <header class="top-bar">
+      <!-- TOP BAR (hub mode) -->
+      <header id="top-bar" class="top-bar">
         <div class="top-bar-left">
-  <!-- Title (shown when NOT searching) -->
-  <div id="top-title" class="top-bar-title">Faceuro Games</div>
-
-  <!-- Search (shown when Search tab active) -->
-  <div id="top-search" class="top-search hidden" role="search">
-    <input
-      id="top-search-input"
-      class="top-search-input"
-      type="search"
-      placeholder="Search games…"
-      autocomplete="off"
-      spellcheck="false"
-    />
-    <button id="top-search-clear" class="icon-btn top-search-clear" type="button" aria-label="Clear search">✕</button>
-  </div>
-</div>
-
+          <div id="top-title" class="top-bar-title">Faceuro<span class="accent-dot"> Games</span></div>
+          <div id="top-search" class="top-search hidden" role="search">
+            <span class="search-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </span>
+            <input id="top-search-input" class="top-search-input" type="search" placeholder="Search games…" autocomplete="off" spellcheck="false" />
+            <button id="top-search-clear" class="icon-btn top-search-clear" type="button" aria-label="Clear search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
         <div class="top-bar-right">
-  <button id="back-button" class="icon-btn hidden" type="button" aria-label="Back">
-    ←
-  </button>
-
-  <button id="refresh-button" class="icon-btn" type="button" aria-label="Refresh">
-    ⟳
-  </button>
-</div>
+          <button id="back-button"    class="icon-btn hidden" type="button" aria-label="Back to hub">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            <span>Back</span>
+          </button>
+          <button id="refresh-button" class="icon-btn" type="button" aria-label="Refresh">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          </button>
+        </div>
       </header>
 
-      <!-- CONTENT -->
-<!-- CONTENT STAGE (hub OR player) -->
-<div class="main-stage">
+      <!-- MAIN STAGE: swaps between hub and player -->
+      <div class="main-stage">
 
-<main id="hub-view" class="content">
+        <!-- HUB VIEW -->
+        <main id="hub-view" class="hub-view">
 
-  <!-- STATUS (optional, you can show/hide from JS) -->
-  <section id="status-section" class="status-section hidden">
-    <div id="status-message">Connecting to server...</div>
-  </section>
+          <!-- FEATURED CAROUSEL -->
+          <section id="featured-section" class="featured-section">
+            <div class="section-header">
+              <span class="section-label">Featured</span>
+              <div id="featured-dots" class="featured-dots"></div>
+            </div>
+            <div class="featured-viewport">
+              <div id="featured-track" class="featured-track" role="list"></div>
+              <div id="featured-next-indicator" class="featured-arrow featured-arrow-right" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+              <div id="featured-prev-indicator" class="featured-arrow featured-arrow-left is-hidden" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </div>
+            </div>
+          </section>
 
-  <!-- FEATURED (30vh box) -->
-  <section id="featured-section" class="featured-section" aria-label="Featured games">
-    <div class="section-caption">Featured</div>
+          <!-- FILTERS -->
+          <section class="controls-section">
+            <div class="controls-row">
+              <div class="control">
+                <button id="type-dropdown-button" class="control-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="control-icon"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                  <span id="type-dropdown-label">All</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chev"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div id="type-dropdown-menu" class="dropdown-menu hidden" role="listbox" aria-label="Filter by type"></div>
+              </div>
+              <div class="control">
+                <button id="sort-dropdown-button" class="control-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="control-icon"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                  <span id="sort-dropdown-label">A–Z</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chev"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div id="sort-dropdown-menu" class="dropdown-menu hidden" role="listbox" aria-label="Sort games"></div>
+              </div>
+            </div>
+          </section>
 
-    <div class="featured-viewport">
-      <div id="featured-track" class="featured-track" role="list"></div>
+          <!-- GRID -->
+          <section id="grid-section" class="grid-section">
+            <div id="games-grid" class="games-grid"></div>
+          </section>
 
-      <div id="featured-next-indicator" class="featured-next-indicator" aria-hidden="true">
-        <span class="featured-next-arrow">›</span>
-      </div>
-    </div>
-  </section>
+        </main>
 
-  <!-- FILTERS / SORT -->
-  <section class="controls-section" aria-label="Filters and sorting">
-    <div class="controls-row">
-      <div class="control">
-        <button id="type-dropdown-button" class="control-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
-          Type: <span id="type-dropdown-label">All</span>
-          <span class="chev">▾</span>
-        </button>
-        <div id="type-dropdown-menu" class="dropdown-menu hidden" role="listbox" aria-label="Type"></div>
-      </div>
+        <!-- PLAYER VIEW -->
+        <section id="player-view" class="player-view hidden" aria-label="Game player">
 
-      <div class="control">
-        <button id="sort-dropdown-button" class="control-btn" type="button" aria-haspopup="listbox" aria-expanded="false">
-          Sort: <span id="sort-dropdown-label">ABC: Ascending</span>
-          <span class="chev">▾</span>
-        </button>
-        <div id="sort-dropdown-menu" class="dropdown-menu hidden" role="listbox" aria-label="Sort"></div>
-      </div>
-    </div>
-  </section>
+          <!-- Slide-down top bar -->
+          <div id="game-topbar" class="game-topbar">
+            <div class="game-topbar-inner">
+              <button id="game-back-btn" class="gtb-btn" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                Back
+              </button>
+              <div id="game-topbar-title" class="gtb-title"></div>
+              <button id="game-reload-btn" class="gtb-btn" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                Reload
+              </button>
+            </div>
+          </div>
 
-  <!-- GRID -->
-  <section id="grid-section" class="grid-section" aria-label="Games grid">
-    <div id="games-grid" class="games-grid"></div>
-  </section>
+          <!-- Floating toggle button -->
+          <button id="gtb-toggle" class="gtb-toggle" type="button" aria-label="Show menu" title="Show menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
 
-</main>
+          <iframe
+            id="game-frame"
+            class="game-frame"
+            src="about:blank"
+            title="Game"
+            loading="eager"
+            referrerpolicy="no-referrer"
+            allow="fullscreen; autoplay; clipboard-read; clipboard-write"
+          ></iframe>
+        </section>
 
-  <!-- PLAYER VIEW (iframe) -->
-  <section id="player-view" class="player-view hidden" aria-label="Game player">
-    <iframe
-      id="game-frame"
-      class="game-frame"
-      src="about:blank"
-      title="Game"
-      loading="eager"
-      referrerpolicy="no-referrer"
-      allow="fullscreen; autoplay; clipboard-read; clipboard-write"
-    ></iframe>
-  </section>
+      </div><!-- /.main-stage -->
+    </div><!-- /.app-main -->
+  </div><!-- /.app-shell -->
 
-</div>
-    </div>
-  </div>
-
-  <!-- MODAL OVERLAY (blur background) -->
+  <!-- GAME DETAIL MODAL -->
   <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-label="Game details">
     <div id="modal" class="modal">
-      <!-- Header area -->
-      <div class="modal-header">
+      <button id="modal-close" class="modal-close-btn" type="button" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="modal-hero">
         <img id="modal-icon" class="modal-icon" alt="" src="" />
-        <div class="modal-header-text">
-          <div id="modal-title" class="modal-title">Game Name</div>
-          <div id="modal-desc" class="modal-desc">Game description goes here.</div>
-        </div>
-
-        <button id="modal-close" class="icon-btn modal-close" type="button" aria-label="Close">
-          ✕
-        </button>
+        <div class="modal-hero-glow" id="modal-hero-glow"></div>
       </div>
-
-      <!-- Details list (cfg.json data: releaseDate, lastUpdate, totalPlays, favorites, tags, etc.) -->
-      <div class="modal-body">
-        <div id="modal-meta" class="modal-meta">
-          <!-- JS injects key/value rows here -->
+      <div class="modal-content">
+        <div id="modal-title" class="modal-title"></div>
+        <div id="modal-desc"  class="modal-desc"></div>
+        <div id="modal-tags"  class="modal-tags"></div>
+        <div id="modal-meta"  class="modal-meta"></div>
+        <div class="modal-actions">
+          <button id="modal-favorite" class="fav-btn" type="button" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fav-icon"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span id="modal-favorite-label">Favorite</span>
+          </button>
+          <button id="modal-play" class="play-btn" type="button">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Play Now
+          </button>
         </div>
-      </div>
-
-      <!-- Footer actions -->
-      <div class="modal-footer">
-        <div class="modal-footer-spacer"></div>
-        <button id="modal-favorite" class="favorite-btn" type="button" aria-pressed="false">
-          <span class="star">★</span>
-          <span id="modal-favorite-label">Favorite</span>
-        </button>
-
-        <button id="modal-play" class="primary-btn" type="button">
-          Play
-        </button>
-
       </div>
     </div>
   </div>
-<!-- ERROR POPUP -->
-<div id="error-overlay" class="error-overlay hidden" role="dialog" aria-modal="true">
-  <div class="error-popup">
-    <div class="error-title">Error</div>
 
-    <div id="error-content" class="error-content">
-      <!-- JS injects error text here -->
+  <!-- ERROR DIALOG -->
+  <div id="error-overlay" class="error-overlay hidden" role="dialog" aria-modal="true">
+    <div class="error-popup">
+      <div class="error-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="error-icon"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div id="error-title-el" class="error-title">Error</div>
+      </div>
+      <div id="error-content" class="error-content"></div>
+      <div class="error-footer">
+        <button id="copy-btn" class="icon-btn">Copy</button>
+        <button id="error-close" class="play-btn" type="button">Dismiss</button>
+      </div>
     </div>
-    <button id="copy-btn">Copy</button>
-
-    <button id="error-close" class="primary-btn error-close-btn" type="button">
-      Close
-    </button>
   </div>
-</div>
-  <script src="main.js"></script>
+
+  <script>
+/* =============================================================
+   Faceuro Games Hub — main.js  (rebuilt)
+   Features:
+   - /api/games + /api/featured fetching
+   - Featured carousel with snap tween + dots
+   - Tag filter + sort dropdowns
+   - Game grid (click → modal)
+   - Modal: play / favorite
+   - In-game: slide-down top bar (drag/pull-down reveals it,
+     auto-hides after 5 s of no interaction while showing)
+   - Error popup with copy
+   ============================================================= */
+
+(() => {
+  "use strict";
+
+  /* -------------------------------------------------------
+     CONFIG
+  ------------------------------------------------------- */
+  const ROOT_URL    = "https://home.faceurogames.net";
+  const API_GAMES   = "/api/games";
+  const API_FEATURED = "/api/featured";
+
+  const LS_FAVORITES = "hub_favorites_v1";
+  const LS_LAST_TAB  = "hub_last_tab_v1";
+
+  /* -------------------------------------------------------
+     DOM REFS
+  ------------------------------------------------------- */
+  const $ = id => document.getElementById(id);
+
+  const el = {
+    app:               $("app"),
+
+    // hub chrome
+    topBar:            $("top-bar"),
+    topTitle:          $("top-title"),
+    topSearch:         $("top-search"),
+    topSearchInput:    $("top-search-input"),
+    topSearchClear:    $("top-search-clear"),
+    backBtn:           $("back-button"),
+    refreshBtn:        $("refresh-button"),
+
+    // nav
+    navMain:           $("nav-main"),
+    navSearch:         $("nav-search"),
+    navFav:            $("nav-favorites"),
+    sideNav:           $("side-nav"),
+
+    // views
+    hubView:           $("hub-view"),
+    playerView:        $("player-view"),
+    gameFrame:         $("game-frame"),
+
+    // featured
+    featuredSection:   $("featured-section"),
+    featuredTrack:     $("featured-track"),
+    featuredDots:      $("featured-dots"),
+    featuredNextArrow: $("featured-next-indicator"),
+    featuredPrevArrow: $("featured-prev-indicator"),
+
+    // filters
+    typeBtn:           $("type-dropdown-button"),
+    typeLabel:         $("type-dropdown-label"),
+    typeMenu:          $("type-dropdown-menu"),
+    sortBtn:           $("sort-dropdown-button"),
+    sortLabel:         $("sort-dropdown-label"),
+    sortMenu:          $("sort-dropdown-menu"),
+
+    // grid
+    grid:              $("games-grid"),
+
+    // modal
+    modalOverlay:      $("modal-overlay"),
+    modal:             $("modal"),
+    modalClose:        $("modal-close"),
+    modalIcon:         $("modal-icon"),
+    modalHeroGlow:     $("modal-hero-glow"),
+    modalTitle:        $("modal-title"),
+    modalDesc:         $("modal-desc"),
+    modalTags:         $("modal-tags"),
+    modalMeta:         $("modal-meta"),
+    modalPlay:         $("modal-play"),
+    modalFavorite:     $("modal-favorite"),
+    modalFavoriteLabel: $("modal-favorite-label"),
+
+    // in-game top bar
+    gameTopbar:        $("game-topbar"),
+    gameTopbarTitle:   $("game-topbar-title"),
+    gameBackBtn:       $("game-back-btn"),
+    gameReloadBtn:     $("game-reload-btn"),
+    gtbToggle:         $("gtb-toggle"),
+
+    // error
+    errorOverlay:      $("error-overlay"),
+    errorTitleEl:      $("error-title-el"),
+    errorContent:      $("error-content"),
+    errorClose:        $("error-close"),
+    copyBtn:           $("copy-btn"),
+  };
+
+  /* -------------------------------------------------------
+     STATE
+  ------------------------------------------------------- */
+  let allGames     = [];
+  let featuredGames = [];
+  let activeTab    = "main";
+  let searchQuery  = "";
+  let selectedType = "All";
+  let selectedSort = "ABC_ASC";
+  let modalGame    = null;
+  let isPlaying    = false;
+  let currentGame  = null;
+  let _debugStr    = "";
+
+  /* -------------------------------------------------------
+     SORT OPTIONS
+  ------------------------------------------------------- */
+  const SORTS = [
+    { id: "ABC_ASC",      label: "A–Z" },
+    { id: "ABC_DESC",     label: "Z–A" },
+    { id: "RELEASE_DESC", label: "Newest Release" },
+    { id: "RELEASE_ASC",  label: "Oldest Release" },
+    { id: "UPDATE_DESC",  label: "Recently Updated" },
+    { id: "UPDATE_ASC",   label: "Least Updated" },
+    { id: "PLAYS_DESC",   label: "Most Played" },
+    { id: "PLAYS_ASC",    label: "Least Played" },
+    { id: "FAV_DESC",     label: "Most Favorited" },
+    { id: "FAV_ASC",      label: "Least Favorited" },
+  ];
+
+  /* -------------------------------------------------------
+     HELPERS
+  ------------------------------------------------------- */
+  const safeArr  = v => Array.isArray(v) ? v : [];
+  const lower    = v => (v ?? "").toString().toLowerCase();
+  const num      = v => { const n = Number(v); return isFinite(n) ? n : 0; };
+  const clamp    = (n, a, b) => Math.max(a, Math.min(b, n));
+  const esc      = s => (s ?? "").toString()
+    .replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+
+  function dateMs(v) {
+    if (typeof v === "number") return isFinite(v) ? v : 0;
+    if (!v) return 0;
+    const t = Date.parse(v);
+    return isFinite(t) ? t : 0;
+  }
+
+  function fmtDate(v) {
+    if (!v) return "—";
+    const d = new Date(Date.parse(v));
+    if (isNaN(d.getTime())) return String(v);
+    return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  }
+
+
+  const DEV_PROGRESS = {
+    poc:      { label: "POC",      title: "Proof of Concept", icon: "◇" },
+    demo:     { label: "Demo",     title: "Playable Demo",    icon: "▶" },
+    alpha:    { label: "Alpha",    title: "Alpha Build",      icon: "⚒" },
+    beta:     { label: "Beta",     title: "Beta Build",       icon: "◆" },
+    finished: { label: "Finished", title: "Finished",         icon: "✓" },
+  };
+
+  function normalizeDevProgress(v) {
+    const key = lower(v).trim().replace(/\s+/g, "_").replaceAll("-", "_");
+    if (key === "proof_of_concept") return "poc";
+    return DEV_PROGRESS[key] ? key : "";
+  }
+
+  function devProgressHtml(value, extraClass = "") {
+    const key = normalizeDevProgress(value);
+    if (!key) return "";
+    const d = DEV_PROGRESS[key];
+    return `<div class="dev-progress-badge dev-progress-${key}${extraClass ? ` ${extraClass}` : ""}" title="${esc(d.title)}" aria-label="${esc(d.title)}"><span class="dev-progress-icon">${esc(d.icon)}</span><span class="dev-progress-label">${esc(d.label)}</span></div>`;
+  }
+
+  /* -------------------------------------------------------
+     FAVORITES
+  ------------------------------------------------------- */
+  function getFavs() {
+    try { const a = JSON.parse(localStorage.getItem(LS_FAVORITES) || "[]"); return new Set(Array.isArray(a) ? a : []); }
+    catch { return new Set(); }
+  }
+  function saveFavs(set) { localStorage.setItem(LS_FAVORITES, JSON.stringify([...set])); }
+  function isFav(id)     { return getFavs().has(id); }
+  function toggleFav(id) { const s = getFavs(); s.has(id) ? s.delete(id) : s.add(id); saveFavs(s); }
+
+  /* -------------------------------------------------------
+     DATA FETCH
+  ------------------------------------------------------- */
+  async function fetchJson(url) {
+    const r = await fetch(ROOT_URL + url, { cache: "no-store" });
+    if (!r.ok) throw new Error(`HTTP ${r.status} — ${url}`);
+    return r.json();
+  }
+
+  async function loadAll() {
+    const [raw, feat] = await Promise.all([
+      fetchJson(API_GAMES),
+      fetchJson(API_FEATURED),
+    ]);
+
+    allGames      = normalizeGames(raw);
+    featuredGames = resolveFeatured(feat, allGames);
+
+    buildTypeDropdown(buildTags(allGames));
+    buildSortDropdown();
+    renderFeatured(featuredGames);
+    renderCurrentView();
+  }
+
+  function normalizeGames(raw) {
+    return safeArr(raw).map((g, i) => {
+      const id = (g.id ?? g.slug ?? g.path ?? g.gameId ?? `game_${i}`).toString();
+      const rawIcon = g.icon ?? g.thumbnail ?? null;
+      let icon = "";
+      if (rawIcon) {
+        icon = (rawIcon.startsWith("http") || rawIcon.startsWith("/"))
+          ? rawIcon
+          : `${ROOT_URL}/games/${id}/${rawIcon}`;
+        // make absolute
+        if (icon.startsWith("/")) icon = ROOT_URL + icon;
+      }
+      return {
+        id,
+        name:           (g.name ?? "Untitled").toString(),
+        desc:           (g.desc ?? g.description ?? "").toString(),
+        icon,
+        tags:           safeArr(g.tags).map(t => t.toString()),
+        releaseDate:    g.releaseDate ?? g.released ?? "",
+        lastUpdate:     g.lastUpdate  ?? g.updated  ?? "",
+        totalPlays:     num(g.totalPlays     ?? g.plays),
+        totalFavorites: num(g.totalFavorites ?? g.favorites),
+        playUrl:        (g.playUrl ?? g.url ?? g.route ?? "").toString(),
+        devProgress:    normalizeDevProgress(g.devProgress ?? g.developmentProgress ?? g.status ?? ""),
+      };
+    });
+  }
+
+  function resolveFeatured(raw, games) {
+    let list = raw;
+    if (!Array.isArray(list) && raw && typeof raw === "object") {
+      list = Array.isArray(raw.games) ? raw.games
+           : Array.isArray(raw.featured) ? raw.featured
+           : [];
+    }
+    if (!Array.isArray(list)) return [];
+
+    const byId   = new Map(games.map(g => [g.id, g]));
+    const byPath = new Map(games.map(g => [lower(g.playUrl || g.id), g]));
+
+    return list.flatMap(item => {
+      if (typeof item === "string") {
+        const g = byId.get(item) || byPath.get(lower(item));
+        return g ? [g] : [];
+      }
+      if (item && typeof item === "object") {
+        const key = (item.id ?? item.slug ?? item.path ?? item.playUrl ?? "").toString();
+        const g = byId.get(key) || byPath.get(lower(key));
+        if (g) return [g];
+        return [normalizeGames([item])[0]];
+      }
+      return [];
+    });
+  }
+
+  function buildTags(games) {
+    const set = new Set();
+    for (const g of games) for (const t of safeArr(g.tags)) if (t.trim()) set.add(t.trim());
+    return ["All", ...[...set].sort((a,b) => a.localeCompare(b))];
+  }
+
+  /* -------------------------------------------------------
+     FEATURED CAROUSEL
+  ------------------------------------------------------- */
+  let snapTimer = null;
+  let snapping  = false;
+  let _activeDotIdx = 0;
+
+  function renderFeatured(list) {
+    const track = el.featuredTrack;
+    const dots  = el.featuredDots;
+    track.innerHTML = "";
+    dots.innerHTML  = "";
+
+    if (!list.length) {
+      el.featuredSection.classList.add("hidden");
+      return;
+    }
+    el.featuredSection.classList.remove("hidden");
+
+    // render dots
+    list.forEach((_, i) => {
+      const d = document.createElement("div");
+      d.className = "featured-dot" + (i === 0 ? " is-active" : "");
+      dots.appendChild(d);
+    });
+
+    // render cards
+    list.forEach(g => {
+      const card = document.createElement("div");
+      card.className = "featured-card";
+      card.setAttribute("role", "listitem");
+      card.dataset.gameId = g.id;
+
+      const iconCol = document.createElement("div");
+      iconCol.className = "featured-icon-col";
+
+      const iconWrap = document.createElement("div");
+      iconWrap.className = "featured-icon-wrap";
+      const img = document.createElement("img");
+      img.alt = g.name;
+      img.src = g.icon || "";
+      img.onerror = () => { img.style.display = "none"; };
+      iconWrap.appendChild(img);
+      const featuredBadgeWrap = document.createElement("div");
+      featuredBadgeWrap.innerHTML = devProgressHtml(g.devProgress, "dev-progress-featured");
+      if (featuredBadgeWrap.firstElementChild) iconWrap.appendChild(featuredBadgeWrap.firstElementChild);
+
+      const playBtn = document.createElement("button");
+      playBtn.className = "featured-play-btn";
+      playBtn.type = "button";
+      playBtn.textContent = "Play";
+      playBtn.addEventListener("click", e => { e.stopPropagation(); enterGame(g); });
+
+      iconCol.appendChild(iconWrap);
+      iconCol.appendChild(playBtn);
+
+      const info = document.createElement("div");
+      info.className = "featured-info";
+      info.innerHTML = `
+        <div class="featured-title">${esc(g.name)}</div>
+        <div class="featured-desc">${esc(g.desc)}</div>
+        <div class="featured-tag-row">${g.tags.slice(0,4).map(t=>`<div class="pill">${esc(t)}</div>`).join("")}</div>
+      `;
+
+      card.appendChild(iconCol);
+      card.appendChild(info);
+      card.addEventListener("click", () => openModal(g));
+      track.appendChild(card);
+    });
+
+    updateFeaturedArrows();
+    updateDots();
+
+    track.addEventListener("scroll", onFeaturedScroll, { passive: true });
+  }
+
+  function onFeaturedScroll() {
+    if (!snapping) scheduleSnap();
+    updateFeaturedArrows();
+    updateDots();
+  }
+
+  function updateFeaturedArrows() {
+    const t = el.featuredTrack;
+    if (!t) return;
+    const maxScroll = t.scrollWidth - t.clientWidth;
+    el.featuredNextArrow.classList.toggle("is-hidden", t.scrollLeft >= maxScroll - 2);
+    el.featuredPrevArrow.classList.toggle("is-hidden", t.scrollLeft <= 2);
+  }
+
+  function updateDots() {
+    const t = el.featuredTrack;
+    const cards = t.querySelectorAll(".featured-card");
+    if (!cards.length) return;
+    // find card whose left edge is closest to scrollLeft
+    let best = 0, bestDist = Infinity;
+    cards.forEach((c, i) => {
+      const dist = Math.abs(c.offsetLeft - t.scrollLeft);
+      if (dist < bestDist) { bestDist = dist; best = i; }
+    });
+    if (best === _activeDotIdx) return;
+    _activeDotIdx = best;
+    el.featuredDots.querySelectorAll(".featured-dot").forEach((d, i) => {
+      d.classList.toggle("is-active", i === best);
+    });
+  }
+
+  function scheduleSnap() {
+    if (snapTimer) clearTimeout(snapTimer);
+    snapTimer = setTimeout(snapToNearest, 140);
+  }
+
+  function snapToNearest() {
+    const t = el.featuredTrack;
+    if (!t) return;
+    const cards = [...t.querySelectorAll(".featured-card")];
+    if (!cards.length) return;
+    const left = t.scrollLeft;
+    let best = { dist: Infinity, target: left };
+    for (const c of cards) {
+      const dist = Math.abs(c.offsetLeft - left);
+      if (dist < best.dist) best = { dist, target: c.offsetLeft };
+    }
+    tweenScroll(t, best.target, 240);
+  }
+
+  function tweenScroll(el, to, ms) {
+    const from = el.scrollLeft;
+    const diff = to - from;
+    if (Math.abs(diff) < 1) return;
+    const start = performance.now();
+    snapping = true;
+    function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+    function step(now) {
+      const t = clamp((now - start) / ms, 0, 1);
+      el.scrollLeft = from + diff * easeOutCubic(t);
+      if (t < 1) requestAnimationFrame(step);
+      else { snapping = false; updateFeaturedArrows(); updateDots(); }
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* -------------------------------------------------------
+     DROPDOWNS
+  ------------------------------------------------------- */
+  function closeAllDropdowns() {
+    el.typeMenu.classList.add("hidden");
+    el.sortMenu.classList.add("hidden");
+    el.typeBtn.setAttribute("aria-expanded", "false");
+    el.sortBtn.setAttribute("aria-expanded", "false");
+  }
+
+  function buildTypeDropdown(tags) {
+    el.typeMenu.innerHTML = "";
+    for (const tag of tags) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "dropdown-item" + (tag === selectedType ? " is-active" : "");
+      b.textContent = tag;
+      b.addEventListener("click", () => {
+        selectedType = tag;
+        el.typeLabel.textContent = tag;
+        closeAllDropdowns();
+        renderCurrentView();
+      });
+      el.typeMenu.appendChild(b);
+    }
+  }
+
+  function buildSortDropdown() {
+    el.sortMenu.innerHTML = "";
+    for (const s of SORTS) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "dropdown-item" + (s.id === selectedSort ? " is-active" : "");
+      b.textContent = s.label;
+      b.addEventListener("click", () => {
+        selectedSort = s.id;
+        el.sortLabel.textContent = s.label;
+        closeAllDropdowns();
+        renderCurrentView();
+      });
+      el.sortMenu.appendChild(b);
+    }
+    syncSortLabel();
+  }
+
+  function syncSortLabel() {
+    const s = SORTS.find(x => x.id === selectedSort) || SORTS[0];
+    el.sortLabel.textContent = s.label;
+  }
+
+  function syncDropdownActives() {
+    el.typeMenu.querySelectorAll(".dropdown-item").forEach(b =>
+      b.classList.toggle("is-active", b.textContent === selectedType));
+    const lbl = (SORTS.find(s => s.id === selectedSort) || SORTS[0]).label;
+    el.sortMenu.querySelectorAll(".dropdown-item").forEach(b =>
+      b.classList.toggle("is-active", b.textContent === lbl));
+  }
+
+  /* -------------------------------------------------------
+     GAME GRID
+  ------------------------------------------------------- */
+  function getFilteredSorted() {
+    let list = allGames.slice();
+
+    if (activeTab === "favorites") {
+      const favs = getFavs();
+      list = list.filter(g => favs.has(g.id));
+    }
+    if (activeTab === "search" && searchQuery.trim()) {
+      const q = lower(searchQuery.trim());
+      list = list.filter(g => lower(g.name).includes(q) || lower(g.desc).includes(q));
+    }
+    if (selectedType && selectedType !== "All") {
+      const want = selectedType.toLowerCase();
+      list = list.filter(g => safeArr(g.tags).some(t => t.toLowerCase() === want));
+    }
+
+    list.sort((a, b) => compare(a, b, selectedSort));
+    return list;
+  }
+
+  function compare(a, b, sortId) {
+    switch (sortId) {
+      case "ABC_ASC":      return a.name.localeCompare(b.name);
+      case "ABC_DESC":     return b.name.localeCompare(a.name);
+      case "RELEASE_ASC":  return dateMs(a.releaseDate) - dateMs(b.releaseDate) || a.name.localeCompare(b.name);
+      case "RELEASE_DESC": return dateMs(b.releaseDate) - dateMs(a.releaseDate) || a.name.localeCompare(b.name);
+      case "UPDATE_ASC":   return dateMs(a.lastUpdate)  - dateMs(b.lastUpdate)  || a.name.localeCompare(b.name);
+      case "UPDATE_DESC":  return dateMs(b.lastUpdate)  - dateMs(a.lastUpdate)  || a.name.localeCompare(b.name);
+      case "PLAYS_ASC":    return num(a.totalPlays)     - num(b.totalPlays)     || a.name.localeCompare(b.name);
+      case "PLAYS_DESC":   return num(b.totalPlays)     - num(a.totalPlays)     || a.name.localeCompare(b.name);
+      case "FAV_ASC":      return num(a.totalFavorites) - num(b.totalFavorites) || a.name.localeCompare(b.name);
+      case "FAV_DESC":     return num(b.totalFavorites) - num(a.totalFavorites) || a.name.localeCompare(b.name);
+      default:             return a.name.localeCompare(b.name);
+    }
+  }
+
+  function renderCurrentView() {
+    // show/hide featured only on main tab
+    el.featuredSection.classList.toggle("hidden", activeTab !== "main" || !featuredGames.length);
+    renderGrid(getFilteredSorted());
+    syncDropdownActives();
+  }
+
+  function renderGrid(list) {
+    const grid = el.grid;
+    grid.innerHTML = "";
+
+    if (!list.length) {
+      const empty = document.createElement("div");
+      empty.className = "grid-empty";
+      empty.textContent = activeTab === "favorites" ? "No favorites yet." : "No games match.";
+      grid.appendChild(empty);
+      return;
+    }
+
+    for (const g of list) {
+      const card = document.createElement("div");
+      card.className = "game-card";
+      card.dataset.gameId = g.id;
+      console.log(g)
+      const img = document.createElement("img");
+      img.className = "game-card-icon";
+      img.alt = g.name;
+      img.src = g.icon || "";
+      img.onerror = () => { img.style.background = "rgba(255,255,255,0.04)"; };
+
+      const badgeWrap = document.createElement("div");
+      badgeWrap.innerHTML = devProgressHtml(g.devProgress);
+      const badge = badgeWrap.firstElementChild;
+
+      const footer = document.createElement("div");
+      footer.className = "game-card-footer";
+
+      const name = document.createElement("div");
+      name.className = "game-card-name";
+      name.textContent = g.name;
+
+      const tag = document.createElement("div");
+      tag.className = "game-card-tag";
+      tag.textContent = g.tags[0] ?? "";
+
+      footer.appendChild(name);
+      footer.appendChild(tag);
+      card.appendChild(img);
+      if (badge) card.appendChild(badge);
+      card.appendChild(footer);
+      card.addEventListener("click", () => openModal(g));
+      grid.appendChild(card);
+    }
+  }
+
+  /* -------------------------------------------------------
+     MODAL
+  ------------------------------------------------------- */
+  function openModal(game) {
+    modalGame = game;
+
+    el.modalIcon.src = game.icon || "";
+    el.modalIcon.alt = game.name;
+
+    // hero glow — use icon as blurred bg
+    if (game.icon) {
+      el.modalHeroGlow.style.backgroundImage = `url(${game.icon})`;
+    } else {
+      el.modalHeroGlow.style.backgroundImage = "";
+    }
+
+    el.modalTitle.innerHTML = `<span>${esc(game.name)}</span>${devProgressHtml(game.devProgress, "dev-progress-modal")}`;
+    el.modalDesc.textContent  = game.desc || "";
+
+    // tags
+    el.modalTags.innerHTML = safeArr(game.tags)
+      .map(t => `<div class="pill">${esc(t)}</div>`).join("");
+
+    // meta rows
+    const rows = [
+      ["Release Date",   fmtDate(game.releaseDate)],
+      ["Last Update",    fmtDate(game.lastUpdate)],
+      ...(game.devProgress ? [["Development", DEV_PROGRESS[game.devProgress]?.title || game.devProgress]] : []),
+      ["Total Plays",    String(num(game.totalPlays))],
+      ["Total Favorites",String(num(game.totalFavorites))],
+    ];
+    el.modalMeta.innerHTML = rows.map(([k, v]) =>
+      `<div class="meta-row"><div class="meta-key">${esc(k)}</div><div class="meta-val">${esc(v)}</div></div>`
+    ).join("");
+
+    syncModalFav(game);
+    el.modalOverlay.classList.remove("hidden");
+    el.modalOverlay.addEventListener("click", onOverlayBg);
+  }
+
+  function onOverlayBg(e) { if (e.target === el.modalOverlay) closeModal(); }
+
+  function closeModal() {
+    el.modalOverlay.classList.add("hidden");
+    el.modalOverlay.removeEventListener("click", onOverlayBg);
+    modalGame = null;
+  }
+
+  function syncModalFav(game) {
+    const fav = isFav(game.id);
+    el.modalFavorite.classList.toggle("is-favorited", fav);
+    el.modalFavorite.setAttribute("aria-pressed", String(fav));
+    el.modalFavoriteLabel.textContent = fav ? "Favorited" : "Favorite";
+  }
+
+  /* -------------------------------------------------------
+     TABS
+  ------------------------------------------------------- */
+  function setTab(tab) {
+    activeTab = tab;
+
+    el.navMain.classList.toggle("is-active",   tab === "main");
+    el.navSearch.classList.toggle("is-active", tab === "search");
+    el.navFav.classList.toggle("is-active",    tab === "favorites");
+
+    const isSearch = tab === "search";
+    el.topTitle.classList.toggle("hidden",      isSearch);
+    el.topSearch.classList.toggle("hidden",    !isSearch);
+
+    if (isSearch) {
+      el.topSearchInput.value = searchQuery;
+      requestAnimationFrame(() => {
+        el.topSearchInput.focus({ preventScroll: true });
+        const v = el.topSearchInput.value;
+        el.topSearchInput.setSelectionRange(v.length, v.length);
+      });
+    }
+
+    localStorage.setItem(LS_LAST_TAB, tab);
+    renderCurrentView();
+  }
+
+  /* -------------------------------------------------------
+     GAME PLAY
+  ------------------------------------------------------- */
+  function buildGameUrl(game) {
+    let url = (game.playUrl && game.playUrl.trim())
+      ? game.playUrl.trim()
+      : `/${encodeURIComponent(game.id)}/`;
+    try { url = new URL(url, ROOT_URL).toString(); } catch {}
+    // force https for own domain
+    try {
+      const u = new URL(url);
+      if ((u.hostname === "home.faceurogames.net" || u.hostname.endsWith(".faceurogames.net")) && u.protocol === "http:") {
+        u.protocol = "https:";
+        url = u.toString();
+      }
+    } catch {}
+    return url;
+  }
+
+  function enterGame(game) {
+    if (!game) return;
+    closeModal();
+    closeAllDropdowns();
+
+    isPlaying   = true;
+    currentGame = game;
+
+    el.app.classList.add("is-playing");
+
+    el.hubView.classList.add("hidden");
+    el.playerView.classList.remove("hidden");
+
+    el.gameTopbarTitle.textContent = game.name || "Game";
+
+    el.gameFrame.src = buildGameUrl(game);
+    el.gameFrame.title = game.name || "Game";
+
+    // reset topbar
+    hideGameTopbar();
+    setupTopbarGesture();
+  }
+
+  function exitGame() {
+    isPlaying   = false;
+    currentGame = null;
+
+    el.app.classList.remove("is-playing");
+
+    el.gameFrame.src = "about:blank";
+
+    el.playerView.classList.add("hidden");
+    el.hubView.classList.remove("hidden");
+
+    teardownTopbarGesture();
+    hideGameTopbar();
+
+    // restore top bar state
+    const isSearch = activeTab === "search";
+    el.topTitle.classList.toggle("hidden",  isSearch);
+    el.topSearch.classList.toggle("hidden", !isSearch);
+    if (!isSearch) el.topTitle.textContent = "Faceuro\u00a0Games"; // non-breaking space
+
+    renderCurrentView();
+  }
+
+  /* -------------------------------------------------------
+     FLOATING TOGGLE BUTTON + GAME TOPBAR
+  ------------------------------------------------------- */
+  let _gtbVisible        = false;
+  let _gtbHideTimer      = null;
+  let _gtbMoveButtonBack = false;  // animate button back after bar hides?
+  let _gtbPrevPos        = null;   // { left, top } relative to player-view in px
+
+  const GTB_AUTO_HIDE_MS = 5000;
+
+  function getTopbarHeight() {
+    return el.gameTopbar.querySelector(".game-topbar-inner").offsetHeight || 50;
+  }
+
+  function btnIsInTopbarArea() {
+    const pv  = el.playerView.getBoundingClientRect();
+    const br  = el.gtbToggle.getBoundingClientRect();
+    return (br.top - pv.top) < getTopbarHeight();
+  }
+
+  function animateBtnTop(newTop) {
+    const btn = el.gtbToggle;
+    btn.style.transition = "top 0.28s cubic-bezier(0.32,0,0.24,1)";
+    btn.style.top = newTop + "px";
+    btn.addEventListener("transitionend", () => { btn.style.transition = ""; }, { once: true });
+  }
+
+  function showGameTopbar() {
+    el.gameTopbar.classList.add("is-visible");
+    el.gtbToggle.classList.add("is-open");
+    _gtbVisible = true;
+    scheduleGtbHide();
+  }
+
+  function hideGameTopbar() {
+    el.gameTopbar.classList.remove("is-visible");
+    el.gtbToggle.classList.remove("is-open");
+    _gtbVisible = false;
+    if (_gtbHideTimer) { clearTimeout(_gtbHideTimer); _gtbHideTimer = null; }
+
+    if (_gtbMoveButtonBack && _gtbPrevPos !== null) {
+      animateBtnTop(_gtbPrevPos.top);
+      _gtbMoveButtonBack = false;
+      _gtbPrevPos = null;
+    }
+  }
+
+  function toggleGameTopbar() {
+    if (_gtbVisible) {
+      hideGameTopbar();
+    } else {
+      if (btnIsInTopbarArea()) {
+        const btn = el.gtbToggle;
+        const pv  = el.playerView.getBoundingClientRect();
+        const br  = btn.getBoundingClientRect();
+        _gtbPrevPos = { left: br.left - pv.left, top: br.top - pv.top };
+        _gtbMoveButtonBack = true;
+        // Pin left as px and start top from current position before animating
+        btn.style.left      = _gtbPrevPos.left + "px";
+        btn.style.transform = "none";
+        btn.style.top       = _gtbPrevPos.top  + "px";
+        requestAnimationFrame(() => animateBtnTop(getTopbarHeight() + 8));
+      }
+      showGameTopbar();
+    }
+  }
+
+  function scheduleGtbHide() {
+    if (_gtbHideTimer) clearTimeout(_gtbHideTimer);
+    _gtbHideTimer = setTimeout(hideGameTopbar, GTB_AUTO_HIDE_MS);
+  }
+
+  function setupTopbarGesture() {
+    el.gtbToggle.addEventListener("click", toggleGameTopbar);
+    el.gameTopbar.addEventListener("pointerenter", () => { if (_gtbVisible) scheduleGtbHide(); }, { passive: true });
+
+    let dragReady = false, dragging = false, startX, startY, origLeft, origTop, didMove;
+    let dragHoldTimer = null;
+    const btn = el.gtbToggle;
+    const DRAG_HOLD_MS = 120;
+
+    function onDragStart(e) {
+      const pt   = e.touches ? e.touches[0] : e;
+      const rect = btn.getBoundingClientRect();
+      const pv   = el.playerView.getBoundingClientRect();
+      startX   = pt.clientX; startY   = pt.clientY;
+      origLeft = rect.left - pv.left;
+      origTop  = rect.top  - pv.top;
+      dragReady = false; dragging = false; didMove = false;
+      dragHoldTimer = setTimeout(() => {
+        dragReady = true;
+        btn.style.transition = "none";
+        btn.style.left      = origLeft + "px";
+        btn.style.top       = origTop  + "px";
+        btn.style.transform = "none";
+      }, DRAG_HOLD_MS);
+    }
+    function onDragMove(e) {
+      if (!dragReady) return;
+      const pt = e.touches ? e.touches[0] : e;
+      const dx = pt.clientX - startX, dy = pt.clientY - startY;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+        if (!dragging) dragging = true;
+        _gtbMoveButtonBack = false;
+        _gtbPrevPos = null;
+      }
+      if (!dragging) return;
+      didMove = true;
+      const pv = el.playerView.getBoundingClientRect();
+      const bw = btn.offsetWidth, bh = btn.offsetHeight;
+      btn.style.left = clamp(origLeft + dx, 0, pv.width  - bw) + "px";
+      btn.style.top  = clamp(origTop  + dy, 0, pv.height - bh) + "px";
+    }
+    function onDragEnd() {
+      clearTimeout(dragHoldTimer);
+      dragHoldTimer = null;
+      dragReady = false;
+      if (!dragging) return;
+      dragging = false;
+      btn.style.transition = "";
+      if (didMove) {
+        btn.addEventListener("click", e => e.stopImmediatePropagation(), { once: true, capture: true });
+      }
+    }
+
+    btn.addEventListener("pointerdown",    onDragStart, false);
+    window.addEventListener("pointermove", onDragMove,  { passive: true });
+    window.addEventListener("pointerup",   onDragEnd,   false);
+  }
+
+  function teardownTopbarGesture() {
+    el.gtbToggle.removeEventListener("click", toggleGameTopbar);
+    if (_gtbHideTimer) { clearTimeout(_gtbHideTimer); _gtbHideTimer = null; }
+    _gtbMoveButtonBack = false;
+    _gtbPrevPos = null;
+    const btn = el.gtbToggle;
+    btn.style.left = btn.style.top = btn.style.transform = btn.style.transition = "";
+  }
+
+  /* -------------------------------------------------------
+     ERROR POPUP
+  ------------------------------------------------------- */
+  function showError(msg, title = "Error") {
+    el.errorTitleEl.textContent = title;
+    el.errorContent.textContent = msg ?? "Unknown error.";
+    _debugStr = msg ?? "";
+    el.errorOverlay.classList.remove("hidden");
+  }
+
+  function hideError() { el.errorOverlay.classList.add("hidden"); }
+
+  /* -------------------------------------------------------
+     EVENTS
+  ------------------------------------------------------- */
+  function wireEvents() {
+    // nav
+    el.navMain.addEventListener("click",   () => setTab("main"));
+    el.navSearch.addEventListener("click", () => setTab("search"));
+    el.navFav.addEventListener("click",    () => setTab("favorites"));
+
+    // top bar buttons (hub)
+    el.refreshBtn.addEventListener("click", () => {
+      closeAllDropdowns();
+      closeModal();
+      loadAll().catch(err => showError(String(err), "Load Error"));
+    });
+    el.backBtn.addEventListener("click", () => exitGame());  // (not used in new design but kept for safety)
+
+    // search input
+    el.topSearchInput.addEventListener("input", () => {
+      searchQuery = el.topSearchInput.value;
+      renderCurrentView();
+    });
+    el.topSearchClear.addEventListener("click", () => {
+      searchQuery = "";
+      el.topSearchInput.value = "";
+      renderCurrentView();
+      el.topSearchInput.focus({ preventScroll: true });
+    });
+
+    // dropdowns
+    el.typeBtn.addEventListener("click", e => {
+      e.stopPropagation();
+      const open = !el.typeMenu.classList.contains("hidden");
+      closeAllDropdowns();
+      if (!open) {
+        el.typeMenu.classList.remove("hidden");
+        el.typeBtn.setAttribute("aria-expanded", "true");
+      }
+    });
+    el.sortBtn.addEventListener("click", e => {
+      e.stopPropagation();
+      const open = !el.sortMenu.classList.contains("hidden");
+      closeAllDropdowns();
+      if (!open) {
+        el.sortMenu.classList.remove("hidden");
+        el.sortBtn.setAttribute("aria-expanded", "true");
+      }
+    });
+    window.addEventListener("click", () => closeAllDropdowns());
+
+    // modal
+    el.modalClose.addEventListener("click", closeModal);
+    el.modalPlay.addEventListener("click", () => { if (modalGame) enterGame(modalGame); });
+    el.modalFavorite.addEventListener("click", () => {
+      if (!modalGame) return;
+      toggleFav(modalGame.id);
+      syncModalFav(modalGame);
+      renderCurrentView();
+    });
+
+    // in-game topbar buttons
+    el.gameBackBtn.addEventListener("click", () => exitGame());
+    el.gameReloadBtn.addEventListener("click", () => {
+      if (currentGame) {
+        el.gameFrame.src = buildGameUrl(currentGame);
+        hideGameTopbar();
+      }
+    });
+
+    // ESC
+    window.addEventListener("keydown", e => {
+      if (e.key === "Escape") {
+        closeAllDropdowns();
+        if (!el.modalOverlay.classList.contains("hidden")) closeModal();
+      }
+    });
+
+    // error dialog
+    el.errorClose.addEventListener("click", hideError);
+    el.copyBtn.addEventListener("click", () => {
+      navigator.clipboard.writeText(_debugStr).catch(() => {});
+    });
+    el.errorOverlay.addEventListener("click", e => { if (e.target === el.errorOverlay) hideError(); });
+  }
+
+  /* -------------------------------------------------------
+     BOOT
+  ------------------------------------------------------- */
+  function boot() {
+    syncSortLabel();
+    wireEvents();
+
+    setTab("main");
+
+    loadAll().catch(err => {
+      console.error("Hub load failed:", err);
+      el.grid.innerHTML = `<div class="grid-empty">Couldn't load games. Check your API endpoints.</div>`;
+    });
+  }
+
+  boot();
+
+})();
+
+  </script>
 </body>
 </html>
