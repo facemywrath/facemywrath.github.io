@@ -17,12 +17,12 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 body {
-  margin-top: 13%;
-  margin-bottom: 22%;
+  padding-top: env(safe-area-inset-top, 13%);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   font-family: 'DM Sans', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
-  overflow: hidden; /* outer shell never scrolls */
+  overflow: hidden;
 }
 img { max-width: 100%; display: block; }
 button { font: inherit; cursor: pointer; }
@@ -70,7 +70,7 @@ body {
    ================================================ */
 
 .app-shell {
-  height: 100dvh;
+  height: 100%;
   display: grid;
   grid-template-columns: var(--nav-w) 1fr;
   overflow: hidden;
